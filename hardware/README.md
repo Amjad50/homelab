@@ -48,7 +48,7 @@ These files serve as:
 sudo ./install-nixos.sh /dev/sda
 
 # Deploy your configuration (excludes hardware config)
-./deploy.sh user@new-system
+./deploy.sh server user@new-system
 ```
 
 ### For Existing Systems
@@ -57,7 +57,7 @@ sudo ./install-nixos.sh /dev/sda
 sudo nixos-generate-config --force
 
 # Deploy configuration updates
-./deploy.sh user@existing-system
+./deploy.sh server user@existing-system
 ```
 
 ## Adding New Hardware Profiles

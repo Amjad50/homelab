@@ -66,8 +66,7 @@ Edit files in `machines/MACHINE/` and redeploy specific machine:
 ### Deployment Commands
 ```bash
 # Deploy specific machine
-./deploy.sh user@server1 myserver
+./deploy.sh myserver user@server1
 
-# Deploy different machine  
-./deploy.sh user@server2 server2
-```
+# Deploy different machine
+./deploy.sh server2 user@server2

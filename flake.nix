@@ -9,11 +9,11 @@
     { self, nixpkgs }:
     {
       nixosConfigurations = {
-        myserver = nixpkgs.lib.nixosSystem {
+        vm-testing = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           modules = [
             ./common/configuration.nix
-            ./machines/myserver/configuration.nix
+            ./machines/vm-testing/configuration.nix
           ];
         };
         

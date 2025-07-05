@@ -78,10 +78,10 @@ ssh amjad@<server-ip>
 ### 3. Deploy Configuration
 ```bash
 # From your development machine
-./deploy.sh amjad@<server-ip> myserver
+./deploy.sh myserver amjad@<server-ip>
 
 # For additional machines, specify the machine name
-./deploy.sh amjad@<server-ip> server2
+./deploy.sh server2 amjad@<server-ip>
 ```
 
 ## Security Features

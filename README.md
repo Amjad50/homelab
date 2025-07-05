@@ -6,7 +6,7 @@ Modular NixOS server configuration with Docker Compose services, Btrfs snapshots
 
 ```bash
 # Deploy to server
-./deploy.sh amjad@server
+./deploy.sh myserver amjad@server
 
 # Manage Docker Compose services
 compose-manage list
@@ -54,9 +54,9 @@ nixos-config/
 
 ### System Management
 ```bash
-./deploy.sh amjad@server1 myserver    # Deploy myserver config to server1
-./deploy.sh amjad@server2 server2     # Deploy server2 config to server2
-./deploy.sh                           # Deploy locally (if on NixOS)
+./deploy.sh myserver amjad@server1     # Deploy myserver config to server1
+./deploy.sh server2 amjad@server2      # Deploy server2 config to server2
+./deploy.sh myserver                   # Deploy myserver locally (if on NixOS)
 ```
 
 ### Docker Compose Services
@@ -89,7 +89,7 @@ compose-status               # Quick service overview
 1. Create directory: `mkdir machines/newserver`
 2. Add `machines/newserver/configuration.nix` with machine-specific settings
 3. Add machine to `flake.nix` nixosConfigurations
-4. Deploy: `./deploy.sh user@newserver newserver`
+4. Deploy: `./deploy.sh newserver user@newserver`
 
 ### Adding Docker Compose Services
 

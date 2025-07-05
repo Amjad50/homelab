@@ -1,13 +1,19 @@
 #!/bin/bash
 
-# Usage: ./deploy.sh [server]
+# Usage: ./deploy.sh <flake-name> [server]
 # If server is provided, deploy remotely via SSH
 # Otherwise, run locally
 
 set -e
 
-SERVER=$1
-FLAKE_NAME=${2:-"myserver"}
+FLAKE_NAME=$1
+SERVER=$2
+
+if [ -z "$FLAKE_NAME" ]; then
+    echo "Usage: $0 <flake-name> [server]"
+    echo "Example: $0 myserver user@remote-server"
+    exit 1
+fi
 
 if [ -n "$SERVER" ]; then
     echo "Deploying to remote server: $SERVER"
@@ -59,7 +65,7 @@ else
     # Check if we're on NixOS
     if [ ! -f /etc/nixos/configuration.nix ]; then
         echo "Error: This doesn't appear to be a NixOS system"
-        echo "Usage: $0 [server] - specify server for remote deployment"
+        echo "Usage: $0 <flake-name> [server] - specify server for remote deployment"
         exit 1
     fi
     
