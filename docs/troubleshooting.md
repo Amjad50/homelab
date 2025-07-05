@@ -54,22 +54,10 @@ sudo journalctl --vacuum-size=100M
 
 ## Docker Issues
 
-### Service Discovery Problems
-```bash
-# Check directory structure
-ls -la /home/amjad/docker-services/
-
-# Rediscover services
-compose-manage discover
-
-# Check permissions
-sudo chown -R amjad:docker /home/amjad/docker-services/
-```
-
 ### Container Issues
 ```bash
 # Check compose file
-cd /home/amjad/docker-services/service-name
+cd /opt/docker-services/service-name
 docker-compose config
 
 # View container logs

@@ -7,7 +7,7 @@
 - `services.nix` - SSH daemon, networking, fail2ban
 - `btrfs.nix` - Snapper snapshots, automatic scrubbing
 - `docker.nix` - Docker daemon with overlay2 storage
-- `compose-services.nix` - Auto-discovery system for Docker Compose
+- `compose-services.nix` - Docker Compose services management
 
 ## Key Configurations
 

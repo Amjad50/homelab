@@ -1,6 +1,6 @@
 # NixOS Server Configuration
 
-Modular NixOS server configuration with automatic Docker Compose service discovery, Btrfs snapshots, and security features.
+Modular NixOS server configuration with Docker Compose services, Btrfs snapshots, and security features.
 
 ## Quick Start
 
@@ -10,7 +10,6 @@ Modular NixOS server configuration with automatic Docker Compose service discove
 
 # Manage Docker Compose services
 compose-manage list
-compose-manage discover
 compose-manage start nginx
 ```
 
@@ -27,7 +26,7 @@ nixos-config/
 │   ├── services.nix         # SSH, networking, fail2ban
 │   ├── users.nix            # User accounts & SSH keys
 │   ├── docker.nix           # Docker configuration
-│   └── compose-services.nix # Auto-discovery system
+│   └── compose-services.nix # Docker Compose services
 ├── scripts/                 # External shell scripts
 ├── docs/                    # Detailed documentation
 └── deploy.sh               # Deployment script
@@ -38,7 +37,7 @@ nixos-config/
 - Modular configuration with separate concerns
 - Remote deployment via SSH
 - Btrfs subvolumes with automatic snapshots
-- Docker Compose auto-discovery and systemd integration
+- Docker Compose service management and systemd integration
 - Fail2ban with progressive banning
 - SSH key-only authentication
 - Firewall configuration
@@ -54,7 +53,6 @@ nixos-config/
 ### Docker Compose Services
 ```bash
 compose-manage list           # List all services and status
-compose-manage discover       # Auto-discover new services
 compose-manage start <service>    # Start a service
 compose-manage stop <service>     # Stop a service
 compose-manage restart <service>  # Restart a service
@@ -73,17 +71,15 @@ compose-manage ps [service]                          # Show containers
 ### Quick Status
 ```bash
 compose-status               # Quick service overview
-compose-discovery           # Manual service discovery
 ```
 
 ## Configuration
 
 ### Adding Docker Compose Services
 
-1. Create directory in `/home/amjad/docker-services/`
+1. Create directory in `/opt/docker-services/`
 2. Add `docker-compose.yml` file
-3. Run `compose-manage discover`
-4. Start with `compose-manage start <service-name>`
+3. Run `compose-manage start <service-name>`
 
 ### Module Structure
 
@@ -92,7 +88,7 @@ compose-discovery           # Manual service discovery
 - `modules/services.nix` - SSH, networking, fail2ban
 - `modules/btrfs.nix` - Snapshots, scrubbing
 - `modules/docker.nix` - Docker daemon configuration
-- `modules/compose-services.nix` - Auto-discovery system
+- `modules/compose-services.nix` - Docker Compose services
 
 ## 📚 Documentation
 

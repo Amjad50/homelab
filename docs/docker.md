@@ -1,13 +1,13 @@
 # Docker Compose Management
 
-## Auto-Discovery System
+## Services
 
-The system automatically discovers Docker Compose services in `/home/amjad/docker-services/`. Each directory with a `docker-compose.yml` becomes a systemd service named `docker-compose-<directory-name>`.
+The system manages Docker Compose services in `/opt/docker-services/`. Each directory with a `docker-compose.yml` becomes a systemd service named `docker-compose-<directory-name>`.
 
 ## Directory Structure
 
 ```
-/home/amjad/docker-services/
+/opt/docker-services/
 ├── nginx/
 │   └── docker-compose.yml
 ├── database/
@@ -19,8 +19,7 @@ The system automatically discovers Docker Compose services in `/home/amjad/docke
 ## Management Commands
 
 ```bash
-# Discovery
-compose-manage discover          # Scan for new services
+# Services
 compose-manage list             # List all services with status
 
 # Service control
@@ -40,10 +39,17 @@ compose-manage exec nginx web bash  # Execute in container
 
 ## Adding New Services
 
-1. Create directory: `mkdir /home/amjad/docker-services/myapp`
+1. Create directory: `mkdir /opt/docker-services/myapp`
 2. Add `docker-compose.yml` file
-3. Run `compose-manage discover`
-4. Start: `compose-manage start myapp`
+3. Modify `compose-services.nix` to include the new service
+    ```nix
+    services = [
+      "myapp"
+      ...
+    ]
+    ```
+4. Rebuild the system configuration: `sudo nixos-rebuild switch`
+5. Run `compose-manage start myapp`
 
 ## Service Integration
 
@@ -51,4 +57,4 @@ compose-manage exec nginx web bash  # Execute in container
 - Automatic restart on failure
 - Depends on docker.service
 - Logs via journald with rotation
-- User runs as `amjad:docker`
+- User runs as `dock:docker`

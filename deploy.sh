@@ -16,6 +16,12 @@ if [ -n "$SERVER" ]; then
     echo "Copying configuration files..."
     scp -r flake.nix configuration.nix hardware-configuration.nix modules/ scripts/ "$SERVER:/tmp/"
     
+    # Copy docker-services if it exists
+    if [ -d "docker-services" ]; then
+        echo "Copying docker-services..."
+        scp -r docker-services/ "$SERVER:/tmp/"
+    fi
+    
     # SSH and rebuild
     echo "Running nixos-rebuild on remote server..."
     ssh "$SERVER" "
@@ -23,6 +29,15 @@ if [ -n "$SERVER" ]; then
         sudo rm -rf /etc/nixos/modules /etc/nixos/scripts
         sudo mv /tmp/modules /etc/nixos/
         sudo mv /tmp/scripts /etc/nixos/
+        
+        # Move docker-services to /opt directory if it exists
+        if [ -d /tmp/docker-services ]; then
+            sudo mkdir -p /opt/docker-services
+            sudo cp -r /tmp/docker-services/* /opt/docker-services/
+            sudo chown -R dock:docker /opt/docker-services
+            sudo rm -rf /tmp/docker-services
+        fi
+        
         sudo nixos-rebuild switch --flake /etc/nixos#$FLAKE_NAME
     "
     
@@ -41,6 +56,14 @@ else
     sudo cp flake.nix configuration.nix hardware-configuration.nix /etc/nixos/
     sudo rm -rf /etc/nixos/modules /etc/nixos/scripts
     sudo cp -r modules scripts /etc/nixos/
+    
+    # Copy docker-services if it exists
+    if [ -d "docker-services" ]; then
+        sudo mkdir -p /opt/docker-services
+        sudo cp -r docker-services/* /opt/docker-services/
+        sudo chown -R dock:docker /opt/docker-services
+    fi
+    
     sudo nixos-rebuild switch --flake /etc/nixos#$FLAKE_NAME
     
     echo "Local deployment complete!"

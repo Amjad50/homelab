@@ -15,9 +15,17 @@ in
   # Define user accounts
   users.users.amjad = {
     isNormalUser = true;
-    extraGroups = [ "wheel" ];
+    extraGroups = [ "wheel" "docker" ];
     # Uncomment and add your SSH public key here
     openssh.authorizedKeys.keys = adminSshKeys;
+  };
+
+  users.users.dock = {
+    isNormalUser = true;
+    extraGroups = [ "docker" ];
+    description = "Docker services management user";
+    home = "/var/lib/dock";
+    createHome = true;
   };
 
   users.users.root = {

@@ -34,7 +34,4 @@
       flags = [ "--all" ];
     };
   };
-
-  # Add user to docker group
-  users.users.amjad.extraGroups = [ "docker" ];
 }

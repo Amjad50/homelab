@@ -1,6 +1,6 @@
 #!/bin/bash
 
-COMPOSE_ROOT="/home/amjad/docker-services"
+COMPOSE_ROOT="/opt/docker-services"
 
 # Colors for output
 RED='\033[0;31m'
@@ -9,17 +9,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Function to rediscover services
-rediscover_services() {
-  echo -e "${BLUE}Rediscovering services...${NC}"
-  sudo systemctl start compose-discovery
-  echo -e "${GREEN}Service discovery complete${NC}"
-}
-
 case "$1" in
-  discover)
-    rediscover_services
-    ;;
   list)
     echo -e "${BLUE}Available services in $COMPOSE_ROOT:${NC}"
     if [ -d "$COMPOSE_ROOT" ]; then
@@ -31,7 +21,7 @@ case "$1" in
             active) echo -e "  ${GREEN}✓${NC} $name (running)" ;;
             inactive) echo -e "  ${RED}✗${NC} $name (stopped)" ;;
             failed) echo -e "  ${RED}!${NC} $name (failed)" ;;
-            *) echo -e "  ${YELLOW}?${NC} $name (not configured - run 'compose-manage discover')" ;;
+            *) echo -e "  ${YELLOW}?${NC} $name (not configured)" ;;
           esac
         fi
       done
@@ -50,7 +40,7 @@ case "$1" in
         if [ -d "$service" ] && [ -f "$service/docker-compose.yml" ]; then
           name=$(basename "$service")
           echo -e "\n${YELLOW}=== $name ===${NC}"
-          systemctl status "docker-compose-$name" --no-pager -l || echo "Not configured - run 'compose-manage discover'"
+          systemctl status "docker-compose-$name" --no-pager -l || echo "Not configured"
         fi
       done
     fi
@@ -146,7 +136,6 @@ case "$1" in
     echo ""
     echo -e "${YELLOW}Service Management:${NC}"
     echo "  list                     - List all available services"
-    echo "  discover                 - Discover and register new services"
     echo "  status [service]         - Show status of service(s)"
     echo "  start <service>          - Start a service"
     echo "  stop <service>           - Stop a service" 
