@@ -2,13 +2,18 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-    ];
+  imports = [
+    # Include the results of the hardware scan.
+    ./hardware-configuration.nix
+  ];
 
   # Use the GRUB 2 boot loader.
   boot.loader.grub.enable = true;
@@ -20,7 +25,8 @@
   # Define on which hard drive you want to install Grub.
 
   networking.hostName = "server"; # Define your hostname.
-  networking.networkmanager.enable = true;  # Easiest to use and most distros use this by default.
+  networking.networkmanager.enable = true; # Easiest to use and most distros use this by default.
+  networking.usePredictableInterfaceNames = true; # Use predictable network interface names (e.g., eth0, eth1, etc.).
 
   # Set your time zone.
   time.timeZone = "Asia/Kuala_Lumpur";
@@ -35,7 +41,7 @@
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.amjad = {
     isNormalUser = true;
-    extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
+    extraGroups = [ "wheel" ];
   };
 
   # List packages installed in system profile.
