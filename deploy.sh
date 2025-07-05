@@ -14,12 +14,14 @@ if [ -n "$SERVER" ]; then
     
     # Copy files to remote server
     echo "Copying configuration files..."
-    scp -r flake.nix configuration.nix hardware-configuration.nix "$SERVER:/tmp/"
+    scp -r flake.nix configuration.nix hardware-configuration.nix modules/ "$SERVER:/tmp/"
     
     # SSH and rebuild
     echo "Running nixos-rebuild on remote server..."
     ssh "$SERVER" "
         sudo mv /tmp/flake.nix /tmp/configuration.nix /tmp/hardware-configuration.nix /etc/nixos/
+        sudo rm -rf /etc/nixos/modules
+        sudo mv /tmp/modules /etc/nixos/
         sudo nixos-rebuild switch --flake /etc/nixos#$FLAKE_NAME
     "
     
@@ -36,6 +38,8 @@ else
     
     # Copy files to /etc/nixos and rebuild
     sudo cp flake.nix configuration.nix hardware-configuration.nix /etc/nixos/
+    sudo rm -rf /etc/nixos/modules
+    sudo cp -r modules /etc/nixos/
     sudo nixos-rebuild switch --flake /etc/nixos#$FLAKE_NAME
     
     echo "Local deployment complete!"

@@ -158,7 +158,7 @@
     ];
   };
 
-  fileSystems."/snapshots" = {
+  fileSystems."/.snapshots" = {
     device = "/dev/disk/by-uuid/6d4c7429-66ff-488f-a1d4-128d13a32aae";
     fsType = "btrfs";
     options = [
