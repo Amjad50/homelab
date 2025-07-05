@@ -94,6 +94,7 @@ compose-status               # Quick service overview
 
 Detailed documentation is available in the `docs/` directory:
 
+- [Installation Guide](docs/installation.md) - Automated NixOS installation
 - [Configuration Guide](docs/configuration.md) - Detailed module configuration
 - [Docker Management](docs/docker.md) - Docker Compose service management
 - [Btrfs & Snapshots](docs/btrfs.md) - Storage and backup configuration
