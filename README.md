@@ -19,7 +19,6 @@ compose-manage start nginx
 nixos-config/
 ├── flake.nix                 # Flake configuration
 ├── configuration.nix         # Main entry point
-├── hardware-configuration.nix # Hardware & filesystem config
 ├── modules/                  # Modular configurations
 │   ├── system.nix           # Core system settings
 │   ├── btrfs.nix            # Btrfs snapshots & scrubbing
@@ -27,6 +26,9 @@ nixos-config/
 │   ├── users.nix            # User accounts & SSH keys
 │   ├── docker.nix           # Docker configuration
 │   └── compose-services.nix # Docker Compose services
+├── hardware/                # Hardware configuration references
+│   ├── README.md            # Hardware configuration guide
+│   └── ...                  # Multiple systems copied configuration (not synced on deploy)
 ├── scripts/                 # External shell scripts
 ├── docs/                    # Detailed documentation
 └── deploy.sh               # Deployment script

@@ -9,6 +9,15 @@
 - `docker.nix` - Docker daemon with overlay2 storage
 - `compose-services.nix` - Docker Compose services management
 
+## Hardware Configuration
+
+Hardware configurations are **not included in deployments** for safety:
+
+- Each system maintains its own `/etc/nixos/hardware-configuration.nix`
+- Generated automatically during installation with `nixos-generate-config`
+- Reference configurations available in `hardware/` directory
+- See `hardware/README.md` for detailed information
+
 ## Key Configurations
 
 ### SSH Keys

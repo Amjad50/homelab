@@ -7,14 +7,14 @@
 set -e
 
 SERVER=$1
-FLAKE_NAME="myserver"
+FLAKE_NAME=${2:-"myserver"}
 
 if [ -n "$SERVER" ]; then
     echo "Deploying to remote server: $SERVER"
     
     # Copy files to remote server
     echo "Copying configuration files..."
-    scp -r flake.nix configuration.nix hardware-configuration.nix modules/ scripts/ "$SERVER:/tmp/"
+    scp -r flake.nix configuration.nix modules/ scripts/ "$SERVER:/tmp/"
     
     # Copy docker-services if it exists
     if [ -d "docker-services" ]; then
@@ -25,7 +25,7 @@ if [ -n "$SERVER" ]; then
     # SSH and rebuild
     echo "Running nixos-rebuild on remote server..."
     ssh "$SERVER" "
-        sudo mv /tmp/flake.nix /tmp/configuration.nix /tmp/hardware-configuration.nix /etc/nixos/
+        sudo mv /tmp/flake.nix /tmp/configuration.nix /etc/nixos/
         sudo rm -rf /etc/nixos/modules /etc/nixos/scripts
         sudo mv /tmp/modules /etc/nixos/
         sudo mv /tmp/scripts /etc/nixos/
@@ -53,7 +53,7 @@ else
     fi
     
     # Copy files to /etc/nixos and rebuild
-    sudo cp flake.nix configuration.nix hardware-configuration.nix /etc/nixos/
+    sudo cp flake.nix configuration.nix /etc/nixos/
     sudo rm -rf /etc/nixos/modules /etc/nixos/scripts
     sudo cp -r modules scripts /etc/nixos/
     
