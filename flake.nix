@@ -3,10 +3,15 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    home-manager.url = "github:nix-community/home-manager/release-25.05";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    nixvim.url = "github:nix-community/nixvim/nixos-25.05";
+    nixvim.inputs.nixpkgs.follows = "nixpkgs";
+
   };
 
   outputs =
-    { self, nixpkgs }:
+    { self, nixpkgs, home-manager, nixvim }:
     {
       nixosConfigurations = {
         vm-testing = nixpkgs.lib.nixosSystem {
@@ -14,6 +19,15 @@
           modules = [
             ./common/configuration.nix
             ./machines/vm-testing/configuration.nix
+            home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.users.amjad = import ./common/home.nix;
+              home-manager.sharedModules = [
+                nixvim.homeManagerModules.nixvim
+              ];
+            }
           ];
         };
         
