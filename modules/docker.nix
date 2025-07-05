@@ -1,0 +1,40 @@
+# Docker containerization platform
+{ config, lib, pkgs, ... }:
+
+{
+  # Add Docker Compose
+  environment.systemPackages = with pkgs; [
+    docker
+    docker-compose
+    docker-buildx
+  ];
+
+  # Enable Docker service
+  virtualisation.docker = {
+    enable = true;
+    
+    # Enable on boot
+    enableOnBoot = true;
+
+    # Storage driver (overlay2, simplest and best for most cases)
+    storageDriver = "overlay2";
+    
+    logDriver = "journald";
+
+    # Docker daemon settings
+    daemon.settings = {
+      # Security options
+      no-new-privileges = true;
+    };
+    
+    # Automatically prune unused data
+    autoPrune = {
+      enable = true;
+      dates = "weekly";
+      flags = [ "--all" ];
+    };
+  };
+
+  # Add user to docker group
+  users.users.amjad.extraGroups = [ "docker" ];
+}

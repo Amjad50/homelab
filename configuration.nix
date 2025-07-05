@@ -17,6 +17,8 @@
     ./modules/btrfs.nix
     ./modules/services.nix
     ./modules/users.nix
+    ./modules/docker.nix
+    ./modules/compose-services.nix
   ];
 
   # This file primarily serves as an entry point
