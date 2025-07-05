@@ -30,7 +30,19 @@
     neovim
     wget
     curl
+    btop
+    ncdu
+    git
+    zsh
+    python3
+
+    # Archive tools
+    unzip
+    p7zip
   ];
+
+  # Enable programs
+  programs.zsh.enable = true;
 
   # Enable experimental features for flakes
   nix.settings = {

@@ -18,6 +18,7 @@ in
     extraGroups = [ "wheel" "docker" ];
     # Uncomment and add your SSH public key here
     openssh.authorizedKeys.keys = adminSshKeys;
+    shell = pkgs.zsh;
   };
 
   users.users.dock = {
