@@ -35,18 +35,22 @@ if [ -n "$SERVER" ]; then
         sudo rm -rf /etc/nixos/common /etc/nixos/machines
         sudo mv /tmp/common /etc/nixos/
         
-        # Move docker-services to /opt directory if it exists
+        # Move docker-services to /opt directory if it exists and has content
         if [ -d /tmp/docker-services ]; then
+            echo 'Moving docker-services to /opt/docker-services...'
+            echo 'Found: '\$(ls /tmp/docker-services)''
             sudo mkdir -p /opt/docker-services
-            sudo cp -r /tmp/docker-services/* /opt/docker-services/
+            sudo cp -r /tmp/docker-services/. /opt/docker-services/
             sudo chown -R dock:docker /opt/docker-services
             sudo rm -rf /tmp/docker-services
         fi
         
         # Move machine-specific docker-services before moving machine directory
         if [ -d /tmp/$FLAKE_NAME/docker-services ]; then
+            echo 'Moving machine-specific docker-services to /opt/docker-services...'
+            echo 'Found: '\$(ls /tmp/$FLAKE_NAME/docker-services)''
             sudo mkdir -p /opt/docker-services
-            sudo cp -r /tmp/$FLAKE_NAME/docker-services/* /opt/docker-services/
+            sudo cp -r /tmp/$FLAKE_NAME/docker-services/. /opt/docker-services/
             sudo chown -R dock:docker /opt/docker-services
             sudo rm -rf /tmp/$FLAKE_NAME/docker-services
         fi

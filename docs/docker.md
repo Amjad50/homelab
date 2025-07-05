@@ -41,9 +41,9 @@ compose-manage exec nginx web bash  # Execute in container
 
 1. Create directory: `mkdir /opt/docker-services/myapp`
 2. Add `docker-compose.yml` file
-3. Modify `compose-services.nix` to include the new service
+3. Modify `configuration.nix` to include the new service
     ```nix
-    services = [
+    services.compose-services.services = [
       "myapp"
       ...
     ]

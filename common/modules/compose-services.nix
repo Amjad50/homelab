@@ -6,9 +6,7 @@ let
   composeRoot = "/opt/docker-services";
   
   # List of services to manage
-  services = [
-    "test"
-  ];
+  services = config.services.compose-services.services;
   
   # Create systemd service for a compose service
   createComposeService = serviceName: {
@@ -41,16 +39,25 @@ let
   
 in
 {
+  # Module options
+  options.services.compose-services = {
+    services = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+      description = "List of Docker Compose services to manage";
+    };
+  };
+  
   # Create systemd services for all listed compose services
-  systemd.services = lib.listToAttrs (map createComposeService services);
+  config.systemd.services = lib.listToAttrs (map createComposeService services);
   
   # Create the docker-services directory if it doesn't exist
-  systemd.tmpfiles.rules = [
+  config.systemd.tmpfiles.rules = [
     "d ${composeRoot} 0755 dock docker - -"
   ];
   
   # Install management scripts
-  environment.systemPackages = with pkgs; [
+  config.environment.systemPackages = with pkgs; [
     # Main management script from external file
     (writeShellScriptBin "compose-manage" (builtins.readFile ../scripts/compose-manage.sh))
     
