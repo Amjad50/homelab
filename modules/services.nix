@@ -7,11 +7,18 @@
 }:
 
 {
+  # Add snapper to system packages
+  environment.systemPackages = with pkgs; [
+    fail2ban
+  ];
+
   # Enable the OpenSSH daemon
   services.openssh = {
     enable = true;
     settings = {
       PasswordAuthentication = false;
+      PermitRootLogin = "no";
+      X11Forwarding = false;
     };
   };
 
@@ -25,6 +32,18 @@
     firewall = {
       enable = true;
       allowedTCPPorts = [ 22 ];
+    };
+  };
+
+  # Fail2ban intrusion prevention
+  services.fail2ban = {
+    enable = true;
+    maxretry = 3;
+    bantime = "1h";
+    bantime-increment = {
+      enable = true;
+      multipliers = "1 2 4 8 16 32 64";
+      maxtime = "168h"; # 1 week
     };
   };
 }
