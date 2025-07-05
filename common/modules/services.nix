@@ -24,7 +24,7 @@
 
   # Networking configuration
   networking = {
-    hostName = "server";
+    hostName = lib.mkDefault "server";
     networkmanager.enable = true;
     usePredictableInterfaceNames = true;
 

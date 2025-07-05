@@ -78,7 +78,10 @@ ssh amjad@<server-ip>
 ### 3. Deploy Configuration
 ```bash
 # From your development machine
-./deploy.sh amjad@<server-ip>
+./deploy.sh amjad@<server-ip> myserver
+
+# For additional machines, specify the machine name
+./deploy.sh amjad@<server-ip> server2
 ```
 
 ## Security Features
@@ -137,9 +140,10 @@ The script can be modified for:
 After successful installation:
 
 1. **Test SSH connectivity**
-2. **Deploy your configuration** with `deploy.sh`
-3. **Set up Docker services** as needed
-4. **Configure additional services**
-5. **Set up monitoring and backups**
+2. **Deploy your configuration** with `./deploy.sh user@server myserver`
+3. **Add machine to flake.nix** if using different machine name
+4. **Set up Docker services** as needed
+5. **Configure machine-specific settings**
+6. **Set up monitoring and backups**
 
 The installation creates a minimal but production-ready NixOS system optimized for your configuration deployment workflow.

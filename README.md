@@ -17,39 +17,46 @@ compose-manage start nginx
 
 ```
 nixos-config/
-├── flake.nix                 # Flake configuration
-├── configuration.nix         # Main entry point
-├── modules/                  # Modular configurations
-│   ├── system.nix           # Core system settings
-│   ├── btrfs.nix            # Btrfs snapshots & scrubbing
-│   ├── services.nix         # SSH, networking, fail2ban
-│   ├── users.nix            # User accounts & SSH keys
-│   ├── docker.nix           # Docker configuration
-│   └── compose-services.nix # Docker Compose services
+├── flake.nix                 # Flake configuration with multiple machines
+├── common/                   # Shared configuration
+│   ├── configuration.nix    # Common base configuration  
+│   ├── modules/              # Shared modules
+│   │   ├── system.nix       # Core system settings
+│   │   ├── btrfs.nix        # Btrfs snapshots & scrubbing
+│   │   ├── services.nix     # SSH, networking, fail2ban
+│   │   ├── users.nix        # User accounts & SSH keys
+│   │   ├── docker.nix       # Docker configuration
+│   │   └── compose-services.nix # Docker Compose services
+│   └── scripts/             # Management scripts
+├── machines/                # Machine-specific configurations
+│   └── myserver/            # Individual machine config
+│       ├── configuration.nix # Machine-specific settings
+│       └── docker-services/ # Optional: machine-specific services
 ├── hardware/                # Hardware configuration references
 │   ├── README.md            # Hardware configuration guide
-│   └── ...                  # Multiple systems copied configuration (not synced on deploy)
-├── scripts/                 # External shell scripts
+│   └── vm-testing.nix       # Example configurations
+├── docker-services/         # Global Docker Compose services
 ├── docs/                    # Detailed documentation
-└── deploy.sh               # Deployment script
+└── deploy.sh               # Multi-machine deployment script
 ```
 
 ## Features
 
-- Modular configuration with separate concerns
-- Remote deployment via SSH
-- Btrfs subvolumes with automatic snapshots
-- Docker Compose service management and systemd integration
-- Fail2ban with progressive banning
-- SSH key-only authentication
-- Firewall configuration
+- **Multi-machine support** - Common configuration with machine-specific overrides
+- **Modular configuration** - Shared modules and machine-specific settings
+- **Remote deployment** - Deploy specific machine configurations via SSH
+- **Btrfs subvolumes** - Optimized layout with automatic snapshots
+- **Docker Compose services** - Global and machine-specific service management
+- **Security hardening** - SSH keys, fail2ban, firewall configuration
+- **Declarative management** - Everything defined in Nix configuration
 
 ## Available Commands
 
 ### System Management
 ```bash
-./deploy.sh amjad@server      # Deploy to remote server
-./deploy.sh                   # Deploy locally (if on NixOS)
+./deploy.sh amjad@server1 myserver    # Deploy myserver config to server1
+./deploy.sh amjad@server2 server2     # Deploy server2 config to server2
+./deploy.sh                           # Deploy locally (if on NixOS)
 ```
 
 ### Docker Compose Services
@@ -77,20 +84,32 @@ compose-status               # Quick service overview
 
 ## Configuration
 
+### Adding New Machines
+
+1. Create directory: `mkdir machines/newserver`
+2. Add `machines/newserver/configuration.nix` with machine-specific settings
+3. Add machine to `flake.nix` nixosConfigurations
+4. Deploy: `./deploy.sh user@newserver newserver`
+
 ### Adding Docker Compose Services
 
-1. Create directory in `/opt/docker-services/`
-2. Add `docker-compose.yml` file
-3. Run `compose-manage start <service-name>`
+**Global services (shared across machines):**
+1. Add to `docker-services/` directory
+2. Update `common/modules/compose-services.nix` services list
+3. Deploy to update all machines
+
+**Machine-specific services:**
+1. Add to `machines/MACHINE/docker-services/` directory  
+2. Deploy specific machine
 
 ### Module Structure
 
-- `modules/system.nix` - Boot, locale, packages
-- `modules/users.nix` - User accounts, SSH keys
-- `modules/services.nix` - SSH, networking, fail2ban
-- `modules/btrfs.nix` - Snapshots, scrubbing
-- `modules/docker.nix` - Docker daemon configuration
-- `modules/compose-services.nix` - Docker Compose services
+- `common/modules/system.nix` - Boot, locale, packages
+- `common/modules/users.nix` - User accounts, SSH keys  
+- `common/modules/services.nix` - SSH, networking, fail2ban
+- `common/modules/btrfs.nix` - Snapshots, scrubbing
+- `common/modules/docker.nix` - Docker daemon configuration
+- `common/modules/compose-services.nix` - Docker Compose services
 
 ## 📚 Documentation
 
