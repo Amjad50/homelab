@@ -27,6 +27,8 @@
     hostName = lib.mkDefault "server";
     networkmanager.enable = true;
     usePredictableInterfaceNames = true;
+    enableIPv6 = true;
+    nat.enableIPv6 = true;
 
     # Firewall configuration
     firewall = {

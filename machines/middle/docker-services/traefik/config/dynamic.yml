@@ -1,0 +1,87 @@
+## DYNAMIC CONFIGURATION
+
+# HTTP Middlewares
+http:
+  middlewares:
+    # Security headers
+    secure-headers:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - OPTIONS
+          - PUT
+        accessControlMaxAge: 100
+        hostsProxyHeaders:
+          - "X-Forwarded-Host"
+        referrerPolicy: "same-origin"
+        sslRedirect: true
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        stsPreload: true
+        forceSTSHeader: true
+        contentTypeNosniff: true
+        browserXssFilter: true
+        customFrameOptionsValue: "SAMEORIGIN"
+
+    # Rate limiting
+    rate-limit:
+      rateLimit:
+        average: 100
+        period: 1m
+        burst: 200
+
+    # IP whitelist for internal services
+    internal-whitelist:
+      ipWhiteList:
+        sourceRange:
+          - "10.0.0.0/8"      # Private networks
+          - "192.168.0.0/16"  # Private networks
+          - "172.16.0.0/12"   # Docker networks
+          - "127.0.0.1/32"    # Localhost
+          - "10.8.0.0/24"     # WireGuard VPN subnet
+
+    # Auth middleware (for future use)
+    # auth-basic:
+    #   basicAuth:
+    #     users:
+    #       - "admin:$2y$10$..."  # Replace with generated hash
+
+    # Chain multiple middlewares
+    default-chain:
+      chain:
+        middlewares:
+          - secure-headers
+          - rate-limit
+
+    internal-chain:
+      chain:
+        middlewares:
+          - secure-headers
+          - internal-whitelist
+
+  # Custom routers (for manual configuration)
+  routers:
+    ping:
+      rule: "PathPrefix(`/ping`)"
+      service: "ping@internal"
+      entryPoints:
+        - ping
+
+
+  # Custom services (for manual configuration)  
+  services:
+    # Example service
+    # api:
+    #   loadBalancer:
+    #     servers:
+    #       - url: "http://192.168.1.100:8080"
+
+# TCP services (for future use)
+# tcp:
+#   routers: {}
+#   services: {}
+
+# UDP services (for future use)
+# udp:
+#   routers: {}
+#   services: {}

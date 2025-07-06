@@ -30,6 +30,22 @@
             }
           ];
         };
+        middle = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          modules = [
+            ./common/configuration.nix
+            ./machines/middle/configuration.nix
+            home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.users.amjad = import ./common/home.nix;
+              home-manager.sharedModules = [
+                nixvim.homeManagerModules.nixvim
+              ];
+            }
+          ];
+        };
         
         # Example for additional machines:
         # server2 = nixpkgs.lib.nixosSystem {
