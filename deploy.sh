@@ -58,8 +58,14 @@ if [ -n "$SERVER" ]; then
         # Now move machine directory
         sudo mkdir -p /etc/nixos/machines
         sudo mv /tmp/$FLAKE_NAME /etc/nixos/machines/
+
+        # Remove old configuration.nix if it exists
+        if [ -f /etc/nixos/configuration.nix ]; then
+            echo "Removing old configuration.nix..."
+            sudo rm /etc/nixos/configuration.nix
+        fi
         
-        sudo nixos-rebuild switch --flake /etc/nixos#$FLAKE_NAME
+        sudo nixos-rebuild switch
     "
     
     echo "Remote deployment complete!"
@@ -95,8 +101,14 @@ else
     # Copy machine directory
     sudo mkdir -p /etc/nixos/machines
     sudo cp -r "machines/$FLAKE_NAME" /etc/nixos/machines/
+
+    # Remove old configuration.nix if it exists
+    if [ -f /etc/nixos/configuration.nix ]; then
+        echo "Removing old configuration.nix..."
+        sudo rm /etc/nixos/configuration.nix
+    fi
     
-    sudo nixos-rebuild switch --flake /etc/nixos#$FLAKE_NAME
+    sudo nixos-rebuild switch
     
     echo "Local deployment complete!"
 fi
