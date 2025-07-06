@@ -40,12 +40,6 @@ http:
           - "127.0.0.1/32"    # Localhost
           - "10.8.0.0/24"     # WireGuard VPN subnet
 
-    # Auth middleware (for future use)
-    # auth-basic:
-    #   basicAuth:
-    #     users:
-    #       - "admin:$2y$10$..."  # Replace with generated hash
-
     # Chain multiple middlewares
     default-chain:
       chain:
@@ -59,22 +53,47 @@ http:
           - secure-headers
           - internal-whitelist
 
-  # Custom routers (for manual configuration)
+  # Custom routers
   routers:
+    # Rathole proxied services
+    home-webapp:
+      rule: "Host(`app.home.alsharafi.dev`)"
+      service: "home-webapp"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      middlewares:
+        - default-chain
+
+    home-api:
+      rule: "Host(`api.home.alsharafi.dev`)"
+      service: "home-api"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      middlewares:
+        - default-chain
+
     ping:
       rule: "PathPrefix(`/ping`)"
       service: "ping@internal"
       entryPoints:
         - ping
 
-
-  # Custom services (for manual configuration)  
+  # Custom services
   services:
-    # Example service
-    # api:
-    #   loadBalancer:
-    #     servers:
-    #       - url: "http://192.168.1.100:8080"
+    # Rathole proxy targets
+    home-webapp:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:8080"
+
+    home-api:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:8081"
 
 # TCP services (for future use)
 # tcp:

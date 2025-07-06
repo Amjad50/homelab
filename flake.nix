@@ -7,11 +7,12 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nixvim.url = "github:nix-community/nixvim/nixos-25.05";
     nixvim.inputs.nixpkgs.follows = "nixpkgs";
-
+    sops-nix.url = "github:Mic92/sops-nix";
+    sops-nix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
-    { self, nixpkgs, home-manager, nixvim }:
+    { self, nixpkgs, home-manager, nixvim, sops-nix }:
     {
       nixosConfigurations = {
         vm-testing = nixpkgs.lib.nixosSystem {
@@ -35,6 +36,7 @@
           modules = [
             ./common/configuration.nix
             ./machines/middle/configuration.nix
+            sops-nix.nixosModules.sops
             home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
@@ -51,6 +53,7 @@
           modules = [
             ./common/configuration.nix
             ./machines/home/configuration.nix
+            sops-nix.nixosModules.sops
             home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
