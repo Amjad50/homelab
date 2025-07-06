@@ -1,5 +1,5 @@
 {
-  description = "Simple NixOS configuration";
+  description = "Multi-machine NixOS configuration";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
@@ -46,15 +46,22 @@
             }
           ];
         };
-        
-        # Example for additional machines:
-        # server2 = nixpkgs.lib.nixosSystem {
-        #   system = "x86_64-linux";
-        #   modules = [
-        #     ./common/configuration.nix
-        #     ./machines/server2/configuration.nix
-        #   ];
-        # };
+        home = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          modules = [
+            ./common/configuration.nix
+            ./machines/home/configuration.nix
+            home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.users.amjad = import ./common/home.nix;
+              home-manager.sharedModules = [
+                nixvim.homeManagerModules.nixvim
+              ];
+            }
+          ];
+        };
       };
     };
 }
