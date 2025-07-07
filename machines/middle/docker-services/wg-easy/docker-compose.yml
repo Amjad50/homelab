@@ -4,7 +4,6 @@ volumes:
 networks:
   bridge-net:
     name: bridge-net
-    internal: true
     driver: bridge
     enable_ipv6: true
     ipam:
