@@ -1,5 +1,9 @@
 { config, pkgs, ... }:
 {
+  imports = [
+    ./fail2ban.nix
+  ];
+
   networking.hostName = "middle";
 
   # Firewall - allow web traffic, VPN, and rathole
