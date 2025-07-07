@@ -12,13 +12,14 @@ Internet → Middle Server (Public IP) → Rathole Tunnel → Home Server (Priva
 
 ### Traffic Flow
 
-1. **User** requests `app.home.alsharafi.dev`
+1. **User** requests `*.home.alsharafi.dev`
 2. **DNS** resolves to middle server public IP
 3. **Traefik** (middle) receives HTTPS request on port 443
 4. **Traefik** routes to rathole server on localhost:8080
 5. **Rathole server** forwards through encrypted tunnel
-6. **Rathole client** (home) receives and forwards to localhost:3000
-7. **Docker service** (home) processes request and responds back
+6. **Rathole client** (home) receives and forwards to localhost:8080
+7. **Traefik** (home) receives request and routes to appropriate service
+8. **Docker service** (home) processes request and responds back
 
 ## Components
 
@@ -29,17 +30,18 @@ Internet → Middle Server (Public IP) → Rathole Tunnel → Home Server (Priva
 
 ### Home Server (Private)
 - **Rathole client**: Connects to middle server
+- **Traefik**: Internal routing (no TLS)
 - **Docker services**: Web apps, APIs
-- **Local ports**: 3000 (webapp), 3001 (api)
+- **Local ports**: 8080 (traefik tunnel)
 
 ### Tunnel Details
 - **Protocol**: TCP with noise encryption
 - **Authentication**: Shared token + noise keys
-- **Ports**: 2333 (tunnel), 8080/8081 (proxy endpoints)
+- **Ports**: 2333 (tunnel), 8080 (proxy endpoint)
 
-## Tunnel Service Mapping
-
-| Domain | Middle Port | Home Port | Service |
-|--------|-------------|-----------|---------|
-| `app.home.alsharafi.dev` | 8080 | 3000 | Web App |
-| `api.home.alsharafi.dev` | 8081 | 3001 | API |
+## Configuration
+In order to add a service to be routed by the tunnel, you need to:
+1. **Middle Server**:
+- Add the full domain to the Traefik `dynamic.yml` under `home-fallback.tls.domains`.
+2. **Home Server**:
+- Host the service normally under Traefik, with that service's domain.

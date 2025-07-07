@@ -1,17 +1,22 @@
 networks:
-  default:
-    name: webapp-net
-    driver: bridge
+  traefik:
+    external: true
 
 services:
   webapp:
     image: nginx:alpine
     container_name: webapp
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:3000:80"
     volumes:
       - ./html:/usr/share/nginx/html:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.webapp.rule=Host(`webapp.home.alsharafi.dev`)"
+      - "traefik.http.routers.webapp.entrypoints=web"
+      - "traefik.http.services.webapp.loadbalancer.server.port=80"
+      - "traefik.http.routers.webapp.middlewares=default-chain@file"
+    networks:
+      - traefik
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost"]
       interval: 30s

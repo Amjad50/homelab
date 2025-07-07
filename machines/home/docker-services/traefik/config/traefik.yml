@@ -9,19 +9,7 @@ api:
 entryPoints:
   web:
     address: ":80"
-    http:
-      redirections:
-        entryPoint:
-          to: websecure
-          scheme: https
-          # permanent: true
-
-  websecure:
-    address: ":443"
-    http:
-      tls:
-        certResolver: letsencrypt
-
+  
   ping:
     address: ":8082"
 
@@ -38,21 +26,12 @@ providers:
     network: traefik
     watch: true
 
-# Certificate resolvers
-certificatesResolvers:
-  letsencrypt:
-    acme:
-      email: amjadsharafi10@gmail.com
-      storage: /letsencrypt/acme.json
-      httpChallenge:
-        entryPoint: web
-
 # Logging
 log:
   level: INFO
   filePath: /data/logs/traefik.log
   format: json
-
+  
 accessLog:
   filePath: /data/logs/access.log
   format: json
@@ -66,14 +45,6 @@ accessLog:
       names:
           User-Agent: keep # log user agent strings
 
-# Metrics
-# metrics:
-#   prometheus:
-#     addEntryPointsLabels: true
-#     addServicesLabels: true
-#     addRoutersLabels: true
-
 # Ping for health checks
 ping:
   entryPoint: ping
-  manualRouting: true

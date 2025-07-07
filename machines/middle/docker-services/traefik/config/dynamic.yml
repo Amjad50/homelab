@@ -32,7 +32,7 @@ http:
 
     # IP whitelist for internal services
     internal-whitelist:
-      ipWhiteList:
+      ipAllowList:
         sourceRange:
           - "10.0.0.0/8"      # Private networks
           - "192.168.0.0/16"  # Private networks
@@ -55,26 +55,24 @@ http:
 
   # Custom routers
   routers:
-    # Rathole proxied services
-    home-webapp:
-      rule: "Host(`app.home.alsharafi.dev`)"
-      service: "home-webapp"
+    # Fallback route for all other *.home.alsharafi.dev domains
+    home-fallback:
+      rule: "HostRegexp(`^.+\\.home\\.alsharafi\\.dev$`)"
+      service: "home-tunnel"
       entryPoints:
         - websecure
       tls:
         certResolver: letsencrypt
-      middlewares:
-        - default-chain
+        domains:
+          - main: "home.alsharafi.dev"
+            sans:
+              - "webapp.home.alsharafi.dev"
+              - "traefik-internal.home.alsharafi.dev"
 
-    home-api:
-      rule: "Host(`api.home.alsharafi.dev`)"
-      service: "home-api"
-      entryPoints:
-        - websecure
-      tls:
-        certResolver: letsencrypt
+
       middlewares:
         - default-chain
+      priority: 1
 
     ping:
       rule: "PathPrefix(`/ping`)"
@@ -84,16 +82,11 @@ http:
 
   # Custom services
   services:
-    # Rathole proxy targets
-    home-webapp:
+    # Tunnel service for fallback routing
+    home-tunnel:
       loadBalancer:
         servers:
-          - url: "http://127.0.0.1:8080"
-
-    home-api:
-      loadBalancer:
-        servers:
-          - url: "http://127.0.0.1:8081"
+          - url: "http://host.docker.internal:8080"
 
 # TCP services (for future use)
 # tcp:

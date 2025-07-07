@@ -1,0 +1,41 @@
+## DYNAMIC CONFIGURATION
+
+# HTTP Middlewares
+http:
+  middlewares:
+    # Security headers (no TLS since we're behind tunnel)
+    secure-headers:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - OPTIONS
+          - PUT
+        accessControlMaxAge: 100
+        hostsProxyHeaders:
+          - "X-Forwarded-Host"
+          - "X-Forwarded-Proto"
+        referrerPolicy: "same-origin"
+        contentTypeNosniff: true
+        browserXssFilter: true
+        customFrameOptionsValue: "SAMEORIGIN"
+
+    # Rate limiting
+    rate-limit:
+      rateLimit:
+        average: 100
+        period: 1m
+        burst: 200
+
+    # Chain middlewares
+    default-chain:
+      chain:
+        middlewares:
+          - secure-headers
+          - rate-limit
+
+  # Routers
+  routers:
+
+  # Services
+  services:
+    

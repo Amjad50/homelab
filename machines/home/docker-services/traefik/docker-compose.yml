@@ -14,8 +14,7 @@ services:
     networks:
       - traefik
     ports:
-      - "80:80"
-      - "443:443"
+      - "127.0.0.1:8080:80"
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -26,14 +25,10 @@ services:
     labels:
       # Dashboard
       - "traefik.enable=true"
-      - "traefik.http.routers.traefik.rule=Host(`traefik.home.alsharafi.dev`)"
-      - "traefik.http.routers.traefik.entrypoints=websecure"
-      - "traefik.http.routers.traefik.tls=true"
-      - "traefik.http.routers.traefik.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.traefik.rule=Host(`traefik-internal.home.alsharafi.dev`)"
+      - "traefik.http.routers.traefik.entrypoints=web"
       - "traefik.http.routers.traefik.service=api@internal"
-      - "traefik.http.routers.traefik.middlewares=internal-chain@file"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "traefik.http.routers.traefik.middlewares=default-chain@file"
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
       interval: 30s

@@ -6,7 +6,8 @@
 
   # Docker services for applications
   services.compose-services.services = [
-    "webapp" # Example web application
+    "webapp"
+    "traefik"
   ];
 
   # Sops secrets configuration using SSH host keys
@@ -54,9 +55,9 @@
       [client.transport.noise]
       remote_public_key = "${config.sops.placeholder.rathole-noise-public}"
 
-      [client.services.home-web]
+      [client.services.traefik]
       type = "tcp"
-      local_addr = "127.0.0.1:3000"
+      local_addr = "127.0.0.1:8080"
     '';
   };
 
