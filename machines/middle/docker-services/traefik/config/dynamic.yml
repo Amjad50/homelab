@@ -68,8 +68,6 @@ http:
             sans:
               - "webapp.home.alsharafi.dev"
               - "traefik-internal.home.alsharafi.dev"
-
-
       middlewares:
         - default-chain
       priority: 1

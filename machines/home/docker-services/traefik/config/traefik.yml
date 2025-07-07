@@ -9,6 +9,7 @@ api:
 entryPoints:
   web:
     address: ":80"
+    asDefault: true
   
   ping:
     address: ":8082"

@@ -19,6 +19,14 @@ http:
         browserXssFilter: true
         customFrameOptionsValue: "SAMEORIGIN"
 
+    # Response compression for better performance
+    compression:
+      compress:
+        minResponseBodyBytes: 1024
+        excludedContentTypes:
+          - "text/event-stream"
+          - "application/grpc"
+
     # Rate limiting
     rate-limit:
       rateLimit:
@@ -26,12 +34,11 @@ http:
         period: 1m
         burst: 200
 
-    # Chain middlewares
     default-chain:
       chain:
         middlewares:
           - secure-headers
-          - rate-limit
+          - compression
 
   # Routers
   routers:

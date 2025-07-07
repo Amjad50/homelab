@@ -26,7 +26,6 @@ services:
       # Dashboard
       - "traefik.enable=true"
       - "traefik.http.routers.traefik.rule=Host(`traefik-internal.home.alsharafi.dev`)"
-      - "traefik.http.routers.traefik.entrypoints=web"
       - "traefik.http.routers.traefik.service=api@internal"
       - "traefik.http.routers.traefik.middlewares=default-chain@file"
     healthcheck:
