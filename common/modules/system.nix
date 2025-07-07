@@ -35,6 +35,8 @@
     git
     zsh
     python3
+    jq
+    yq
 
     # Archive tools
     unzip
