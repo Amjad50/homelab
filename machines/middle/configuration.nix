@@ -9,6 +9,7 @@
   services.compose-services.services = [
     "traefik" # Reverse proxy with HTTPS
     "wg-easy" # WireGuard VPN management
+    "ys-sitecore" # Django web application
   ];
 
   # Sops secrets configuration using SSH host keys

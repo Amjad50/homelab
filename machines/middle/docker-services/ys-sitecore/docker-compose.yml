@@ -1,0 +1,26 @@
+networks:
+  traefik:
+    name: traefik
+    external: true
+
+services:
+  web:
+    image: amjad50/ys-sitecore:latest
+    container_name: ys-sitecore
+    restart: unless-stopped
+    networks:
+      - traefik
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=False
+      - ALLOWED_HOSTS=127.0.0.1,localhost,0.0.0.0,new.leafloat.tech,leafloat.tech
+      - DJANGO_SETTINGS_MODULE=sitecore.settings.prod
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ys-sitecore.rule=Host(`new.leafloat.tech`) || Host(`leafloat.tech`)"
+      - "traefik.http.services.ys-sitecore.loadbalancer.server.port=8000"
+    healthcheck:
+      test: ["CMD", "wget", "--tries=1", "--spider", "http://127.0.0.1:8000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

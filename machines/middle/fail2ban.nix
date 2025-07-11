@@ -24,7 +24,7 @@
         settings = {
           filter = "traefik-botsearch";
           logpath = "/var/log/traefik/access.log";
-          maxretry = 5;
+          maxretry = 10;
           bantime = "24h";
           findtime = "1m";
           backend = "pyinotify";
