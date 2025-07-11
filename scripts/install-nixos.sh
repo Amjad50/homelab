@@ -65,28 +65,40 @@ log "Starting NixOS installation on $DISK"
 log "Creating partitions..."
 parted --script "$DISK" -- \
     mklabel gpt \
-    mkpart ESP fat32 1MiB 512MiB \
-    set 1 esp on \
-    mkpart primary 512MiB 100%
+    mkpart primary 1MiB 3MiB \
+    set 1 bios_grub on \
+    mkpart primary fat32 3MiB 103MiB \
+    set 2 boot on \
+    mkpart primary 103MiB 1103MiB \
+    mkpart primary 1103MiB 100%
 
 # Wait for partitions to be created
 sleep 2
 
 # Set partition variables
 if [[ "$DISK" == *"nvme"* ]]; then
-    EFI_PART="${DISK}p1"
-    ROOT_PART="${DISK}p2"
+    BIOS_PART="${DISK}p1"
+    EFI_PART="${DISK}p2"
+    BOOT_PART="${DISK}p3"
+    ROOT_PART="${DISK}p4"
 else
-    EFI_PART="${DISK}1"
-    ROOT_PART="${DISK}2"
+    BIOS_PART="${DISK}1"
+    EFI_PART="${DISK}2"
+    BOOT_PART="${DISK}3"
+    ROOT_PART="${DISK}4"
 fi
 
+log "BIOS boot partition: $BIOS_PART"
 log "EFI partition: $EFI_PART"
+log "Boot partition: $BOOT_PART"
 log "Root partition: $ROOT_PART"
 
 # 2. Format partitions
 log "Formatting EFI partition..."
-mkfs.fat -F 32 -n boot "$EFI_PART"
+mkfs.fat -F 32 -n efi "$EFI_PART"
+
+log "Formatting boot partition..."
+mkfs.ext4 -L boot "$BOOT_PART"
 
 log "Formatting root partition with Btrfs..."
 mkfs.btrfs -f -L nixos "$ROOT_PART"
@@ -116,7 +128,9 @@ umount /mnt
 log "Mounting subvolumes..."
 mount -o subvol=root,compress=zstd:3,noatime,space_cache=v2 "$ROOT_PART" /mnt
 
-mkdir -p /mnt/{boot/efi,home,nix,var,tmp,srv,opt,.snapshots}
+mkdir -p /mnt/{boot,boot,home,nix,var,tmp,srv,opt,.snapshots}
+mount "$BOOT_PART" /mnt/boot
+mkdir -p /mnt/boot/efi
 mount "$EFI_PART" /mnt/boot/efi
 mount -o subvol=home,compress=zstd:1,noatime,space_cache=v2 "$ROOT_PART" /mnt/home
 mount -o subvol=nix,compress=zstd:3,noatime,space_cache=v2 "$ROOT_PART" /mnt/nix
@@ -150,8 +164,11 @@ cat > /mnt/etc/nixos/configuration.nix << EOF
   ];
 
   # Boot loader
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
+  boot.loader.grub.enable = true;
+  boot.loader.grub.device = "$DISK";
+  boot.loader.grub.efiSupport = true;
+  boot.loader.grub.efiInstallAsRemovable = true;
+  boot.loader.efi.canTouchEfiVariables = false;
   boot.loader.efi.efiSysMountPoint = "/boot/efi";
 
   # Enable flakes
