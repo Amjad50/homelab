@@ -11,6 +11,7 @@
         settings = {
           filter = "traefik-auth";
           logpath = "/var/log/traefik/access.log";
+          skip_if_nologs = true;
           maxretry = 2;
           bantime = "24h";
           findtime = "10m";
@@ -24,6 +25,7 @@
         settings = {
           filter = "traefik-botsearch";
           logpath = "/var/log/traefik/access.log";
+          skip_if_nologs = true;
           maxretry = 10;
           bantime = "24h";
           findtime = "1m";

@@ -11,7 +11,7 @@
   boot.loader = {
     grub = {
       enable = true;
-      device = "nodev";
+      device = lib.mkDefault "nodev"; # set in hardware configuration
       efiSupport = true;
       efiInstallAsRemovable = true;
     };
