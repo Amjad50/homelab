@@ -153,6 +153,10 @@ mount -o subvol=var-lib-docker,compress=zstd:1,noatime,space_cache=v2 "$ROOT_PAR
 log "Generating hardware configuration..."
 nixos-generate-config --root /mnt
 
+# Add grub device to hardware configuration
+log "Adding grub device to hardware configuration..."
+sed -i "/^}$/i\\  # Boot device for GRUB\\n  boot.loader.grub.device = \"$DISK\";" /mnt/etc/nixos/hardware-configuration.nix
+
 # 6. Create basic configuration
 log "Creating NixOS configuration..."
 cat > /mnt/etc/nixos/configuration.nix << EOF
@@ -163,9 +167,8 @@ cat > /mnt/etc/nixos/configuration.nix << EOF
     ./hardware-configuration.nix
   ];
 
-  # Boot loader
+  # Boot loader (device set in hardware-configuration.nix)
   boot.loader.grub.enable = true;
-  boot.loader.grub.device = "$DISK";
   boot.loader.grub.efiSupport = true;
   boot.loader.grub.efiInstallAsRemovable = true;
   boot.loader.efi.canTouchEfiVariables = false;
