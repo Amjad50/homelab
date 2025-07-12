@@ -56,6 +56,17 @@ in
     "d ${composeRoot} 0755 dock docker - -"
   ];
   
+  # Allow docker group to manage docker-compose services via polkit
+  config.security.polkit.extraConfig = ''
+    polkit.addRule(function(action, subject) {
+        if (action.id == "org.freedesktop.systemd1.manage-units" &&
+            action.lookup("unit").indexOf("docker-compose-") == 0 &&
+            subject.isInGroup("docker")) {
+            return polkit.Result.YES;
+        }
+    });
+  '';
+
   # Install management scripts
   config.environment.systemPackages = with pkgs; [
     # Main management script from external file
