@@ -36,7 +36,7 @@ if [ -n "$SERVER" ]; then
     
     # SSH and rebuild
     echo "Running nixos-rebuild on remote server..."
-    ssh "$SERVER" "
+    ssh -t "$SERVER" "
         # Create temporary directory for extraction
         TEMP_DIR=\$(mktemp -d /tmp/nixos-deploy.XXXXXX)
         echo \"Using temp directory: \$TEMP_DIR\"

@@ -37,6 +37,7 @@
     python3
     jq
     yq
+    neofetch
 
     # Archive tools
     unzip
