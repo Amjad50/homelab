@@ -109,15 +109,18 @@ mount "$ROOT_PART" /mnt
 
 # Create subvolumes
 btrfs subvolume create /mnt/root
+btrfs subvolume create /mnt/root/.snapshots
 btrfs subvolume create /mnt/home
+btrfs subvolume create /mnt/home/.snapshots
 btrfs subvolume create /mnt/nix
 btrfs subvolume create /mnt/var
 btrfs subvolume create /mnt/var-log
+btrfs subvolume create /mnt/var-log/.snapshots
 btrfs subvolume create /mnt/var-cache
 btrfs subvolume create /mnt/var-tmp
 btrfs subvolume create /mnt/var-lib
+btrfs subvolume create /mnt/var-lib/.snapshots
 btrfs subvolume create /mnt/var-lib-docker
-btrfs subvolume create /mnt/snapshots
 btrfs subvolume create /mnt/srv
 btrfs subvolume create /mnt/opt
 btrfs subvolume create /mnt/tmp
@@ -128,7 +131,7 @@ umount /mnt
 log "Mounting subvolumes..."
 mount -o subvol=root,compress=zstd:3,noatime,space_cache=v2 "$ROOT_PART" /mnt
 
-mkdir -p /mnt/{boot,boot,home,nix,var,tmp,srv,opt,.snapshots}
+mkdir -p /mnt/{boot,boot,home,nix,var,tmp,srv,opt}
 mount "$BOOT_PART" /mnt/boot
 mkdir -p /mnt/boot/efi
 mount "$EFI_PART" /mnt/boot/efi
@@ -138,7 +141,6 @@ mount -o subvol=var,compress=zstd:1,noatime,space_cache=v2 "$ROOT_PART" /mnt/var
 mount -o subvol=tmp,nodatacow,noatime,space_cache=v2 "$ROOT_PART" /mnt/tmp
 mount -o subvol=srv,compress=zstd:1,noatime,space_cache=v2 "$ROOT_PART" /mnt/srv
 mount -o subvol=opt,compress=zstd:1,noatime,space_cache=v2 "$ROOT_PART" /mnt/opt
-mount -o subvol=snapshots,compress=zstd:1,noatime,space_cache=v2 "$ROOT_PART" /mnt/.snapshots
 
 mkdir -p /mnt/var/{log,cache,tmp,lib}
 mount -o subvol=var-log,compress=zstd:6,noatime,space_cache=v2 "$ROOT_PART" /mnt/var/log
