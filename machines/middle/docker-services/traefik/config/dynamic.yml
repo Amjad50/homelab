@@ -21,6 +21,7 @@ http:
         forceSTSHeader: true
         contentTypeNosniff: true
         browserXssFilter: true
+        frameDeny: true
         customFrameOptionsValue: "SAMEORIGIN"
 
     # Rate limiting
@@ -69,7 +70,7 @@ http:
               - "webapp.home.alsharafi.dev"
               - "traefik-internal.home.alsharafi.dev"
       middlewares:
-        - default-chain
+        - oauth2-auth@docker
       priority: 1
 
     ping:
@@ -86,12 +87,6 @@ http:
         servers:
           - url: "http://host.docker.internal:8080"
 
-# TCP services (for future use)
-# tcp:
-#   routers: {}
-#   services: {}
-
-# UDP services (for future use)
-# udp:
-#   routers: {}
-#   services: {}
+  serversTransports:
+    kanidm-transport:
+      insecureSkipVerify: true

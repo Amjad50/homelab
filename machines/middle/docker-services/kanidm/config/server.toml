@@ -1,0 +1,28 @@
+version = "2"
+
+# Server connection settings
+bindaddress = "0.0.0.0:8443"
+ldapbindaddress = "0.0.0.0:3636"
+
+# Domain and origin settings
+domain = "idm.home.alsharafi.dev"
+origin = "https://idm.home.alsharafi.dev"
+
+# Database settings
+db_path = "/data/kanidm.db"
+
+# Logging
+log_level = "info"
+
+# TLS Settings - Kanidm will generate self-signed certs
+tls_chain = "/data/chain.pem"
+tls_key = "/data/key.pem"
+
+# Role settings
+role = "WriteReplica"
+
+# Online backup
+[online_backup]
+path = "/data/backups/"
+schedule = "00 02 * * *"  # Daily at 2 AM
+versions = 7

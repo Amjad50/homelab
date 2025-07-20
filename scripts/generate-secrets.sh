@@ -1,16 +1,11 @@
 #!/bin/bash
 
-# Rathole Secrets Generator
-# Generates and encrypts rathole secrets for both middle and home machines
+# Secrets Generator
+# Generates and encrypts secrets for both middle and home machines
 #
 # Required environment variables:
 # - MIDDLE_AGE_KEY: Age public key for middle server
 # - HOME_AGE_KEY: Age public key for home server
-#
-# Optional environment variables:
-# - RATHOLE_TOKEN: Custom token (generated if not provided)
-# - RATHOLE_NOISE_PRIVATE: Custom noise private key (generated if not provided)
-# - RATHOLE_NOISE_PUBLIC: Custom noise public key (generated if not provided)
 
 set -euo pipefail
 
@@ -54,7 +49,7 @@ check_dependencies() {
 # Load environment variables from .env file
 dotenv() {
     if [ -f "$1" ]; then
-        while IFS='=' read -r key value; do
+        while IFS='=' read -r key value || [ -n "$key" ]; do
             # Skip comments and empty lines
             if [[ -z "$key" || "$key" =~ ^# ]]; then
                 continue
@@ -87,6 +82,10 @@ check_env_vars() {
     if [ -z "${RATHOLE_NOISE_PUBLIC:-}" ]; then
         missing_vars+=("RATHOLE_NOISE_PUBLIC")
     fi
+
+    if [ -z "${OAUTH2_PROXY_CLIENT_SECRET:-}" ]; then
+        missing_vars+=("OAUTH2_PROXY_CLIENT_SECRET")
+    fi
     
     if [ ${#missing_vars[@]} -ne 0 ]; then
         log_error "Missing required environment variables: ${missing_vars[*]}"
@@ -112,17 +111,27 @@ generate_secrets() {
     else
         log_info "Using provided rathole token"
     fi
+    
+    # Generate OAuth2 Proxy cookie secret if not provided (client secret must be from Kanidm)
+    if [ -z "${OAUTH2_PROXY_COOKIE_SECRET:-}" ]; then
+        OAUTH2_PROXY_COOKIE_SECRET=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-32)
+        log_info "Generated new OAuth2 Proxy cookie secret"
+    else
+        log_info "Using provided OAuth2 Proxy cookie secret"
+    fi
 }
 
-# Create secrets YAML content for middle server (server needs private key)
+# Create secrets YAML content for middle server
 create_middle_secrets_yaml() {
     cat << EOF
 rathole-token: "$RATHOLE_TOKEN"
 rathole-noise-private: "$RATHOLE_NOISE_PRIVATE"
+oauth2-proxy-client-secret: "$OAUTH2_PROXY_CLIENT_SECRET"
+oauth2-proxy-cookie-secret: "$OAUTH2_PROXY_COOKIE_SECRET"
 EOF
 }
 
-# Create secrets YAML content for home server (client only needs public key)
+# Create secrets YAML content for home server
 create_home_secrets_yaml() {
     cat << EOF
 rathole-token: "$RATHOLE_TOKEN"
@@ -175,7 +184,7 @@ verify_secrets() {
 
 # Main function
 main() {
-    echo "=== Rathole Secrets Generator ==="
+    echo "=== Secrets Generator ==="
     echo
     
     check_dependencies
@@ -185,9 +194,11 @@ main() {
     
     echo
     log_info "Generating secrets with:"
-    echo "  - Token: ${RATHOLE_TOKEN:0:16}..."
+    echo "  - Rathole Token: ${RATHOLE_TOKEN:0:16}..."
     echo "  - Noise Private: ${RATHOLE_NOISE_PRIVATE:0:16}..."
     echo "  - Noise Public: ${RATHOLE_NOISE_PUBLIC:0:16}..."
+    echo "  - OAuth2 Proxy Client Secret: ${OAUTH2_PROXY_CLIENT_SECRET:0:16}..."
+    echo "  - OAuth2 Proxy Cookie Secret: ${OAUTH2_PROXY_COOKIE_SECRET:0:16}..."
     echo
     
     # Encrypt for both machines
@@ -218,6 +229,8 @@ main() {
         echo "RATHOLE_TOKEN=$RATHOLE_TOKEN"
         echo "RATHOLE_NOISE_PRIVATE=$RATHOLE_NOISE_PRIVATE"
         echo "RATHOLE_NOISE_PUBLIC=$RATHOLE_NOISE_PUBLIC"
+        echo "OAUTH2_PROXY_CLIENT_SECRET=$OAUTH2_PROXY_CLIENT_SECRET"
+        echo "OAUTH2_PROXY_COOKIE_SECRET=$OAUTH2_PROXY_COOKIE_SECRET"
     fi
 }
 

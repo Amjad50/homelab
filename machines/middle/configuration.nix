@@ -10,6 +10,8 @@
     "traefik" # Reverse proxy with HTTPS
     "wg-easy" # WireGuard VPN management
     "ys-sitecore" # Django web application
+    "kanidm"
+    "oauth2-proxy" # OAuth2 proxy for authentication
   ];
 
   # Sops secrets configuration using SSH host keys
@@ -28,7 +30,28 @@
         group = "rathole";
         mode = "0400";
       };
+      oauth2-proxy-client-secret = {
+        owner = "nobody";
+        group = "nobody";
+        mode = "0400";
+      };
+      oauth2-proxy-cookie-secret = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
     };
+  };
+
+  # OAuth2 Proxy environment file template
+  sops.templates."oauth2-proxy.env" = {
+    owner = "dock";
+    group = "docker";
+    mode = "0400";
+    path = "/var/lib/dock/oauth2-proxy.env";
+    content = ''
+      OAUTH2_PROXY_COOKIE_SECRET=${config.sops.placeholder.oauth2-proxy-cookie-secret}
+    '';
   };
 
   # Rathole user

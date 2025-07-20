@@ -1,0 +1,46 @@
+networks:
+  traefik:
+    external: true
+
+volumes:
+  kanidm_data:
+
+services:
+  kanidm-cert-init:
+    image: alpine:latest
+    container_name: kanidm-cert-init
+    volumes:
+      - kanidm_data:/data
+      - ./generate-certs.sh:/generate-certs.sh:ro
+    environment:
+      DOMAIN: "idm.home.alsharafi.dev"
+    command: sh /generate-certs.sh
+
+  kanidm:
+    image: kanidm/server:latest
+    container_name: kanidm
+    restart: unless-stopped
+    depends_on:
+      kanidm-cert-init:
+        condition: service_completed_successfully
+    networks:
+      - traefik
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./config/server.toml:/data/server.toml:ro
+      - kanidm_data:/data
+    environment:
+      TZ: "Asia/Kuala_Lumpur"
+    labels:
+      # Enable Traefik
+      - "traefik.enable=true"
+      - "traefik.http.routers.kanidm.rule=Host(`idm.home.alsharafi.dev`)"
+      - "traefik.http.routers.kanidm.service=kanidm"
+      - "traefik.http.services.kanidm.loadbalancer.server.port=8443"
+      - "traefik.http.services.kanidm.loadbalancer.server.scheme=https"
+      - "traefik.http.services.kanidm.loadbalancer.serverstransport=kanidm-transport@file"
+    healthcheck:
+      test: ["CMD", "kanidmd", "healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
