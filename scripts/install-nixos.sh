@@ -1,13 +1,14 @@
 #!/bin/bash
 
 # NixOS Installation Script with Btrfs and SSH
-# Usage: ./install-nixos.sh /dev/sda
+# Usage: ./install-nixos.sh /dev/sda [/dev/sdb]
 
 set -e
 
 # Configuration
-DISK="${1:-/dev/sda}"
-HOSTNAME="middle"
+DISK="${1:-/dev/nvme0n1}"
+STORAGE_DISK="${2:-}"
+HOSTNAME="home"
 USERNAME="amjad"
 TIMEZONE="Asia/Kuala_Lumpur"
 
@@ -43,13 +44,26 @@ if [[ $EUID -ne 0 ]]; then
     error "This script must be run as root"
 fi
 
-# Check if disk exists
+# Check if disks exist
 if [[ ! -b "$DISK" ]]; then
-    error "Disk $DISK does not exist"
+    error "Main disk $DISK does not exist"
+fi
+
+# Check if storage disk exists (optional)
+if [[ -n "$STORAGE_DISK" && ! -b "$STORAGE_DISK" ]]; then
+    error "Storage disk $STORAGE_DISK does not exist"
 fi
 
 # Confirmation
-warn "This will DESTROY ALL DATA on $DISK"
+if [[ -n "$STORAGE_DISK" ]]; then
+    warn "This will DESTROY ALL DATA on $DISK and $STORAGE_DISK"
+    echo "Main disk: $DISK"
+    echo "Storage disk: $STORAGE_DISK"
+else
+    warn "This will DESTROY ALL DATA on $DISK"
+    echo "Main disk: $DISK"
+    echo "Storage disk: none (will use main disk)"
+fi
 echo "Hostname: $HOSTNAME"
 echo "Username: $USERNAME"
 echo "Timezone: $TIMEZONE"
@@ -59,7 +73,11 @@ if [[ ! $REPLY =~ ^[Yy][Ee][Ss]$ ]]; then
     error "Installation cancelled"
 fi
 
-log "Starting NixOS installation on $DISK"
+if [[ -n "$STORAGE_DISK" ]]; then
+    log "Starting NixOS installation on $DISK with storage on $STORAGE_DISK"
+else
+    log "Starting NixOS installation on $DISK (single disk setup)"
+fi
 
 # 1. Partition the disk
 log "Creating partitions..."
@@ -108,48 +126,67 @@ log "Creating Btrfs subvolumes..."
 mount "$ROOT_PART" /mnt
 
 # Create subvolumes
-btrfs subvolume create /mnt/root
-btrfs subvolume create /mnt/root/.snapshots
-btrfs subvolume create /mnt/home
-btrfs subvolume create /mnt/home/.snapshots
-btrfs subvolume create /mnt/nix
-btrfs subvolume create /mnt/var
-btrfs subvolume create /mnt/var-log
-btrfs subvolume create /mnt/var-log/.snapshots
-btrfs subvolume create /mnt/var-cache
-btrfs subvolume create /mnt/var-tmp
-btrfs subvolume create /mnt/var-lib
-btrfs subvolume create /mnt/var-lib/.snapshots
-btrfs subvolume create /mnt/var-lib-docker
-btrfs subvolume create /mnt/srv
-btrfs subvolume create /mnt/opt
-btrfs subvolume create /mnt/tmp
+btrfs subvolume create /mnt/@
+btrfs subvolume create /mnt/@/.snapshots
+btrfs subvolume create /mnt/@home
+btrfs subvolume create /mnt/@home/.snapshots
+btrfs subvolume create /mnt/@nix
+btrfs subvolume create /mnt/@var
+btrfs subvolume create /mnt/@var-log
+btrfs subvolume create /mnt/@var-log/.snapshots
+btrfs subvolume create /mnt/@var-cache
+btrfs subvolume create /mnt/@var-tmp
+btrfs subvolume create /mnt/@var-lib
+btrfs subvolume create /mnt/@var-lib/.snapshots
+btrfs subvolume create /mnt/@var-lib-docker
+btrfs subvolume create /mnt/@srv
+btrfs subvolume create /mnt/@opt
+btrfs subvolume create /mnt/@tmp
 
 umount /mnt
 
+# Format storage disk with Btrfs (if provided)
+if [[ -n "$STORAGE_DISK" ]]; then
+    log "Formatting storage disk $STORAGE_DISK with Btrfs..."
+    mkfs.btrfs -f -L storage "$STORAGE_DISK"
+
+    # Create storage subvolume
+    log "Creating storage subvolume..."
+    mount "$STORAGE_DISK" /mnt
+    btrfs subvolume create /mnt/@
+    umount /mnt
+fi
+
 # 4. Mount subvolumes
 log "Mounting subvolumes..."
-mount -o subvol=root,compress=zstd:3,noatime,space_cache=v2 "$ROOT_PART" /mnt
+mount -o subvol=@,compress=zstd:3,noatime,space_cache=v2 "$ROOT_PART" /mnt
 
 mkdir -p /mnt/{boot,boot,home,nix,var,tmp,srv,opt}
 mount "$BOOT_PART" /mnt/boot
 mkdir -p /mnt/boot/efi
 mount "$EFI_PART" /mnt/boot/efi
-mount -o subvol=home,compress=zstd:1,noatime,space_cache=v2 "$ROOT_PART" /mnt/home
-mount -o subvol=nix,compress=zstd:3,noatime,space_cache=v2 "$ROOT_PART" /mnt/nix
-mount -o subvol=var,compress=zstd:1,noatime,space_cache=v2 "$ROOT_PART" /mnt/var
-mount -o subvol=tmp,nodatacow,noatime,space_cache=v2 "$ROOT_PART" /mnt/tmp
-mount -o subvol=srv,compress=zstd:1,noatime,space_cache=v2 "$ROOT_PART" /mnt/srv
-mount -o subvol=opt,compress=zstd:1,noatime,space_cache=v2 "$ROOT_PART" /mnt/opt
+mount -o subvol=@home,compress=zstd:1,noatime,space_cache=v2 "$ROOT_PART" /mnt/home
+mount -o subvol=@nix,compress=zstd:3,noatime,space_cache=v2 "$ROOT_PART" /mnt/nix
+mount -o subvol=@var,compress=zstd:1,noatime,space_cache=v2 "$ROOT_PART" /mnt/var
+mount -o subvol=@tmp,nodatacow,noatime,space_cache=v2 "$ROOT_PART" /mnt/tmp
+mount -o subvol=@srv,compress=zstd:1,noatime,space_cache=v2 "$ROOT_PART" /mnt/srv
+mount -o subvol=@opt,compress=zstd:1,noatime,space_cache=v2 "$ROOT_PART" /mnt/opt
 
 mkdir -p /mnt/var/{log,cache,tmp,lib}
-mount -o subvol=var-log,compress=zstd:6,noatime,space_cache=v2 "$ROOT_PART" /mnt/var/log
-mount -o subvol=var-cache,nodatacow,noatime,space_cache=v2 "$ROOT_PART" /mnt/var/cache
-mount -o subvol=var-tmp,nodatacow,noatime,space_cache=v2 "$ROOT_PART" /mnt/var/tmp
-mount -o subvol=var-lib,compress=zstd:1,noatime,space_cache=v2 "$ROOT_PART" /mnt/var/lib
+mount -o subvol=@var-log,compress=zstd:6,noatime,space_cache=v2 "$ROOT_PART" /mnt/var/log
+mount -o subvol=@var-cache,nodatacow,noatime,space_cache=v2 "$ROOT_PART" /mnt/var/cache
+mount -o subvol=@var-tmp,nodatacow,noatime,space_cache=v2 "$ROOT_PART" /mnt/var/tmp
+mount -o subvol=@var-lib,compress=zstd:1,noatime,space_cache=v2 "$ROOT_PART" /mnt/var/lib
 
 mkdir -p /mnt/var/lib/docker
-mount -o subvol=var-lib-docker,compress=zstd:1,noatime,space_cache=v2 "$ROOT_PART" /mnt/var/lib/docker
+mount -o subvol=@var-lib-docker,compress=zstd:1,noatime,space_cache=v2 "$ROOT_PART" /mnt/var/lib/docker
+
+# Mount storage disk (only if provided)
+if [[ -n "$STORAGE_DISK" ]]; then
+    log "Mounting storage disk..."
+    mkdir -p /mnt/mnt/storage
+    mount -o subvol=@,compress=zstd:3,noatime,space_cache=v2 "$STORAGE_DISK" /mnt/mnt/storage
+fi
 
 # 5. Generate hardware configuration
 log "Generating hardware configuration..."
