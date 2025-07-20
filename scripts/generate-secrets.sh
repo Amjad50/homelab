@@ -90,6 +90,10 @@ check_env_vars() {
     if [ -z "${MEMOS_TELEGRAM_BOT_TOKEN:-}" ]; then
         missing_vars+=("MEMOS_TELEGRAM_BOT_TOKEN")
     fi
+
+    if [ -z "${MINIO_ROOT_PASSWORD:-}" ]; then
+        missing_vars+=("MINIO_ROOT_PASSWORD")
+    fi
     
     if [ ${#missing_vars[@]} -ne 0 ]; then
         log_error "Missing required environment variables: ${missing_vars[*]}"
@@ -177,6 +181,7 @@ firefly-db-password: "$FIREFLY_DB_PASSWORD"
 blinko-nextauth-secret: "$BLINKO_NEXTAUTH_SECRET"
 blinko-db-password: "$BLINKO_DB_PASSWORD"
 memos-telegram-bot-token: "$MEMOS_TELEGRAM_BOT_TOKEN"
+minio-root-password: "$MINIO_ROOT_PASSWORD"
 EOF
 }
 
@@ -245,6 +250,7 @@ main() {
     echo "  - Blinko NextAuth Secret: ${BLINKO_NEXTAUTH_SECRET:0:16}..."
     echo "  - Blinko DB Password: ${BLINKO_DB_PASSWORD:0:16}..."
     echo "  - Memos Telegram Bot Token: ${MEMOS_TELEGRAM_BOT_TOKEN:0:16}..."
+    echo "  - MinIO Root Password: ${MINIO_ROOT_PASSWORD:0:16}..."
     echo
     
     # Encrypt for both machines
@@ -282,6 +288,7 @@ main() {
         echo "BLINKO_NEXTAUTH_SECRET=$BLINKO_NEXTAUTH_SECRET"
         echo "BLINKO_DB_PASSWORD=$BLINKO_DB_PASSWORD"
         echo "MEMOS_TELEGRAM_BOT_TOKEN=$MEMOS_TELEGRAM_BOT_TOKEN"
+        echo "MINIO_ROOT_PASSWORD=$MINIO_ROOT_PASSWORD"
     fi
 }
 

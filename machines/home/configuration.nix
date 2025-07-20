@@ -11,6 +11,7 @@
     "fireflyiii"
     "blinko"
     "memos"
+    "minio"
   ];
 
   # Sops secrets configuration using SSH host keys
@@ -50,6 +51,11 @@
         mode = "0400";
       };
       memos-telegram-bot-token = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      minio-root-password = {
         owner = "dock";
         group = "docker";
         mode = "0400";
@@ -100,6 +106,17 @@
     path = "/var/lib/dock/memos-telegram.env";
     content = ''
       BOT_TOKEN=${config.sops.placeholder.memos-telegram-bot-token}
+    '';
+  };
+
+  # MinIO environment template
+  sops.templates."minio.env" = {
+    owner = "dock";
+    group = "docker";
+    mode = "0400";
+    path = "/var/lib/dock/minio.env";
+    content = ''
+      MINIO_ROOT_PASSWORD=${config.sops.placeholder.minio-root-password}
     '';
   };
 
