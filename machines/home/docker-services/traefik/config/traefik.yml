@@ -10,7 +10,11 @@ entryPoints:
   web:
     address: ":80"
     asDefault: true
-  
+
+    # Trust proxy from the middle server
+    forwardedHeaders:
+      trustedIPs:
+        - "172.18.0.0/16"
   ping:
     address: ":8082"
 

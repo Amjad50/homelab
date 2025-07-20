@@ -48,13 +48,15 @@ services:
       - firefly-db-password
     environment:
       TZ: "Asia/Kuala_Lumpur"
+      DEFAULT_LANGUAGE: en_US
+      DEFAULT_LOCALE: equal
       
       # App configuration
       APP_ENV: production
       APP_DEBUG: false
       APP_KEY_FILE: /run/secrets/firefly-app-key
-      APP_URL: http://firefly.home.alsharafi.dev
-      TRUSTED_PROXIES: "**"
+      APP_URL: https://firefly.home.alsharafi.dev
+      TRUSTED_PROXIES: "*"
       
       # Database configuration
       DB_CONNECTION: pgsql
@@ -63,7 +65,8 @@ services:
       DB_DATABASE: firefly
       DB_USERNAME: firefly
       DB_PASSWORD_FILE: /run/secrets/firefly-db-password
-      
+      ENABLE_EXCHANGE_RATES: true
+    
       # Cache configuration
       CACHE_DRIVER: file
       SESSION_DRIVER: file
@@ -86,5 +89,5 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.fireflyiii.rule=Host(`firefly.home.alsharafi.dev`)"
       - "traefik.http.routers.fireflyiii.service=fireflyiii"
-      - "traefik.http.routers.fireflyiii.middlewares=app-chain@file"
+      - "traefik.http.routers.fireflyiii.middlewares=default-chain@file"
       - "traefik.http.services.fireflyiii.loadbalancer.server.port=8080"
