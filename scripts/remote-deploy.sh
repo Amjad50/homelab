@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Remote deployment script
-# Usage: remote-deploy.sh <archive-path> <flake-name>
+# Usage: remote-deploy.sh <archive-path> <flake-name> [--no-docker]
 
 set -e
 
@@ -39,12 +39,21 @@ log_docker() {
     echo -e "${CYAN}[DOCKER]${NC} $1" >&2
 }
 
+# Parse arguments
 REMOTE_ARCHIVE="$1"
 FLAKE_NAME="$2"
+NO_DOCKER=false
+ONLY_DOCKER=false
+
+if [ "$3" = "--no-docker" ]; then
+    NO_DOCKER=true
+elif [ "$3" = "--only-docker" ]; then
+    ONLY_DOCKER=true
+fi
 
 if [ -z "$REMOTE_ARCHIVE" ] || [ -z "$FLAKE_NAME" ]; then
     log_error "Missing required arguments"
-    echo "Usage: $0 <archive-path> <flake-name>"
+    echo "Usage: $0 <archive-path> <flake-name> [--no-docker|--only-docker]"
     exit 1
 fi
 
@@ -135,26 +144,41 @@ log_info "Using temp directory: $TEMP_DIR"
 log_step 'Extracting archive...'
 cd "$TEMP_DIR" && tar -xJf "$REMOTE_ARCHIVE"
 
-# Process docker services and capture changed services
-CHANGED_SERVICES=$(process_docker_services "$TEMP_DIR" "$FLAKE_NAME")
-
-# Move configuration files
-log_step 'Moving configuration files...'
-sudo mv "$TEMP_DIR/flake.nix" /etc/nixos/
-sudo rm -rf /etc/nixos/common /etc/nixos/machines
-sudo mv "$TEMP_DIR/common" /etc/nixos/
-sudo mkdir -p /etc/nixos/machines
-sudo mv "$TEMP_DIR/machines/$FLAKE_NAME" /etc/nixos/machines/
-
-# Remove old configuration.nix if it exists
-if [ -f /etc/nixos/configuration.nix ]; then
-    log_info "Removing old configuration.nix..."
-    sudo rm /etc/nixos/configuration.nix
+# Process docker services and capture changed services (if not skipped)
+if [ "$NO_DOCKER" = false ]; then
+    CHANGED_SERVICES=$(process_docker_services "$TEMP_DIR" "$FLAKE_NAME")
+else
+    log_info "Skipping Docker services deployment (--no-docker flag)"
+    CHANGED_SERVICES=""
+    # Remove docker-services from temp directory to prevent copying
+    rm -rf "$TEMP_DIR/machines/$FLAKE_NAME/docker-services" 2>/dev/null || true
 fi
 
-# Run nixos-rebuild
-log_step 'Running nixos-rebuild switch...'
-sudo nixos-rebuild switch
+# Move configuration files (unless only-docker)
+if [ "$ONLY_DOCKER" = false ]; then
+    log_step 'Moving configuration files...'
+    sudo mv "$TEMP_DIR/flake.nix" /etc/nixos/
+    sudo rm -rf /etc/nixos/common /etc/nixos/machines
+    sudo mv "$TEMP_DIR/common" /etc/nixos/
+    sudo mkdir -p /etc/nixos/machines
+    sudo mv "$TEMP_DIR/machines/$FLAKE_NAME" /etc/nixos/machines/
+
+    # Remove old configuration.nix if it exists
+    if [ -f /etc/nixos/configuration.nix ]; then
+        log_info "Removing old configuration.nix..."
+        sudo rm /etc/nixos/configuration.nix
+    fi
+else
+    log_info "Skipping configuration deployment (--only-docker flag)"
+fi
+
+# Run nixos-rebuild (unless only-docker)
+if [ "$ONLY_DOCKER" = false ]; then
+    log_step 'Running nixos-rebuild switch...'
+    sudo nixos-rebuild switch
+else
+    log_info "Skipping nixos-rebuild (--only-docker flag)"
+fi
 
 # Restart changed services
 restart_changed_services "$CHANGED_SERVICES"

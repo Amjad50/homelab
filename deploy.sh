@@ -1,8 +1,9 @@
 #!/bin/bash
 
-# Usage: ./deploy.sh <flake-name> [server]
+# Usage: ./deploy.sh <flake-name> [server] [--no-docker]
 # If server is provided, deploy remotely via SSH
 # Otherwise, run locally
+# Use --no-docker to skip Docker service deployment
 
 set -e
 
@@ -36,13 +37,44 @@ log_step() {
     echo -e "${PURPLE}[STEP]${NC} $1"
 }
 
-FLAKE_NAME=$1
-SERVER=$2
+# Parse arguments
+FLAKE_NAME=""
+SERVER=""
+NO_DOCKER=false
+ONLY_DOCKER=false
+
+for arg in "$@"; do
+    case $arg in
+        --no-docker)
+            NO_DOCKER=true
+            shift
+            ;;
+        --only-docker)
+            ONLY_DOCKER=true
+            shift
+            ;;
+        *)
+            if [ -z "$FLAKE_NAME" ]; then
+                FLAKE_NAME="$arg"
+            elif [ -z "$SERVER" ]; then
+                SERVER="$arg"
+            fi
+            shift
+            ;;
+    esac
+done
+
+if [ "$ONLY_DOCKER" = true ] && [ "$NO_DOCKER" = true ]; then
+    log_error "Cannot use both --no-docker and --only-docker flags together"
+    exit 1
+fi
 
 if [ -z "$FLAKE_NAME" ]; then
     log_error "Missing flake name"
-    echo "Usage: $0 <flake-name> [server]"
+    echo "Usage: $0 <flake-name> [server] [--no-docker|--only-docker]"
     echo "Example: $0 myserver user@remote-server"
+    echo "         $0 myserver user@remote-server --no-docker"
+    echo "         $0 myserver user@remote-server --only-docker"
     exit 1
 fi
 
@@ -67,7 +99,15 @@ if [ -n "$SERVER" ]; then
     
     # SSH and run remote deployment
     log_step "Running remote deployment..."
-    ssh -t "$SERVER" "chmod +x /tmp/remote-deploy.sh && /tmp/remote-deploy.sh $REMOTE_ARCHIVE $FLAKE_NAME"
+    if [ "$NO_DOCKER" = true ]; then
+        log_info "Skipping Docker services deployment"
+        ssh -t "$SERVER" "chmod +x /tmp/remote-deploy.sh && /tmp/remote-deploy.sh $REMOTE_ARCHIVE $FLAKE_NAME --no-docker"
+    elif [ "$ONLY_DOCKER" = true ]; then
+        log_info "Only deploying Docker services (skipping nixos-rebuild)"
+        ssh -t "$SERVER" "chmod +x /tmp/remote-deploy.sh && /tmp/remote-deploy.sh $REMOTE_ARCHIVE $FLAKE_NAME --only-docker"
+    else
+        ssh -t "$SERVER" "chmod +x /tmp/remote-deploy.sh && /tmp/remote-deploy.sh $REMOTE_ARCHIVE $FLAKE_NAME"
+    fi
     
     # Clean up local archive
     rm -f "$ARCHIVE"
@@ -88,12 +128,14 @@ else
     sudo rm -rf /etc/nixos/common /etc/nixos/machines
     sudo cp -r common /etc/nixos/
     
-    # Copy machine-specific docker-services if they exist
-    if [ -d "machines/$FLAKE_NAME/docker-services" ]; then
+    # Copy machine-specific docker-services if they exist and not skipped
+    if [ "$NO_DOCKER" = false ] && [ -d "machines/$FLAKE_NAME/docker-services" ]; then
         log_step "Copying docker-services..."
         sudo mkdir -p /opt/docker-services
         sudo cp -r "machines/$FLAKE_NAME/docker-services"/* /opt/docker-services/
         sudo chown -R dock:docker /opt/docker-services
+    elif [ "$NO_DOCKER" = true ]; then
+        log_info "Skipping Docker services deployment (--no-docker flag)"
     fi
     
     # Copy machine directory
@@ -106,8 +148,12 @@ else
         sudo rm /etc/nixos/configuration.nix
     fi
     
-    log_step "Running nixos-rebuild switch..."
-    sudo nixos-rebuild switch
+    if [ "$ONLY_DOCKER" = false ]; then
+        log_step "Running nixos-rebuild switch..."
+        sudo nixos-rebuild switch
+    else
+        log_info "Skipping nixos-rebuild (--only-docker flag)"
+    fi
     
     log_success "Local deployment complete!"
 fi
