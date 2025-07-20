@@ -9,6 +9,7 @@
     "webapp"
     "traefik"
     "fireflyiii"
+    "blinko"
   ];
 
   # Sops secrets configuration using SSH host keys
@@ -37,6 +38,16 @@
         group = "www-data";
         mode = "0400";
       };
+      blinko-nextauth-secret = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      blinko-db-password = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
     };
   };
 
@@ -57,6 +68,22 @@
   };
   users.groups.www-data = {
     gid = 33;
+  };
+
+  # Blinko environment template
+  sops.templates."blinko.env" = {
+    owner = "dock";
+    group = "docker";
+    mode = "0400";
+    path = "/var/lib/dock/blinko.env";
+    content = ''
+      # Database configuration
+      POSTGRES_PASSWORD=${config.sops.placeholder.blinko-db-password}
+
+      # Blinko application configuration
+      DATABASE_URL=postgresql://blinko:${config.sops.placeholder.blinko-db-password}@blinko-db:5432/blinko
+      NEXTAUTH_SECRET=${config.sops.placeholder.blinko-nextauth-secret}
+    '';
   };
 
   # Rathole client configuration template

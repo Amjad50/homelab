@@ -71,6 +71,19 @@ http:
             sans:
               - "firefly.home.alsharafi.dev"
       priority: 100
+    
+    blinko:
+      rule: "Host(`blinko.home.alsharafi.dev`)"
+      service: "home-tunnel"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: "home.alsharafi.dev"
+            sans:
+              - "blinko.home.alsharafi.dev"
+      priority: 10
 
     # Fallback route for all other *.home.alsharafi.dev domains
     home-fallback:

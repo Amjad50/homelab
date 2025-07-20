@@ -135,6 +135,22 @@ generate_secrets() {
     else
         log_info "Using provided FireflyIII database password"
     fi
+    
+    # Generate Blinko NextAuth secret if not provided
+    if [ -z "${BLINKO_NEXTAUTH_SECRET:-}" ]; then
+        BLINKO_NEXTAUTH_SECRET=$(openssl rand -base64 32)
+        log_info "Generated new Blinko NextAuth secret"
+    else
+        log_info "Using provided Blinko NextAuth secret"
+    fi
+    
+    # Generate Blinko database password if not provided
+    if [ -z "${BLINKO_DB_PASSWORD:-}" ]; then
+        BLINKO_DB_PASSWORD=$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)
+        log_info "Generated new Blinko database password"
+    else
+        log_info "Using provided Blinko database password"
+    fi
 }
 
 # Create secrets YAML content for middle server
@@ -154,6 +170,8 @@ rathole-token: "$RATHOLE_TOKEN"
 rathole-noise-public: "$RATHOLE_NOISE_PUBLIC"
 firefly-app-key: "$FIREFLY_APP_KEY"
 firefly-db-password: "$FIREFLY_DB_PASSWORD"
+blinko-nextauth-secret: "$BLINKO_NEXTAUTH_SECRET"
+blinko-db-password: "$BLINKO_DB_PASSWORD"
 EOF
 }
 
@@ -219,6 +237,8 @@ main() {
     echo "  - OAuth2 Proxy Cookie Secret: ${OAUTH2_PROXY_COOKIE_SECRET:0:16}..."
     echo "  - FireflyIII App Key: ${FIREFLY_APP_KEY:0:16}..."
     echo "  - FireflyIII DB Password: ${FIREFLY_DB_PASSWORD:0:16}..."
+    echo "  - Blinko NextAuth Secret: ${BLINKO_NEXTAUTH_SECRET:0:16}..."
+    echo "  - Blinko DB Password: ${BLINKO_DB_PASSWORD:0:16}..."
     echo
     
     # Encrypt for both machines
@@ -253,6 +273,8 @@ main() {
         echo "OAUTH2_PROXY_COOKIE_SECRET=$OAUTH2_PROXY_COOKIE_SECRET"
         echo "FIREFLY_APP_KEY=$FIREFLY_APP_KEY"
         echo "FIREFLY_DB_PASSWORD=$FIREFLY_DB_PASSWORD"
+        echo "BLINKO_NEXTAUTH_SECRET=$BLINKO_NEXTAUTH_SECRET"
+        echo "BLINKO_DB_PASSWORD=$BLINKO_DB_PASSWORD"
     fi
 }
 

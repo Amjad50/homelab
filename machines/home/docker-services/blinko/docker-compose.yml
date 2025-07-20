@@ -1,0 +1,70 @@
+networks:
+  traefik:
+    external: true
+  blinko:
+    internal: true
+
+services:
+  blinko-db:
+    image: postgres:17-alpine
+    container_name: blinko-db
+    restart: unless-stopped
+    networks:
+      - blinko
+    env_file:
+      - path: /var/lib/dock/blinko.env
+        required: true
+    environment:
+      POSTGRES_DB: blinko
+      POSTGRES_USER: blinko
+      # POSTGRES_PASSWORD: set from env file
+      TZ: "Asia/Kuala_Lumpur"
+    volumes:
+      - /mnt/storage/blinko/database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U blinko -d blinko"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  blinko:
+    image: blinkospace/blinko:latest
+    container_name: blinko
+    restart: unless-stopped
+    depends_on:
+      blinko-db:
+        condition: service_healthy
+    networks:
+      - traefik
+      - blinko
+    env_file:
+      - path: /var/lib/dock/blinko.env
+        required: true
+    environment:
+      NODE_ENV: production
+      TZ: "Asia/Kuala_Lumpur"
+      
+      # Database configuration
+      # DATABASE_URL: set from env file
+      
+      # NextAuth configuration
+      # NEXTAUTH_SECRET: set from env file
+      NEXTAUTH_URL: https://blinko.home.alsharafi.dev
+      NEXT_PUBLIC_BASE_URL: https://blinko.home.alsharafi.dev
+      
+    volumes:
+      - /mnt/storage/blinko/data:/app/.blinko
+    labels:
+      # Enable Traefik
+      - "traefik.enable=true"
+      - "traefik.http.routers.blinko.rule=Host(`blinko.home.alsharafi.dev`)"
+      - "traefik.http.routers.blinko.service=blinko"
+      - "traefik.http.routers.blinko.middlewares=default-chain@file"
+      - "traefik.http.services.blinko.loadbalancer.server.port=1111"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:1111/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
