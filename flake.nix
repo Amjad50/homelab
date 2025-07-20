@@ -9,10 +9,12 @@
     nixvim.inputs.nixpkgs.follows = "nixpkgs";
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
+    lanzaboote.url = "github:nix-community/lanzaboote/v0.4.2";
+    lanzaboote.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
-    { self, nixpkgs, home-manager, nixvim, sops-nix }:
+    { self, nixpkgs, home-manager, nixvim, sops-nix, lanzaboote }:
     {
       nixosConfigurations = {
         vm-testing = nixpkgs.lib.nixosSystem {
@@ -54,6 +56,7 @@
             ./common/configuration.nix
             ./machines/home/configuration.nix
             sops-nix.nixosModules.sops
+            lanzaboote.nixosModules.lanzaboote
             home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
