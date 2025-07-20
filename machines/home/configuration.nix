@@ -10,6 +10,7 @@
     "traefik"
     "fireflyiii"
     "blinko"
+    "memos"
   ];
 
   # Sops secrets configuration using SSH host keys
@@ -44,6 +45,11 @@
         mode = "0400";
       };
       blinko-db-password = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      memos-telegram-bot-token = {
         owner = "dock";
         group = "docker";
         mode = "0400";
@@ -83,6 +89,17 @@
       # Blinko application configuration
       DATABASE_URL=postgresql://blinko:${config.sops.placeholder.blinko-db-password}@blinko-db:5432/blinko
       NEXTAUTH_SECRET=${config.sops.placeholder.blinko-nextauth-secret}
+    '';
+  };
+
+  # Memos Telegram bot environment template
+  sops.templates."memos-telegram.env" = {
+    owner = "dock";
+    group = "docker";
+    mode = "0400";
+    path = "/var/lib/dock/memos-telegram.env";
+    content = ''
+      BOT_TOKEN=${config.sops.placeholder.memos-telegram-bot-token}
     '';
   };
 

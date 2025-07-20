@@ -72,8 +72,10 @@ http:
               - "firefly.home.alsharafi.dev"
       priority: 100
     
-    blinko:
-      rule: "Host(`blinko.home.alsharafi.dev`)"
+    # Services which have their own authentication
+    # and may need to bypass OAuth2
+    home-public-sso:
+      rule: "Host(`blinko.home.alsharafi.dev`) || Host(`memos.home.alsharafi.dev`)"
       service: "home-tunnel"
       entryPoints:
         - websecure
@@ -83,6 +85,7 @@ http:
           - main: "home.alsharafi.dev"
             sans:
               - "blinko.home.alsharafi.dev"
+              - "memos.home.alsharafi.dev"
       priority: 10
 
     # Fallback route for all other *.home.alsharafi.dev domains

@@ -1,0 +1,80 @@
+networks:
+  traefik:
+    external: true
+  memos:
+    internal: true
+
+services:
+  memos:
+    image: neosmemo/memos:stable
+    container_name: memos
+    restart: unless-stopped
+    networks:
+      - traefik
+      - memos
+    environment:
+      # Production mode configuration
+      MEMOS_MODE: prod
+      MEMOS_PORT: 5230
+      TZ: "Asia/Kuala_Lumpur"
+      
+      # Use SQLite database (default)
+      # Data will be stored in the volume
+      
+    volumes:
+      # Store all data (database, uploads, config) in persistent storage
+      - /mnt/storage/memos/data:/var/opt/memos
+    labels:
+      # Enable Traefik
+      - "traefik.enable=true"
+      - "traefik.http.routers.memos.rule=Host(`memos.home.alsharafi.dev`)"
+      - "traefik.http.routers.memos.service=memos"
+      - "traefik.http.routers.memos.middlewares=default-chain@file"
+      - "traefik.http.services.memos.loadbalancer.server.port=5230"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:5230/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+  mortis:
+    image: ghcr.io/mudkipme/mortis:latest
+    container_name: mortis
+    entrypoint: ["/app/mortis"]
+    command: ["-grpc-addr=memos:5230"]
+    depends_on:
+      - memos
+    networks:
+      - traefik
+      - memos
+    restart: unless-stopped
+    labels:
+      # Enable Traefik
+      - "traefik.enable=true"
+      - "traefik.http.routers.mortis.rule=Host(`memos.home.alsharafi.dev`) && PathPrefix(`/api/v1/`)"
+      - "traefik.http.routers.mortis.service=mortis"
+      - "traefik.http.routers.mortis.middlewares=default-chain@file"
+      - "traefik.http.services.mortis.loadbalancer.server.port=5231"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider --server-response -q http://127.0.0.1:5231 2>&1 | grep -q 'HTTP/'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+  memogram:
+    build:
+      context: https://github.com/usememos/telegram-integration.git
+      dockerfile: Dockerfile
+    container_name: memogram
+    restart: unless-stopped
+    depends_on:
+      - memos
+    networks:
+      - traefik
+      - memos
+    env_file:
+      - path: /var/lib/dock/memos-telegram.env
+        required: true
+    environment:
+      SERVER_ADDR: "dns:memos:5230"
+      TZ: "Asia/Kuala_Lumpur"
