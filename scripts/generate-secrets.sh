@@ -119,6 +119,22 @@ generate_secrets() {
     else
         log_info "Using provided OAuth2 Proxy cookie secret"
     fi
+    
+    # Generate FireflyIII app key if not provided
+    if [ -z "${FIREFLY_APP_KEY:-}" ]; then
+        FIREFLY_APP_KEY="base64:$(openssl rand -base64 32)"
+        log_info "Generated new FireflyIII app key"
+    else
+        log_info "Using provided FireflyIII app key"
+    fi
+    
+    # Generate FireflyIII database password if not provided
+    if [ -z "${FIREFLY_DB_PASSWORD:-}" ]; then
+        FIREFLY_DB_PASSWORD=$(openssl rand -base64 32)
+        log_info "Generated new FireflyIII database password"
+    else
+        log_info "Using provided FireflyIII database password"
+    fi
 }
 
 # Create secrets YAML content for middle server
@@ -136,6 +152,8 @@ create_home_secrets_yaml() {
     cat << EOF
 rathole-token: "$RATHOLE_TOKEN"
 rathole-noise-public: "$RATHOLE_NOISE_PUBLIC"
+firefly-app-key: "$FIREFLY_APP_KEY"
+firefly-db-password: "$FIREFLY_DB_PASSWORD"
 EOF
 }
 
@@ -199,6 +217,8 @@ main() {
     echo "  - Noise Public: ${RATHOLE_NOISE_PUBLIC:0:16}..."
     echo "  - OAuth2 Proxy Client Secret: ${OAUTH2_PROXY_CLIENT_SECRET:0:16}..."
     echo "  - OAuth2 Proxy Cookie Secret: ${OAUTH2_PROXY_COOKIE_SECRET:0:16}..."
+    echo "  - FireflyIII App Key: ${FIREFLY_APP_KEY:0:16}..."
+    echo "  - FireflyIII DB Password: ${FIREFLY_DB_PASSWORD:0:16}..."
     echo
     
     # Encrypt for both machines
@@ -231,6 +251,8 @@ main() {
         echo "RATHOLE_NOISE_PUBLIC=$RATHOLE_NOISE_PUBLIC"
         echo "OAUTH2_PROXY_CLIENT_SECRET=$OAUTH2_PROXY_CLIENT_SECRET"
         echo "OAUTH2_PROXY_COOKIE_SECRET=$OAUTH2_PROXY_COOKIE_SECRET"
+        echo "FIREFLY_APP_KEY=$FIREFLY_APP_KEY"
+        echo "FIREFLY_DB_PASSWORD=$FIREFLY_DB_PASSWORD"
     fi
 }
 

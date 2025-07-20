@@ -8,6 +8,7 @@
   services.compose-services.services = [
     "webapp"
     "traefik"
+    "fireflyiii"
   ];
 
   # Sops secrets configuration using SSH host keys
@@ -26,6 +27,16 @@
         group = "rathole";
         mode = "0400";
       };
+      firefly-app-key = {
+        owner = "www-data";
+        group = "www-data";
+        mode = "0400";
+      };
+      firefly-db-password = {
+        owner = "www-data";
+        group = "www-data";
+        mode = "0400";
+      };
     };
   };
 
@@ -37,6 +48,16 @@
     createHome = true;
   };
   users.groups.rathole = { };
+
+  # www-data user for web services
+  users.users.www-data = {
+    isSystemUser = true;
+    group = "www-data";
+    uid = 33;
+  };
+  users.groups.www-data = {
+    gid = 33;
+  };
 
   # Rathole client configuration template
   sops.templates."rathole-client.toml" = {

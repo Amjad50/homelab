@@ -19,6 +19,14 @@ http:
         browserXssFilter: true
         customFrameOptionsValue: "SAMEORIGIN"
 
+    # Relaxed headers for apps that handle their own CSP
+    app-headers:
+      headers:
+        hostsProxyHeaders:
+          - "X-Forwarded-Host"
+          - "X-Forwarded-Proto"
+        customFrameOptionsValue: "SAMEORIGIN"
+
     # Response compression for better performance
     compression:
       compress:
@@ -38,6 +46,12 @@ http:
       chain:
         middlewares:
           - secure-headers
+          - compression
+
+    app-chain:
+      chain:
+        middlewares:
+          - app-headers
           - compression
 
   # Routers

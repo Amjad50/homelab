@@ -23,6 +23,7 @@ services:
       # OAuth2 Proxy configuration
       OAUTH2_PROXY_HTTP_ADDRESS: "0.0.0.0:4180"
       OAUTH2_PROXY_REVERSE_PROXY: "true"
+      OAUTH2_PROXY_SET_XAUTHREQUEST: "true"
       OAUTH2_PROXY_UPSTREAMS: "static://202"
       
       # OIDC Provider (Kanidm on home server via tunnel)
@@ -60,16 +61,10 @@ services:
       - "traefik.http.routers.oauth2-proxy.rule=Host(`oauth2.home.alsharafi.dev`)"
       - "traefik.http.routers.oauth2-proxy.entrypoints=websecure"
       - "traefik.http.routers.oauth2-proxy.service=oauth2-proxy"
-      - "traefik.http.routers.oauth2-proxy.middlewares=default-chain@file"
       - "traefik.http.services.oauth2-proxy.loadbalancer.server.port=4180"
 
       
       # OAuth2 Proxy auth middleware (for protecting other services)
       - "traefik.http.middlewares.oauth2-auth.forwardauth.address=http://oauth2-proxy:4180"
       - "traefik.http.middlewares.oauth2-auth.forwardauth.trustforwardheader=true"
-      - "traefik.http.middlewares.oauth2-auth.forwardauth.authresponseheaders=X-Auth-Request-Access-Token,Authorization"
-      
-      # OAuth2 Proxy error handling middleware
-      # - "traefik.http.middlewares.oauth2-errors.errors.status=401-403"
-      # - "traefik.http.middlewares.oauth2-errors.errors.service=oauth2-proxy"
-      # - "traefik.http.middlewares.oauth2-errors.errors.query=/oauth2/sign_in?rd={url}"
+      - "traefik.http.middlewares.oauth2-auth.forwardauth.authresponseheaders=X-Auth-Request-Access-Token,X-Auth-Request-Email,Authorization"

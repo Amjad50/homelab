@@ -56,6 +56,20 @@ http:
 
   # Custom routers
   routers:
+    # FireflyIII API bypass (higher priority)
+    firefly-api-bypass:
+      rule: "Host(`firefly.home.alsharafi.dev`) && (HeaderRegexp(`Authorization`, `Bearer .+`) || HeaderRegexp(`X-API-Key`, `.+`) || Query(`api_token`, `.+`))"
+      service: "home-tunnel"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: "home.alsharafi.dev"
+            sans:
+              - "firefly.home.alsharafi.dev"
+      priority: 100
+
     # Fallback route for all other *.home.alsharafi.dev domains
     home-fallback:
       rule: "HostRegexp(`^.+\\.home\\.alsharafi\\.dev$`)"
@@ -69,6 +83,7 @@ http:
             sans:
               - "webapp.home.alsharafi.dev"
               - "traefik-internal.home.alsharafi.dev"
+              - "firefly.home.alsharafi.dev"
       middlewares:
         - oauth2-auth@docker
       priority: 1

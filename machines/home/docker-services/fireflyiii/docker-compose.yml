@@ -1,0 +1,90 @@
+networks:
+  traefik:
+    external: true
+  fireflyiii:
+    internal: true
+
+secrets:
+  firefly-app-key:
+    file: /run/secrets/firefly-app-key
+  firefly-db-password:
+    file: /run/secrets/firefly-db-password
+
+services:
+  fireflyiii-db:
+    image: postgres:15-alpine
+    container_name: fireflyiii-db
+    restart: unless-stopped
+    networks:
+      - fireflyiii
+    secrets:
+      - firefly-db-password
+    environment:
+      POSTGRES_DB: firefly
+      POSTGRES_USER: firefly
+      POSTGRES_PASSWORD_FILE: /run/secrets/firefly-db-password
+      TZ: "Asia/Kuala_Lumpur"
+    volumes:
+      - /mnt/storage/firefly/database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U firefly -d firefly"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 7s
+
+  fireflyiii:
+    image: fireflyiii/core:latest
+    container_name: fireflyiii
+    restart: unless-stopped
+    depends_on:
+      fireflyiii-db:
+        condition: service_healthy
+    networks:
+      - traefik
+      - fireflyiii
+    secrets:
+      - firefly-app-key
+      - firefly-db-password
+    environment:
+      TZ: "Asia/Kuala_Lumpur"
+      
+      # App configuration
+      APP_ENV: production
+      APP_DEBUG: false
+      APP_KEY_FILE: /run/secrets/firefly-app-key
+      APP_URL: http://firefly.home.alsharafi.dev
+      TRUSTED_PROXIES: "**"
+      
+      # Database configuration
+      DB_CONNECTION: pgsql
+      DB_HOST: fireflyiii-db
+      DB_PORT: 5432
+      DB_DATABASE: firefly
+      DB_USERNAME: firefly
+      DB_PASSWORD_FILE: /run/secrets/firefly-db-password
+      
+      # Cache configuration
+      CACHE_DRIVER: file
+      SESSION_DRIVER: file
+      
+      # Mail configuration (optional)
+      MAIL_MAILER: log
+      
+      # Security
+      COOKIE_SECURE: false
+      
+      # OIDC Authentication with Kanidm
+      AUTHENTICATION_GUARD: remote_user_guard
+      AUTHENTICATION_GUARD_HEADER: X-Auth-Request-Email
+      AUTHENTICATION_GUARD_EMAIL: X-Auth-Request-Email
+      
+    volumes:
+      - /mnt/storage/firefly/upload:/var/www/html/storage/upload
+    labels:
+      # Enable Traefik
+      - "traefik.enable=true"
+      - "traefik.http.routers.fireflyiii.rule=Host(`firefly.home.alsharafi.dev`)"
+      - "traefik.http.routers.fireflyiii.service=fireflyiii"
+      - "traefik.http.routers.fireflyiii.middlewares=app-chain@file"
+      - "traefik.http.services.fireflyiii.loadbalancer.server.port=8080"
