@@ -44,9 +44,9 @@ nixos-config/
 
 - **Multi-machine support** - Common configuration with machine-specific overrides
 - **Modular configuration** - Shared modules and machine-specific settings
-- **Remote deployment** - Deploy specific machine configurations via SSH
+- **Remote deployment** - Compressed transfers with change detection and automatic service restarts
 - **Btrfs subvolumes** - Optimized layout with automatic snapshots
-- **Docker Compose services** - Global and machine-specific service management
+- **Docker Compose services** - Global and machine-specific service management with polkit integration
 - **Security hardening** - SSH keys, fail2ban, firewall configuration
 - **Declarative management** - Everything defined in Nix configuration
 
@@ -116,6 +116,7 @@ compose-status               # Quick service overview
 Detailed documentation is available in the `docs/` directory:
 
 - [Installation Guide](docs/installation.md) - Automated NixOS installation
+- [Deployment Guide](docs/deployment.md) - Remote deployment with change detection
 - [Configuration Guide](docs/configuration.md) - Detailed module configuration
 - [Docker Management](docs/docker.md) - Docker Compose service management
 - [Btrfs & Snapshots](docs/btrfs.md) - Storage and backup configuration
@@ -125,7 +126,7 @@ Detailed documentation is available in the `docs/` directory:
 ## 🛠️ Requirements
 
 - **Local**: Nix package manager (for remote deployment)
-- **Server**: NixOS 25.05 with UEFI boot
+- **Server**: NixOS 25.05 with UEFI/BIOS boot support
 - **Storage**: Btrfs filesystem with separate subvolumes
 - **Network**: SSH access to target server
 

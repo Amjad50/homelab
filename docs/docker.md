@@ -58,3 +58,4 @@ compose-manage exec nginx web bash  # Execute in container
 - Depends on docker.service
 - Logs via journald with rotation
 - User runs as `dock:docker`
+- Docker group has polkit access to manage services

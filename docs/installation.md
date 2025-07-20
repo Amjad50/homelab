@@ -7,7 +7,7 @@ The `install-nixos.sh` script provides automated NixOS installation with optimiz
 ## Prerequisites
 
 - **NixOS ISO** booted on target system
-- **UEFI system** (script is UEFI-only)
+- **UEFI/BIOS system** (script supports both)
 - **Internet connection** for package downloads
 - **Root access** on installer
 
@@ -33,8 +33,10 @@ SSH_KEY="ssh-ed25519 ..."       # Your SSH public key
 ## What the Script Does
 
 ### 1. Disk Partitioning
-- **GPT partition table** for UEFI compatibility
-- **512MB EFI partition** (`/boot/efi`)
+- **GPT partition table** for UEFI/BIOS compatibility
+- **2MB BIOS boot partition** for GRUB
+- **100MB EFI partition** (`/boot/efi`)
+- **1GB boot partition** (`/boot`)
 - **Remaining space** for Btrfs root partition
 
 ### 2. Btrfs Subvolumes
