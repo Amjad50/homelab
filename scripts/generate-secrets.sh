@@ -94,6 +94,10 @@ check_env_vars() {
     if [ -z "${MINIO_ROOT_PASSWORD:-}" ]; then
         missing_vars+=("MINIO_ROOT_PASSWORD")
     fi
+
+    if [ -z "${WUD_OPENID_CLIENT_SECRET:-}" ]; then
+        missing_vars+=("WUD_OPENID_CLIENT_SECRET")
+    fi
     
     if [ ${#missing_vars[@]} -ne 0 ]; then
         log_error "Missing required environment variables: ${missing_vars[*]}"
@@ -200,6 +204,7 @@ memos-telegram-bot-token: "$MEMOS_TELEGRAM_BOT_TOKEN"
 minio-root-password: "$MINIO_ROOT_PASSWORD"
 n8n-db-password: "$N8N_DB_PASSWORD"
 n8n-encryption-key: "$N8N_ENCRYPTION_KEY"
+wud-openid-client-secret: "$WUD_OPENID_CLIENT_SECRET"
 EOF
 }
 
@@ -271,6 +276,7 @@ main() {
     echo "  - MinIO Root Password: ${MINIO_ROOT_PASSWORD:0:16}..."
     echo "  - n8n DB Password: ${N8N_DB_PASSWORD:0:16}..."
     echo "  - n8n Encryption Key: ${N8N_ENCRYPTION_KEY:0:16}..."
+    echo "  - WUD OpenID Client Secret: ${WUD_OPENID_CLIENT_SECRET:0:16}..."
     echo
     
     # Encrypt for both machines
@@ -311,6 +317,7 @@ main() {
         echo "MINIO_ROOT_PASSWORD=$MINIO_ROOT_PASSWORD"
         echo "N8N_DB_PASSWORD=$N8N_DB_PASSWORD"
         echo "N8N_ENCRYPTION_KEY=$N8N_ENCRYPTION_KEY"
+        echo "WUD_OPENID_CLIENT_SECRET=$WUD_OPENID_CLIENT_SECRET"
     fi
 }
 

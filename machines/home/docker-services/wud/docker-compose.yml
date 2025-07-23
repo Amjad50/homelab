@@ -1,0 +1,45 @@
+networks:
+  traefik:
+    external: true
+
+secrets:
+  wud-openid-client-secret:
+    file: /run/secrets/wud-openid-client-secret
+
+services:
+  wud:
+    image: fmartinou/whats-up-docker:latest
+    container_name: wud
+    restart: unless-stopped
+    networks:
+      - traefik
+    secrets:
+      - wud-openid-client-secret
+    environment:
+      TZ: "Asia/Kuala_Lumpur"
+
+      # Auth
+      WUD_AUTH_OIDC_KANIDM_CLIENTID: "wud"
+      WUD_AUTH_OIDC_KANIDM_CLIENTSECRET__FILE: /run/secrets/wud-openid-client-secret
+      WUD_AUTH_OIDC_KANIDM_DISCOVERY: https://idm.home.alsharafi.dev/oauth2/openid/wud/.well-known/openid-configuration
+      WUD_AUTH_OIDC_KANIDM_REDIRECT: true # skip login UI
+      
+      # Logs
+      WUD_LOG_LEVEL: "info"
+      
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /mnt/storage/wud:/store
+    labels:
+      # Enable Traefik
+      - "traefik.enable=true"
+      - "traefik.http.routers.wud.rule=Host(`wud.home.alsharafi.dev`)"
+      - "traefik.http.routers.wud.service=wud"
+      - "traefik.http.routers.wud.middlewares=default-chain@file"
+      - "traefik.http.services.wud.loadbalancer.server.port=3000"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

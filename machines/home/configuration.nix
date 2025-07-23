@@ -13,6 +13,7 @@
     "memos"
     "minio"
     "n8n"
+    "wud"
   ];
 
   # Sops secrets configuration using SSH host keys
@@ -67,6 +68,11 @@
         mode = "0400";
       };
       n8n-encryption-key = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      wud-openid-client-secret = {
         owner = "dock";
         group = "docker";
         mode = "0400";
