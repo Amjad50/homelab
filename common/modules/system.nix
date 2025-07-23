@@ -39,6 +39,7 @@
     yq
     fd
     neofetch
+    tree
 
     btrfs-list
 

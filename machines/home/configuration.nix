@@ -17,6 +17,17 @@
     "solidtime"
   ];
 
+  # Create btrfs subvolumes for docker services
+  systemd.tmpfiles.rules = [
+    "v /mnt/storage/blinko 0755 dock docker - -"
+    "v /mnt/storage/firefly 0755 dock docker - -"
+    "v /mnt/storage/memos 0755 dock docker - -"
+    "v /mnt/storage/minio 0755 dock docker - -"
+    "v /mnt/storage/n8n 0755 dock docker - -"
+    "v /mnt/storage/solidtime 0755 dock docker - -"
+    "v /mnt/storage/wud 0755 dock docker - -"
+  ];
+
   # Sops secrets configuration using SSH host keys
   sops = {
     defaultSopsFile = ./secrets.yaml;
