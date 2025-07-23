@@ -159,6 +159,22 @@ generate_secrets() {
     else
         log_info "Using provided Blinko database password"
     fi
+    
+    # Generate n8n database password if not provided
+    if [ -z "${N8N_DB_PASSWORD:-}" ]; then
+        N8N_DB_PASSWORD=$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)
+        log_info "Generated new n8n database password"
+    else
+        log_info "Using provided n8n database password"
+    fi
+    
+    # Generate n8n encryption key if not provided
+    if [ -z "${N8N_ENCRYPTION_KEY:-}" ]; then
+        N8N_ENCRYPTION_KEY=$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)
+        log_info "Generated new n8n encryption key"
+    else
+        log_info "Using provided n8n encryption key"
+    fi
 }
 
 # Create secrets YAML content for middle server
@@ -182,6 +198,8 @@ blinko-nextauth-secret: "$BLINKO_NEXTAUTH_SECRET"
 blinko-db-password: "$BLINKO_DB_PASSWORD"
 memos-telegram-bot-token: "$MEMOS_TELEGRAM_BOT_TOKEN"
 minio-root-password: "$MINIO_ROOT_PASSWORD"
+n8n-db-password: "$N8N_DB_PASSWORD"
+n8n-encryption-key: "$N8N_ENCRYPTION_KEY"
 EOF
 }
 
@@ -251,6 +269,8 @@ main() {
     echo "  - Blinko DB Password: ${BLINKO_DB_PASSWORD:0:16}..."
     echo "  - Memos Telegram Bot Token: ${MEMOS_TELEGRAM_BOT_TOKEN:0:16}..."
     echo "  - MinIO Root Password: ${MINIO_ROOT_PASSWORD:0:16}..."
+    echo "  - n8n DB Password: ${N8N_DB_PASSWORD:0:16}..."
+    echo "  - n8n Encryption Key: ${N8N_ENCRYPTION_KEY:0:16}..."
     echo
     
     # Encrypt for both machines
@@ -289,6 +309,8 @@ main() {
         echo "BLINKO_DB_PASSWORD=$BLINKO_DB_PASSWORD"
         echo "MEMOS_TELEGRAM_BOT_TOKEN=$MEMOS_TELEGRAM_BOT_TOKEN"
         echo "MINIO_ROOT_PASSWORD=$MINIO_ROOT_PASSWORD"
+        echo "N8N_DB_PASSWORD=$N8N_DB_PASSWORD"
+        echo "N8N_ENCRYPTION_KEY=$N8N_ENCRYPTION_KEY"
     fi
 }
 

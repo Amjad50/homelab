@@ -12,6 +12,7 @@
     "blinko"
     "memos"
     "minio"
+    "n8n"
   ];
 
   # Sops secrets configuration using SSH host keys
@@ -56,6 +57,16 @@
         mode = "0400";
       };
       minio-root-password = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      n8n-db-password = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      n8n-encryption-key = {
         owner = "dock";
         group = "docker";
         mode = "0400";

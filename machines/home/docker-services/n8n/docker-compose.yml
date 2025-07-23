@@ -1,0 +1,121 @@
+networks:
+  traefik:
+    external: true
+  n8n:
+    internal: true
+
+secrets:
+  n8n-db-password:
+    file: /run/secrets/n8n-db-password
+  n8n-encryption-key:
+    file: /run/secrets/n8n-encryption-key
+
+# This is a method to allow `n8n` to access the secrets without needing to run as root.
+# This is a volume, we create a temporary container to copy the secrets into it.
+# This is done to ensure that the secrets are only readable by the `n8n` `node` user.
+volumes:
+  n8n-secrets:
+    driver: local
+
+services:
+  n8n-db:
+    image: postgres:17-alpine
+    container_name: n8n-db
+    restart: unless-stopped
+    networks:
+      - n8n
+    secrets:
+      - n8n-db-password
+    volumes:
+      - /mnt/storage/n8n/postgres:/var/lib/postgresql/data
+    environment:
+      TZ: "Asia/Kuala_Lumpur"
+      POSTGRES_DB: n8n
+      POSTGRES_USER: n8n
+      POSTGRES_PASSWORD_FILE: /run/secrets/n8n-db-password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U n8n -d n8n"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  init-secrets:
+    image: alpine
+    user: root  # 👈 must be root to read /run/secrets
+    secrets:
+      - n8n-db-password
+      - n8n-encryption-key
+    volumes:
+      - n8n-secrets:/var/secrets
+      - /mnt/storage/n8n/data:/node_data  # This is to ensure the `n8n` user can access the data directory.
+    entrypoint: >
+      sh -c "
+        cp /run/secrets/n8n-db-password /var/secrets/n8n-db-password &&
+        cp /run/secrets/n8n-encryption-key /var/secrets/n8n-encryption-key &&
+        chmod 640 /var/secrets/* &&
+        chown 1000:1000 /var/secrets/* &&
+        chown 1000:1000 /node_data &&
+        echo 'Secrets initialized successfully.'
+      "
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    networks:
+      - traefik
+      - n8n
+    depends_on:
+      n8n-db:
+        condition: service_healthy
+      init-secrets:
+        condition: service_completed_successfully
+    volumes:
+      # Store n8n data (workflows, credentials, etc.)
+      - /mnt/storage/n8n/data:/home/node/.n8n
+      # Use the shared volume for secrets
+      - n8n-secrets:/var/secrets:ro
+    environment:
+      TZ: "Asia/Kuala_Lumpur"
+      GENERIC_TIMEZONE: "Asia/Kuala_Lumpur"
+      # Database configuration
+      DB_TYPE: "postgresdb"
+      DB_POSTGRESDB_HOST: "n8n-db"
+      DB_POSTGRESDB_PORT: 5432
+      DB_POSTGRESDB_DATABASE: "n8n"
+      DB_POSTGRESDB_USER: "n8n"
+      DB_POSTGRESDB_PASSWORD_FILE: /var/secrets/n8n-db-password
+
+      # This is here, but for some reason, the n8n ignores it?
+      N8N_ENCRYPTION_KEY_FILE: /var/secrets/n8n-encryption-key
+
+      N8N_RUNNERS_ENABLED: true
+      
+      # n8n configuration
+      N8N_HOST: "n8n.home.alsharafi.dev"
+      N8N_PORT: 5678
+      N8N_PROTOCOL: "https"
+      WEBHOOK_URL: "https://n8n.home.alsharafi.dev"
+
+      # Telemetry
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      
+      # Security
+      N8N_SECURE_COOKIE: "true"
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: true
+    labels:
+      # Enable Traefik
+      - "traefik.enable=true"
+      
+      # n8n Service
+      - "traefik.http.routers.n8n.rule=Host(`n8n.home.alsharafi.dev`)"
+      - "traefik.http.routers.n8n.service=n8n"
+      - "traefik.http.routers.n8n.middlewares=default-chain@file"
+      - "traefik.http.services.n8n.loadbalancer.server.port=5678"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://127.0.0.1:5678/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
