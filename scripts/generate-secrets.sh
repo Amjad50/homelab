@@ -98,6 +98,22 @@ check_env_vars() {
     if [ -z "${WUD_OPENID_CLIENT_SECRET:-}" ]; then
         missing_vars+=("WUD_OPENID_CLIENT_SECRET")
     fi
+
+    if [ -z "${SOLIDTIME_APP_KEY:-}" ]; then
+        missing_vars+=("SOLIDTIME_APP_KEY")
+    fi
+
+    if [ -z "${SOLIDTIME_PASSPORT_PRIVATE_KEY:-}" ]; then
+        missing_vars+=("SOLIDTIME_PASSPORT_PRIVATE_KEY")
+    fi
+
+    if [ -z "${SOLIDTIME_PASSPORT_PUBLIC_KEY:-}" ]; then
+        missing_vars+=("SOLIDTIME_PASSPORT_PUBLIC_KEY")
+    fi
+
+    if [ -z "${SOLIDTIME_SUPER_ADMINS:-}" ]; then
+        missing_vars+=("SOLIDTIME_SUPER_ADMINS")
+    fi
     
     if [ ${#missing_vars[@]} -ne 0 ]; then
         log_error "Missing required environment variables: ${missing_vars[*]}"
@@ -179,6 +195,14 @@ generate_secrets() {
     else
         log_info "Using provided n8n encryption key"
     fi
+    
+    # Generate solidtime database password if not provided
+    if [ -z "${SOLIDTIME_DB_PASSWORD:-}" ]; then
+        SOLIDTIME_DB_PASSWORD=$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)
+        log_info "Generated new solidtime database password"
+    else
+        log_info "Using provided solidtime database password"
+    fi
 }
 
 # Create secrets YAML content for middle server
@@ -205,6 +229,11 @@ minio-root-password: "$MINIO_ROOT_PASSWORD"
 n8n-db-password: "$N8N_DB_PASSWORD"
 n8n-encryption-key: "$N8N_ENCRYPTION_KEY"
 wud-openid-client-secret: "$WUD_OPENID_CLIENT_SECRET"
+solidtime-app-key: "$SOLIDTIME_APP_KEY"
+solidtime-passport-private-key: "$(printf '%q' "$SOLIDTIME_PASSPORT_PRIVATE_KEY")"
+solidtime-passport-public-key: "$(printf '%q' "$SOLIDTIME_PASSPORT_PUBLIC_KEY")"
+solidtime-super-admins: "$SOLIDTIME_SUPER_ADMINS"
+solidtime-db-password: "$SOLIDTIME_DB_PASSWORD"
 EOF
 }
 
@@ -277,6 +306,11 @@ main() {
     echo "  - n8n DB Password: ${N8N_DB_PASSWORD:0:16}..."
     echo "  - n8n Encryption Key: ${N8N_ENCRYPTION_KEY:0:16}..."
     echo "  - WUD OpenID Client Secret: ${WUD_OPENID_CLIENT_SECRET:0:16}..."
+    echo "  - Solidtime App Key: ${SOLIDTIME_APP_KEY:0:16}..."
+    echo "  - Solidtime Passport Private Key: ${SOLIDTIME_PASSPORT_PRIVATE_KEY:0:16}..."
+    echo "  - Solidtime Passport Public Key: ${SOLIDTIME_PASSPORT_PUBLIC_KEY:0:16}..."
+    echo "  - Solidtime Super Admins: ${SOLIDTIME_SUPER_ADMINS:0:16}..."
+    echo "  - Solidtime DB Password: ${SOLIDTIME_DB_PASSWORD:0:16}..."
     echo
     
     # Encrypt for both machines
@@ -318,6 +352,11 @@ main() {
         echo "N8N_DB_PASSWORD=$N8N_DB_PASSWORD"
         echo "N8N_ENCRYPTION_KEY=$N8N_ENCRYPTION_KEY"
         echo "WUD_OPENID_CLIENT_SECRET=$WUD_OPENID_CLIENT_SECRET"
+        echo "SOLIDTIME_APP_KEY=$SOLIDTIME_APP_KEY"
+        echo "SOLIDTIME_PASSPORT_PRIVATE_KEY=$SOLIDTIME_PASSPORT_PRIVATE_KEY"
+        echo "SOLIDTIME_PASSPORT_PUBLIC_KEY=$SOLIDTIME_PASSPORT_PUBLIC_KEY"
+        echo "SOLIDTIME_SUPER_ADMINS=$SOLIDTIME_SUPER_ADMINS"
+        echo "SOLIDTIME_DB_PASSWORD=$SOLIDTIME_DB_PASSWORD"
     fi
 }
 

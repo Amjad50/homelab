@@ -14,6 +14,7 @@
     "minio"
     "n8n"
     "wud"
+    "solidtime"
   ];
 
   # Sops secrets configuration using SSH host keys
@@ -77,6 +78,31 @@
         group = "docker";
         mode = "0400";
       };
+      solidtime-app-key = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      solidtime-passport-private-key = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      solidtime-passport-public-key = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      solidtime-db-password = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      solidtime-super-admins = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
     };
   };
 
@@ -134,6 +160,24 @@
     path = "/var/lib/dock/minio.env";
     content = ''
       MINIO_ROOT_PASSWORD=${config.sops.placeholder.minio-root-password}
+    '';
+  };
+
+  # Solidtime environment template
+  sops.templates."solidtime.env" = {
+    owner = "dock";
+    group = "docker";
+    mode = "0400";
+    path = "/var/lib/dock/solidtime.env";
+    content = ''
+      # Database configuration
+      DB_PASSWORD=${config.sops.placeholder.solidtime-db-password}
+
+      # Application configuration  
+      APP_KEY="${config.sops.placeholder.solidtime-app-key}"
+      PASSPORT_PRIVATE_KEY="${builtins.replaceStrings ["\\\\"] ["\\"] config.sops.placeholder.solidtime-passport-private-key}"
+      PASSPORT_PUBLIC_KEY="${builtins.replaceStrings ["\\\\"] ["\\"] config.sops.placeholder.solidtime-passport-public-key}"
+      SUPER_ADMINS="${config.sops.placeholder.solidtime-super-admins}"
     '';
   };
 

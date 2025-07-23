@@ -1,0 +1,120 @@
+networks:
+  traefik:
+    external: true
+  solidtime:
+    internal: true
+
+secrets:
+  solidtime-db-password:
+    file: /run/secrets/solidtime-db-password
+
+services:
+  solidtime-db:
+    restart: unless-stopped
+    image: 'postgres:17-alpine'
+    container_name: solidtime-db
+    environment:
+      PGPASSWORD: '${DB_PASSWORD:-secret}'
+      POSTGRES_DB: 'solidtime'
+      POSTGRES_USER: 'solidtime'
+      POSTGRES_PASSWORD_FILE: /run/secrets/solidtime-db-password
+    volumes:
+      - '/mnt/storage/solidtime/postgres:/var/lib/postgresql/data'
+    secrets:
+      - solidtime-db-password
+    networks:
+      - solidtime
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U solidtime -d solidtime"]
+      retries: 3
+      timeout: 5s
+      start_period: 10s
+
+  init-setup:
+    image: alpine
+    user: root  # 👈 must be root to read /run/secrets
+    volumes:
+      - "/mnt/storage/solidtime/app:/var/data"
+      - "/var/log/solidtime:/var/data/logs"
+    entrypoint: >
+      sh -c "
+        mkdir -p /var/data/app &&
+        mkdir -p /var/data/framework/cache &&
+        mkdir -p /var/data/framework/views &&
+        chown 1000:1000 -R /var/data/logs &&
+        chown 1000:1000 -R /var/data &&
+        chmod 775 -R /var/data &&
+        echo 'Initialized successfully.'
+      "
+  solidtime:
+    restart: unless-stopped
+    image: "solidtime/solidtime:latest"
+    container_name: solidtime
+    user: "1000:1000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.solidtime.loadbalancer.server.port=8000"
+      - "traefik.http.routers.solidtime.rule=Host(`solidtime.home.alsharafi.dev`)"
+      - "traefik.http.routers.solidtime.middlewares=default-chain@file"
+    networks:
+      - traefik
+      - solidtime
+    volumes:
+      - "/mnt/storage/solidtime/app:/var/www/html/storage"
+      - "/var/log/solidtime:/var/www/html/storage/logs"
+    depends_on:
+      solidtime-db:
+        condition: service_healthy
+      init-setup:
+        condition: service_completed_successfully
+      gotenberg:
+        condition: service_healthy
+    env_file:
+      - path: /var/lib/dock/solidtime.env
+        required: true
+    environment:
+      CONTAINER_MODE: http
+
+      # Laravel
+      APP_ENV: "production"
+      APP_DEBUG: false
+      APP_URL: "https://solidtime.home.alsharafi.dev"
+      APP_ENABLE_REGISTRATION: false
+      TRUSTED_PROXIES: "0.0.0.0/0,2000:0:0:0:0:0:0:0/3"
+
+      # Logging
+      LOG_CHANNEL: "stderr_daily"
+      LOG_LEVEL: "info"
+
+      # Database
+      DB_CONNECTION: "pgsql"
+      DB_HOST: solidtime-db
+      DB_PORT: 5432
+      DB_DATABASE: "solidtime"
+      DB_USERNAME: "solidtime"
+      # DB_PASSWORD: set in env file'
+      AUTO_DB_MIGRATE: "true"
+
+      # Filesystem
+      FILESYSTEM_DISK: "local"
+      PUBLIC_FILESYSTEM_DISK: "public"
+
+      QUEUE_CONNECTION: "sync" # No queue workers for now
+
+      MAIL_MAILER: "log"  # Don't want to use smtp for now
+
+      GOTENBERG_URL: "http://gotenberg:3000"
+
+      # Auth
+      # APP_KEY: set in env file
+      # PASSPORT_PRIVATE_KEY: set in env file
+      # PASSPORT_PUBLIC_KEY: set in env file
+      # SUPER_ADMINS: set in env file
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --fail http://localhost:8000/health-check/up || exit 1" ]
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    networks:
+      - solidtime
+    healthcheck:
+      test: [ "CMD", "curl", "--silent", "--fail", "http://localhost:3000/health" ]

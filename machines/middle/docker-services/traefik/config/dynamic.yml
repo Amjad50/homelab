@@ -107,6 +107,7 @@ http:
               - "debug.home.alsharafi.dev"
               - "minio-console.home.alsharafi.dev"
               - "n8n.home.alsharafi.dev"
+              - "solidtime.home.alsharafi.dev"
       middlewares:
         - oauth2-auth@docker
       priority: 1
