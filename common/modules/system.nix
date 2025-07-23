@@ -39,6 +39,8 @@
     yq
     neofetch
 
+    btrfs-list
+
     # Archive tools
     unzip
     p7zip
