@@ -6,14 +6,28 @@ Uses sops-nix with SSH host key encryption for secure secrets management. Secret
 
 ## Current Secrets
 
-### Rathole Secrets
+### Rathole Secrets (Tunnel)
 - **rathole-token**: Authentication token (shared between server/client)
 - **rathole-noise-private**: Noise transport private key (middle server only)
 - **rathole-noise-public**: Noise transport public key (both machines)
 
+### Application Secrets (Home Machine)
+- **firefly-app-key**: Firefly III application encryption key
+- **firefly-db-password**: Firefly III database password
+- **blinko-nextauth-secret**: Blinko NextAuth session secret
+- **blinko-db-password**: Blinko PostgreSQL password
+- **memos-telegram-bot-token**: Memos Telegram bot API token
+- **minio-root-password**: MinIO admin password
+- **n8n-db-password**: n8n PostgreSQL password
+- **n8n-encryption-key**: n8n workflow encryption key
+
+### Authentication Secrets (Middle Machine)
+- **oauth2-proxy-client-secret**: OAuth2 proxy client secret
+- **oauth2-proxy-cookie-secret**: OAuth2 proxy cookie signing secret
+
 ### Secret Distribution
-- **Middle server**: Gets token + noise private key
-- **Home server**: Gets token + noise public key only (security best practice)
+- **Middle server**: Rathole server keys + OAuth2 secrets
+- **Home server**: Rathole client keys + application secrets
 
 ## Setup
 
@@ -47,21 +61,41 @@ systemctl status rathole-client  # home
 curl https://app.home.alsharafi.dev
 ```
 
-## Configuration Pattern
+## Configuration Patterns
 
-### Middle Server (Server + Private Key)
+### Environment File Template (Most Common)
 ```nix
 sops = {
   defaultSopsFile = ./secrets.yaml;
   age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
   secrets = {
-    rathole-token = { owner = "rathole"; group = "rathole"; mode = "0400"; };
-    rathole-noise-private = { owner = "rathole"; group = "rathole"; mode = "0400"; };
+    myapp-db-password = { owner = "dock"; group = "docker"; mode = "0400"; };
+    myapp-api-key = { owner = "dock"; group = "docker"; mode = "0400"; };
   };
 };
 
-# Server configuration template
+# Environment file template for Docker services
+sops.templates."myapp.env" = {
+  owner = "dock";
+  group = "docker";
+  mode = "0400";
+  path = "/var/lib/dock/myapp.env";
+  content = ''
+    DB_PASSWORD=${config.sops.placeholder.myapp-db-password}
+    API_KEY=${config.sops.placeholder.myapp-api-key}
+  '';
+};
+```
+
+### Configuration File Template (Advanced)
+```nix
+# For services requiring TOML/YAML config files
 sops.templates."rathole-server.toml" = {
+  owner = "rathole";
+  group = "rathole"; 
+  mode = "0400";
+  path = "/var/lib/rathole/rathole-server.toml";
+  restartUnits = [ "rathole-server.service" ];
   content = ''
     [server]
     default_token = "${config.sops.placeholder.rathole-token}"
@@ -71,27 +105,11 @@ sops.templates."rathole-server.toml" = {
 };
 ```
 
-### Home Server (Client + Public Key Only)
-```nix
-sops = {
-  defaultSopsFile = ./secrets.yaml;
-  age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-  secrets = {
-    rathole-token = { owner = "rathole"; group = "rathole"; mode = "0400"; };
-    rathole-noise-public = { owner = "rathole"; group = "rathole"; mode = "0400"; };
-  };
-};
-
-# Client configuration template
-sops.templates."rathole-client.toml" = {
-  content = ''
-    [client]
-    default_token = "${config.sops.placeholder.rathole-token}"
-    [client.transport.noise]
-    remote_public_key = "${config.sops.placeholder.rathole-noise-public}"
-  '';
-};
-```
+### Service User Ownership
+- **dock:docker** - Docker service environment files
+- **www-data:www-data** - Web service configs (Firefly III)
+- **rathole:rathole** - Tunnel service configs
+- **nobody:nobody** - System service secrets
 
 ## Adding New Secrets
 
@@ -119,14 +137,25 @@ sops = {
 };
 ```
 
-### 3. Use in services
+### 3. Use in Docker services
 
 ```nix
-systemd.services.myservice = {
-  serviceConfig = {
-    EnvironmentFile = config.sops.secrets.new-secret.path;
-  };
+# Most common: Environment file
+sops.templates."myservice.env" = {
+  owner = "dock";
+  group = "docker";
+  path = "/var/lib/dock/myservice.env";
+  content = ''SECRET=${config.sops.placeholder.new-secret}'';
 };
+```
+
+```yaml
+# docker-compose.yml
+services:
+  myservice:
+    env_file:
+      - path: /var/lib/dock/myservice.env
+        required: true
 ```
 
 ## Daily Operations

@@ -24,7 +24,20 @@ Located in `common/modules/`:
 Each machine has its own directory in `machines/MACHINE_NAME/`:
 
 - `configuration.nix` - Machine-specific settings and overrides
-- `docker-services/` - Optional machine-specific Docker services
+- `docker-services/` - Machine-specific Docker services
+- `secrets.yaml` - Machine-specific encrypted secrets
+
+### Home Machine (`machines/home/`)
+Services: webapp, traefik, fireflyiii, blinko, memos, minio, n8n
+- Internal traefik (port 8080 only)
+- Rathole client configuration
+- Application-specific users (www-data for web services)
+
+### Middle Machine (`machines/middle/`)
+Services: traefik, wg-easy, ys-sitecore, kanidm, oauth2-proxy
+- Public traefik (ports 80/443)
+- Rathole server configuration
+- OAuth2 proxy integration
 
 ## Hardware Configuration
 
@@ -45,6 +58,23 @@ Progressive banning: 1h → 2h → 4h → 8h → 16h → 32h → 64h (max 1 week
 
 ### Docker
 Uses overlay2 storage driver with journald logging and weekly auto-pruning.
+
+### Service Users
+- **dock:docker** - Runs all Docker Compose services
+- **www-data:www-data** - Web service (some docker services needs this account) secrets (uid/gid 33)
+- **rathole:rathole** - Tunnel service and secrets
+
+### Environment Templates
+Sops secrets are converted to environment files via templates:
+```nix
+sops.templates."service.env" = {
+  owner = "dock";
+  group = "docker"; 
+  mode = "0400";
+  path = "/var/lib/dock/service.env";
+  content = ''SECRET=${config.sops.placeholder.secret-name}'';
+};
+```
 
 ## Customization
 

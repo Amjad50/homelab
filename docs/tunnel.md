@@ -40,8 +40,19 @@ Internet → Middle Server (Public IP) → Rathole Tunnel → Home Server (Priva
 - **Ports**: 2333 (tunnel), 8080 (proxy endpoint)
 
 ## Configuration
-In order to add a service to be routed by the tunnel, you need to:
-1. **Middle Server**:
-- Add the full domain to the Traefik `dynamic.yml` under `home-fallback.tls.domains`.
-2. **Home Server**:
-- Host the service normally under Traefik, with that service's domain.
+
+### Adding Services to Tunnel
+
+To route a new service through the tunnel:
+
+1. **Middle Server** [machines/middle/docker-services/traefik/config/dynamic.yml](../machines/middle/docker-services/traefik/config/dynamic.yml)
+
+2. **Home Server**: Configure service normally with Traefik labels:
+```yaml
+# In docker-compose.yml
+labels:
+  - "traefik.enable=true"
+  - "traefik.http.routers.myapp.rule=Host(`myapp.home.alsharafi.dev`)"
+  - "traefik.http.services.myapp.loadbalancer.server.port=3000"
+```
+
