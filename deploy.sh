@@ -121,6 +121,19 @@ else
         echo "Usage: $0 <flake-name> [server] - specify server for remote deployment"
         exit 1
     fi
+
+    if ! [ "$FLAKE_NAME" = "$(hostname -s)" ]; then
+        log_error "Flake name does not match the current hostname ($FLAKE_NAME != $(hostname -s))."
+        log_error "Are you sure you want to deploy? (y/N)"
+
+        read -r confirmation
+        if [ "$confirmation" != "y" ] && [ "$confirmation" != "Y" ]; then
+            log_error "Deployment cancelled."
+            exit 1
+        else
+            log_info "Deployment confirmed for $FLAKE_NAME" 
+        fi
+    fi
     
     # Copy files to /etc/nixos and rebuild
     log_step "Copying configuration files..."
@@ -149,8 +162,14 @@ else
     fi
     
     if [ "$ONLY_DOCKER" = false ]; then
-        log_step "Running nixos-rebuild switch..."
-        sudo nixos-rebuild switch
+        # check if `nh` is installed
+        if command -v nh >/dev/null 2>&1; then
+            log_step "Running nh for nixos-rebuild..."
+            nh os switch /etc/nixos
+        else
+            log_step "Running nixos-rebuild switch..."
+            sudo nixos-rebuild switch
+        fi
     else
         log_info "Skipping nixos-rebuild (--only-docker flag)"
     fi

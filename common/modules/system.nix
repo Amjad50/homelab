@@ -37,9 +37,13 @@
     python3
     jq
     yq
+    fd
     neofetch
 
     btrfs-list
+
+    # alternative to `nixos-rebuild` commands
+    nh
 
     # Archive tools
     unzip

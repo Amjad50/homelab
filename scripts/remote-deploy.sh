@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Remote deployment script
+# Remote deployment script (runs in remote server context)
 # Usage: remote-deploy.sh <archive-path> <flake-name> [--no-docker]
 
 set -e
@@ -12,31 +12,32 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
+ORANGE='\033[0;33m'
 NC='\033[0m' # No Color
 
 # Logging functions
 log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1" >&2
+    echo -e "${ORANGE}[REMOTE]${NC} ${BLUE}[INFO]${NC} $1" >&2
 }
 
 log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1" >&2
+    echo -e "${ORANGE}[REMOTE]${NC} ${GREEN}[SUCCESS]${NC} $1" >&2
 }
 
 log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1" >&2
+    echo -e "${ORANGE}[REMOTE]${NC} ${YELLOW}[WARN]${NC} $1" >&2
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $1" >&2
+    echo -e "${ORANGE}[REMOTE]${NC} ${RED}[ERROR]${NC} $1" >&2
 }
 
 log_step() {
-    echo -e "${PURPLE}[STEP]${NC} $1" >&2
+    echo -e "${ORANGE}[REMOTE]${NC} ${PURPLE}[STEP]${NC} $1" >&2
 }
 
 log_docker() {
-    echo -e "${CYAN}[DOCKER]${NC} $1" >&2
+    echo -e "${ORANGE}[REMOTE]${NC} ${CYAN}[DOCKER]${NC} $1" >&2
 }
 
 # Parse arguments
@@ -55,6 +56,19 @@ if [ -z "$REMOTE_ARCHIVE" ] || [ -z "$FLAKE_NAME" ]; then
     log_error "Missing required arguments"
     echo "Usage: $0 <archive-path> <flake-name> [--no-docker|--only-docker]"
     exit 1
+fi
+
+if ! [ "$FLAKE_NAME" = "$(hostname -s)" ]; then
+    log_error "Flake name does not match the current hostname ($FLAKE_NAME != $(hostname -s))."
+    log_error "Are you sure you want to deploy? (y/N)"
+
+    read -r confirmation
+    if [ "$confirmation" != "y" ] && [ "$confirmation" != "Y" ]; then
+        log_error "Deployment cancelled."
+        exit 1
+    else
+        log_info "Deployment confirmed for $FLAKE_NAME" 
+    fi
 fi
 
 # Function to calculate directory checksum (content + filenames)
@@ -174,8 +188,14 @@ fi
 
 # Run nixos-rebuild (unless only-docker)
 if [ "$ONLY_DOCKER" = false ]; then
-    log_step 'Running nixos-rebuild switch...'
-    sudo nixos-rebuild switch
+    # check if `nh` is installed
+    if command -v nh >/dev/null 2>&1; then
+        log_step "Running nh for nixos-rebuild..."
+        nh os switch /etc/nixos
+    else
+        log_step "Running nixos-rebuild switch..."
+        sudo nixos-rebuild switch
+    fi
 else
     log_info "Skipping nixos-rebuild (--only-docker flag)"
 fi
