@@ -12,6 +12,12 @@
     "ys-sitecore" # Django web application
     "kanidm"
     "oauth2-proxy" # OAuth2 proxy for authentication
+    "adguard" # DNS server
+  ];
+
+  systemd.tmpfiles.rules = [
+    "v /storage 0755 dock docker - -"
+    "v /storage/adguard 0755 dock docker - -"
   ];
 
   # Sops secrets configuration using SSH host keys
