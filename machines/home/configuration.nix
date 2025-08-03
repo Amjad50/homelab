@@ -2,7 +2,7 @@
 {
   networking.hostName = "home";
 
-  networking.firewall.allowedTCPPorts = [ ];
+  networking.firewall.allowedTCPPorts = [ 5055 8096 ];
 
   # Use static ipv4
   networking.interfaces.eno2 = {
@@ -30,6 +30,7 @@
     "n8n"
     "wud"
     "solidtime"
+    "media-stack"
   ];
 
   # Create btrfs subvolumes for docker services
@@ -41,6 +42,11 @@
     "v /mnt/storage/n8n 0755 dock docker - -"
     "v /mnt/storage/solidtime 0755 dock docker - -"
     "v /mnt/storage/wud 0755 dock docker - -"
+    "v /mnt/storage/media 0755 dock docker - -"
+    "v /mnt/storage/media/movies 0755 1000 1000 - -"
+    "v /mnt/storage/media/tv 0755 1000 1000 - -"
+    "v /mnt/storage/media/configs 0755 dock docker - -"
+    "v /mnt/storage/media/downloads 0755 1000 1000 - -"
   ];
 
   # Sops secrets configuration using SSH host keys

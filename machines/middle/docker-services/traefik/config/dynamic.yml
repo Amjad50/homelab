@@ -75,7 +75,7 @@ http:
     # Services which have their own authentication
     # and may need to bypass OAuth2
     home-public-sso:
-      rule: "Host(`blinko.home.alsharafi.dev`) || Host(`memos.home.alsharafi.dev`) || Host(`minio.home.alsharafi.dev`)"
+      rule: "Host(`blinko.home.alsharafi.dev`) || Host(`memos.home.alsharafi.dev`) || Host(`minio.home.alsharafi.dev`) || Host(`jellyfin.home.alsharafi.dev`)"
       service: "home-tunnel"
       entryPoints:
         - websecure
@@ -87,6 +87,7 @@ http:
               - "blinko.home.alsharafi.dev"
               - "memos.home.alsharafi.dev"
               - "minio.home.alsharafi.dev"
+              - "jellyfin.home.alsharafi.dev"
       priority: 10
 
     # Fallback route for all other *.home.alsharafi.dev domains (protected by OAuth2)
@@ -108,6 +109,12 @@ http:
               - "minio-console.home.alsharafi.dev"
               - "n8n.home.alsharafi.dev"
               - "solidtime.home.alsharafi.dev"
+              - "sonarr.home.alsharafi.dev"
+              - "radarr.home.alsharafi.dev"
+              - "prowlarr.home.alsharafi.dev"
+              - "jellyseerr.home.alsharafi.dev"
+              - "bazarr.home.alsharafi.dev"
+              - "qbittorrent.home.alsharafi.dev"
       middlewares:
         - oauth2-auth@docker
       priority: 1
