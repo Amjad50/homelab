@@ -116,6 +116,7 @@ http:
               - "bazarr.home.alsharafi.dev"
               - "qbittorrent.home.alsharafi.dev"
               - "glances.home.alsharafi.dev"
+              - "filebrowser.home.alsharafi.dev"
       middlewares:
         - oauth2-auth@docker
       priority: 1

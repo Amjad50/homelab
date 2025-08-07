@@ -32,6 +32,7 @@
     "solidtime"
     "media-stack"
     "dashy"
+    "filebrowser"
   ];
 
   # Create btrfs subvolumes for docker services
@@ -48,6 +49,9 @@
     "v /mnt/storage/media/tv 0755 1000 1000 - -"
     "v /mnt/storage/media/configs 0755 dock docker - -"
     "v /mnt/storage/media/downloads 0755 1000 1000 - -"
+    "v /mnt/storage/filebrowser 0755 1000 1000 - -"
+    "d /mnt/storage/filebrowser/config 0755 1000 1000 - -"
+    "d /mnt/storage/filebrowser/database 0755 1000 1000 - -"
   ];
 
   # Sops secrets configuration using SSH host keys

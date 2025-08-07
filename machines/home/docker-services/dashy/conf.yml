@@ -114,6 +114,13 @@ sections:
         statusCheckUrl: https://dns.home.alsharafi.dev/dns-query
         statusCheckAcceptCodes: '400'
         id: 4_1704_adguard
+      - title: FileBrowser
+        description: File browser for storage and other files
+        icon: hl-filebrowser
+        url: https://filebrowser.home.alsharafi.dev
+        statusCheck: true
+        statusCheckUrl: http://filebrowser:80
+        id: 5_1704_filebrowser
   - name: Storage & Automation
     displayData:
       sortBy: alphabetical
