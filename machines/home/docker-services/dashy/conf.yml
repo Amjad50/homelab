@@ -1,0 +1,194 @@
+pageInfo:
+  title: Home Dashboard
+  description: Personal Services Dashboard
+appConfig:
+  theme: nord-frost
+  layout: auto
+  iconSize: large
+  enableFontAwesome: true
+  enableMaterialIcons: true
+pages:
+  - name: System monitoring
+    path: 'monitoring.yml'
+    displayData:
+      hideForGuests: false
+sections:
+  - name: Media Services
+    displayData:
+      sortBy: alphabetical
+      rows: 1
+      cols: 1
+      collapsed: false
+      hideForGuests: false
+    items:
+      - title: Jellyfin
+        description: Media Server
+        icon: hl-jellyfin
+        url: https://jellyfin.home.alsharafi.dev
+        statusCheck: true
+        statusCheckUrl: http://jellyfin:8096/health
+        id: 0_1348_jellyfin
+      - title: Jellyseerr
+        description: Media Requests
+        icon: hl-jellyseerr
+        url: https://jellyseerr.home.alsharafi.dev
+        statusCheck: true
+        statusCheckUrl: http://jellyseerr:5055/api/v1/status
+        id: 1_1348_jellyseerr
+      - title: Sonarr
+        description: TV Series Management
+        icon: hl-sonarr
+        url: https://sonarr.home.alsharafi.dev
+        statusCheck: true
+        statusCheckUrl: http://sonarr:8989/ping
+        id: 2_1348_sonarr
+      - title: Radarr
+        description: Movie Management
+        icon: hl-radarr
+        url: https://radarr.home.alsharafi.dev
+        statusCheck: true
+        statusCheckUrl: http://radarr:7878/ping
+        id: 3_1348_radarr
+      - title: Prowlarr
+        description: Indexer Management
+        icon: hl-prowlarr
+        url: https://prowlarr.home.alsharafi.dev
+        statusCheck: true
+        statusCheckUrl: http://prowlarr:9696/health
+        id: 4_1348_prowlarr
+      - title: Bazarr
+        description: Subtitle Management
+        icon: hl-bazarr
+        url: https://bazarr.home.alsharafi.dev
+        statusCheck: true
+        statusCheckUrl: http://bazarr:6767/system/status
+        id: 5_1348_bazarr
+      - title: qBittorrent
+        description: Torrent Client
+        icon: hl-qbittorrent
+        url: https://qbittorrent.home.alsharafi.dev
+        statusCheck: true
+        statusCheckUrl: http://qbittorrent:8080
+        id: 6_1348_qbittorrent
+  - name: Personal Services
+    displayData:
+      sortBy: alphabetical
+      rows: 1
+      cols: 1
+      collapsed: false
+      hideForGuests: false
+    items:
+      - title: Firefly III
+        description: Personal Finance Manager
+        icon: hl-firefly
+        url: https://firefly.home.alsharafi.dev
+        statusCheck: true
+        statusCheckUrl: http://fireflyiii:8080/health
+        id: 0_1704_fireflyiii
+      - title: Blinko
+        description: Note Taking
+        icon: https://cdn.jsdelivr.net/gh/selfhst/icons/svg/blinko.svg
+        url: https://blinko.home.alsharafi.dev
+        statusCheck: true
+        statusCheckUrl: http://blinko:1111
+        id: 1_1704_blinko
+      - title: Memos
+        description: Memo Service
+        icon: hl-memos
+        url: https://memos.home.alsharafi.dev
+        statusCheck: true
+        statusCheckUrl: http://memos:5230/healthz
+        id: 2_1704_memos
+      - title: SolidTime
+        description: Time Tracking
+        icon: hl-solidtime
+        url: https://solidtime.home.alsharafi.dev
+        statusCheck: true
+        statusCheckUrl: http://solidtime:8000/health-check/up
+        id: 3_1704_solidtime
+      - title: Adguard
+        description: Adblocker DNS
+        icon: hl-adguard-home
+        url: https://dns.home.alsharafi.dev
+        statusCheck: true
+        statusCheckUrl: https://dns.home.alsharafi.dev/dns-query
+        statusCheckAcceptCodes: '400'
+        id: 4_1704_adguard
+  - name: Storage & Automation
+    displayData:
+      sortBy: alphabetical
+      rows: 1
+      cols: 1
+      collapsed: false
+      hideForGuests: false
+    items:
+      - title: MinIO
+        description: Object Storage
+        icon: hl-minio
+        url: https://minio.home.alsharafi.dev
+        statusCheck: true
+        statusCheckUrl: http://minio:9000/minio/health/live
+        id: 0_1884_minio
+      - title: n8n
+        description: Workflow Automation
+        icon: hl-n8n
+        url: https://n8n.home.alsharafi.dev
+        statusCheck: true
+        statusCheckUrl: http://n8n:5678/healthz
+        id: 1_1884_nn
+  - name: System Monitoring
+    displayData:
+      sortBy: alphabetical
+      rows: 1
+      cols: 1
+      collapsed: false
+      hideForGuests: false
+    items:
+      - title: WUD
+        description: What's Up Docker
+        icon: https://cdn.jsdelivr.net/gh/selfhst/icons/svg/wud.svg
+        url: https://wud.home.alsharafi.dev
+        statusCheck: true
+        statusCheckUrl: http://wud:3000/health
+        id: 0_1739_wud
+      - title: Glances
+        description: Glances Monitoring
+        icon: hl-glances
+        url: https://glances.home.alsharafi.dev
+        statusCheck: true
+        statusCheckUrl: http://glances:61208
+        id: 0_1739_glances
+  - name: Networks and access
+    displayData:
+      sortBy: default
+      rows: 1
+      cols: 1
+      collapsed: false
+      hideForGuests: false
+    items:
+      - title: Traefik middle
+        description: Reverse Proxy
+        icon: hl-traefik
+        url: https://traefik.home.alsharafi.dev
+        statusCheck: true
+        statusCheckAcceptCodes: '403'
+        id: 0_1858_traefikmiddle
+      - title: WG easy
+        description: Wireguard service
+        icon: hl-wireguard
+        url: https://wg.home.alsharafi.dev
+        statusCheck: false
+        id: 1_1858_wgeasy
+      - title: Traefik internal
+        description: Reverse Proxy
+        icon: hl-traefik
+        url: https://traefik-internal.home.alsharafi.dev
+        statusCheck: true
+        statusCheckUrl: http://traefik:8082/ping
+        id: 2_1858_traefikinternal
+      - title: Kanidm
+        description: Identity management and SSO
+        icon: hl-kanidm
+        url: https://idm.home.alsharafi.dev
+        statusCheck: true
+        id: 3_1858_kanidm

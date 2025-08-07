@@ -92,7 +92,7 @@ http:
 
     # Fallback route for all other *.home.alsharafi.dev domains (protected by OAuth2)
     home-fallback:
-      rule: "HostRegexp(`^.+\\.home\\.alsharafi\\.dev$`)"
+      rule: "HostRegexp(`^.+\\.home\\.alsharafi\\.dev$`) || Host(`home.alsharafi.dev`)"
       service: "home-tunnel"
       entryPoints:
         - websecure
@@ -115,6 +115,7 @@ http:
               - "jellyseerr.home.alsharafi.dev"
               - "bazarr.home.alsharafi.dev"
               - "qbittorrent.home.alsharafi.dev"
+              - "glances.home.alsharafi.dev"
       middlewares:
         - oauth2-auth@docker
       priority: 1

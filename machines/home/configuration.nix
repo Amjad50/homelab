@@ -31,6 +31,7 @@
     "wud"
     "solidtime"
     "media-stack"
+    "dashy"
   ];
 
   # Create btrfs subvolumes for docker services
