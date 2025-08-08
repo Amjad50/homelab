@@ -114,6 +114,14 @@ check_env_vars() {
     if [ -z "${SOLIDTIME_SUPER_ADMINS:-}" ]; then
         missing_vars+=("SOLIDTIME_SUPER_ADMINS")
     fi
+
+    if [ -z "${KARAKEEP_OAUTH_CLIENT_SECRET:-}" ]; then
+        missing_vars+=("KARAKEEP_OAUTH_CLIENT_SECRET")
+    fi
+
+    if [ -z "${KARAKEEP_OPENAI_API_KEY:-}" ]; then
+        missing_vars+=("KARAKEEP_OPENAI_API_KEY")
+    fi
     
     if [ ${#missing_vars[@]} -ne 0 ]; then
         log_error "Missing required environment variables: ${missing_vars[*]}"
@@ -203,6 +211,22 @@ generate_secrets() {
     else
         log_info "Using provided solidtime database password"
     fi
+
+    # Generate Karakeep NextAuth secret if not provided
+    if [ -z "${KARAKEEP_NEXTAUTH_SECRET:-}" ]; then
+        KARAKEEP_NEXTAUTH_SECRET=$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)
+        log_info "Generated new Karakeep NextAuth secret"
+    else
+        log_info "Using provided Karakeep NextAuth secret"
+    fi
+
+    # Generate Karakeep Meili master key if not provided
+    if [ -z "${KARAKEEP_MEILI_MASTER_KEY:-}" ]; then
+        KARAKEEP_MEILI_MASTER_KEY=$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)
+        log_info "Generated new Karakeep Meili master key"
+    else
+        log_info "Using provided Karakeep Meili master key"
+    fi
 }
 
 # Create secrets YAML content for middle server
@@ -234,6 +258,10 @@ solidtime-passport-private-key: "$(printf '%q' "$SOLIDTIME_PASSPORT_PRIVATE_KEY"
 solidtime-passport-public-key: "$(printf '%q' "$SOLIDTIME_PASSPORT_PUBLIC_KEY")"
 solidtime-super-admins: "$SOLIDTIME_SUPER_ADMINS"
 solidtime-db-password: "$SOLIDTIME_DB_PASSWORD"
+karakeep-nextauth-secret: "$KARAKEEP_NEXTAUTH_SECRET"
+karakeep-meili-master-key: "$KARAKEEP_MEILI_MASTER_KEY"
+karakeep-oauth-client-secret: "$KARAKEEP_OAUTH_CLIENT_SECRET"
+karakeep-openai-api-key: "$KARAKEEP_OPENAI_API_KEY"
 EOF
 }
 
@@ -311,6 +339,10 @@ main() {
     echo "  - Solidtime Passport Public Key: ${SOLIDTIME_PASSPORT_PUBLIC_KEY:0:16}..."
     echo "  - Solidtime Super Admins: ${SOLIDTIME_SUPER_ADMINS:0:16}..."
     echo "  - Solidtime DB Password: ${SOLIDTIME_DB_PASSWORD:0:16}..."
+    echo "  - Karakeep NextAuth Secret: ${KARAKEEP_NEXTAUTH_SECRET:0:16}..."
+    echo "  - Karakeep Meili Master Key: ${KARAKEEP_MEILI_MASTER_KEY:0:16}..."
+    echo "  - Karakeep OAuth Client Secret: ${KARAKEEP_OAUTH_CLIENT_SECRET:0:16}..."
+    echo "  - Karakeep OpenAI API Key: ${KARAKEEP_OPENAI_API_KEY:0:16}..."
     echo
     
     # Encrypt for both machines
@@ -357,6 +389,10 @@ main() {
         echo "SOLIDTIME_PASSPORT_PUBLIC_KEY=$SOLIDTIME_PASSPORT_PUBLIC_KEY"
         echo "SOLIDTIME_SUPER_ADMINS=$SOLIDTIME_SUPER_ADMINS"
         echo "SOLIDTIME_DB_PASSWORD=$SOLIDTIME_DB_PASSWORD"
+        echo "KARAKEEP_NEXTAUTH_SECRET=$KARAKEEP_NEXTAUTH_SECRET"
+        echo "KARAKEEP_MEILI_MASTER_KEY=$KARAKEEP_MEILI_MASTER_KEY"
+        echo "KARAKEEP_OAUTH_CLIENT_SECRET=$KARAKEEP_OAUTH_CLIENT_SECRET"
+        echo "KARAKEEP_OPENAI_API_KEY=$KARAKEEP_OPENAI_API_KEY"
     fi
 }
 

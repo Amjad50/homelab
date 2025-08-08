@@ -121,6 +121,13 @@ sections:
         statusCheck: true
         statusCheckUrl: http://filebrowser:80
         id: 5_1704_filebrowser
+      - title: Karakeep
+        description: Personal Knowledge Management
+        icon: hl-karakeep
+        url: https://karakeep.home.alsharafi.dev
+        statusCheck: true
+        statusCheckUrl: http://karakeep:3000/api/health
+        id: 6_1704_karakeep
   - name: Storage & Automation
     displayData:
       sortBy: alphabetical
