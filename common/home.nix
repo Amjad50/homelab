@@ -127,8 +127,18 @@
         "completion"
       ];
     };
-    syntaxHighlighting.enable = true;
-    historySubstringSearch.enable = true;
+    syntaxHighlighting = {
+      enable = true;
+      highlighters = [
+        "main"
+        "brackets"
+      ];
+    };
+    historySubstringSearch = {
+      enable = true;
+      searchUpKey = ["^[[A" "^[OA"];
+      searchDownKey = ["^[[B" "^[OB"];
+    };
 
     # Environment variables
     sessionVariables = {
