@@ -45,11 +45,18 @@ REMOTE_ARCHIVE="$1"
 FLAKE_NAME="$2"
 NO_DOCKER=false
 ONLY_DOCKER=false
+UPDATE_FLAKE=false
 
 if [ "$3" = "--no-docker" ]; then
     NO_DOCKER=true
+    shift
 elif [ "$3" = "--only-docker" ]; then
     ONLY_DOCKER=true
+    shift
+fi
+
+if [ "$3" = "--update" ]; then
+    UPDATE_FLAKE=true
 fi
 
 if [ -z "$REMOTE_ARCHIVE" ] || [ -z "$FLAKE_NAME" ]; then
@@ -188,6 +195,10 @@ fi
 
 # Run nixos-rebuild (unless only-docker)
 if [ "$ONLY_DOCKER" = false ]; then
+    if [ "$UPDATE_FLAKE" = true ]; then
+        log_info "Updating flake before rebuild..."
+        sudo nix flake update --flake /etc/nixos || log_warn "Failed to update flake"
+    fi
     # check if `nh` is installed
     if command -v nh >/dev/null 2>&1; then
         log_step "Running nh for nixos-rebuild..."

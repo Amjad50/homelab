@@ -42,6 +42,7 @@ FLAKE_NAME=""
 SERVER=""
 NO_DOCKER=false
 ONLY_DOCKER=false
+UPDATE_FLAKE=false
 
 for arg in "$@"; do
     case $arg in
@@ -53,11 +54,19 @@ for arg in "$@"; do
             ONLY_DOCKER=true
             shift
             ;;
+        --update)
+            UPDATE_FLAKE=true
+            shift
+            ;;
         *)
             if [ -z "$FLAKE_NAME" ]; then
                 FLAKE_NAME="$arg"
             elif [ -z "$SERVER" ]; then
                 SERVER="$arg"
+            else
+                log_error "Unexpected argument: $arg"
+                echo "Usage: $0 <flake-name> [server] [--no-docker|--only-docker] [--update]"
+                exit 1
             fi
             shift
             ;;
@@ -99,15 +108,19 @@ if [ -n "$SERVER" ]; then
     
     # SSH and run remote deployment
     log_step "Running remote deployment..."
+    FLAGS=""
     if [ "$NO_DOCKER" = true ]; then
         log_info "Skipping Docker services deployment"
-        ssh -t "$SERVER" "chmod +x /tmp/remote-deploy.sh && /tmp/remote-deploy.sh $REMOTE_ARCHIVE $FLAKE_NAME --no-docker"
+        FLAGS="--no-docker"
     elif [ "$ONLY_DOCKER" = true ]; then
         log_info "Only deploying Docker services (skipping nixos-rebuild)"
-        ssh -t "$SERVER" "chmod +x /tmp/remote-deploy.sh && /tmp/remote-deploy.sh $REMOTE_ARCHIVE $FLAKE_NAME --only-docker"
-    else
-        ssh -t "$SERVER" "chmod +x /tmp/remote-deploy.sh && /tmp/remote-deploy.sh $REMOTE_ARCHIVE $FLAKE_NAME"
+        FLAGS="--only-docker"
     fi
+    if [ "$UPDATE_FLAKE" = true ]; then
+        log_info "Updating flake before deployment"
+        FLAGS="$FLAGS --update"
+    fi
+    ssh -t "$SERVER" "chmod +x /tmp/remote-deploy.sh && /tmp/remote-deploy.sh $REMOTE_ARCHIVE $FLAKE_NAME $FLAGS"
     
     # Clean up local archive
     rm -f "$ARCHIVE"
@@ -162,6 +175,10 @@ else
     fi
     
     if [ "$ONLY_DOCKER" = false ]; then
+        if [ "$UPDATE_FLAKE" = true ]; then
+            log_info "Updating flake before rebuild..."
+            sudo nix flake update --flake /etc/nixos || log_warn "Failed to update flake"
+        fi
         # check if `nh` is installed
         if command -v nh >/dev/null 2>&1; then
             log_step "Running nh for nixos-rebuild..."
