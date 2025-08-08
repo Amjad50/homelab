@@ -34,6 +34,7 @@
     "dashy"
     "filebrowser"
     "karakeep"
+    "linkwarden"
   ];
 
   # Create btrfs subvolumes for docker services
@@ -54,6 +55,7 @@
     "d /mnt/storage/filebrowser/config 0755 1000 1000 - -"
     "d /mnt/storage/filebrowser/database 0755 1000 1000 - -"
     "v /mnt/storage/karakeep 0755 dock docker - -"
+    "v /mnt/storage/linkwarden 0755 dock docker - -"
   ];
 
   # Sops secrets configuration using SSH host keys
@@ -157,7 +159,22 @@
         group = "docker";
         mode = "0400";
       };
-      karakeep-openai-api-key = {
+      openai-api-key = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      linkwarden-nextauth-secret = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      linkwarden-db-password = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      linkwarden-kanidm-client-secret = {
         owner = "dock";
         group = "docker";
         mode = "0400";
@@ -250,7 +267,25 @@
       NEXTAUTH_SECRET=${config.sops.placeholder.karakeep-nextauth-secret}
       MEILI_MASTER_KEY=${config.sops.placeholder.karakeep-meili-master-key}
       OAUTH_CLIENT_SECRET=${config.sops.placeholder.karakeep-oauth-client-secret}
-      OPENAI_API_KEY=${config.sops.placeholder.karakeep-openai-api-key}
+      OPENAI_API_KEY=${config.sops.placeholder.openai-api-key}
+    '';
+  };
+
+  # Linkwarden environment template
+  sops.templates."linkwarden.env" = {
+    owner = "dock";
+    group = "docker";
+    mode = "0400";
+    path = "/var/lib/dock/linkwarden.env";
+    content = ''
+      # Database configuration
+      POSTGRES_PASSWORD=${config.sops.placeholder.linkwarden-db-password}
+
+      # linkwarden application configuration
+      DATABASE_URL=postgresql://linkwarden:${config.sops.placeholder.linkwarden-db-password}@linkwarden-db:5432/linkwarden
+      NEXTAUTH_SECRET=${config.sops.placeholder.linkwarden-nextauth-secret}
+      AUTHELIA_CLIENT_SECRET=${config.sops.placeholder.linkwarden-kanidm-client-secret}
+      OPENAI_API_KEY=${config.sops.placeholder.openai-api-key} # use same API key as Karakeep
     '';
   };
 

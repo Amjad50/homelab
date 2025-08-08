@@ -128,6 +128,13 @@ sections:
         statusCheck: true
         statusCheckUrl: http://karakeep:3000/api/health
         id: 6_1704_karakeep
+      - title: Linkwarden
+        description: Personal Knowledge Management, bookmarks and archives
+        icon: hl-linkwarden
+        url: https://linkwarden.home.alsharafi.dev
+        statusCheck: true
+        statusCheckUrl: http://linkwarden:3000
+        id: 7_1704_linkwarden
   - name: Storage & Automation
     displayData:
       sortBy: alphabetical

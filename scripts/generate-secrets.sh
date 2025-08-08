@@ -119,8 +119,12 @@ check_env_vars() {
         missing_vars+=("KARAKEEP_OAUTH_CLIENT_SECRET")
     fi
 
-    if [ -z "${KARAKEEP_OPENAI_API_KEY:-}" ]; then
-        missing_vars+=("KARAKEEP_OPENAI_API_KEY")
+    if [ -z "${OPENAI_API_KEY:-}" ]; then
+        missing_vars+=("OPENAI_API_KEY")
+    fi
+
+    if [ -z "${LINKWARDEN_KANIDM_CLIENT_SECRET:-}" ]; then
+        missing_vars+=("LINKWARDEN_KANIDM_CLIENT_SECRET")
     fi
     
     if [ ${#missing_vars[@]} -ne 0 ]; then
@@ -227,6 +231,22 @@ generate_secrets() {
     else
         log_info "Using provided Karakeep Meili master key"
     fi
+
+    # Generate Linkwarden NextAuth secret if not provided
+    if [ -z "${LINKWARDEN_NEXTAUTH_SECRET:-}" ]; then
+        LINKWARDEN_NEXTAUTH_SECRET=$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)
+        log_info "Generated new Linkwarden NextAuth secret"
+    else
+        log_info "Using provided Linkwarden NextAuth secret"
+    fi
+
+    # Generate Linkwarden database password if not provided
+    if [ -z "${LINKWARDEN_DB_PASSWORD:-}" ]; then
+        LINKWARDEN_DB_PASSWORD=$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)
+        log_info "Generated new Linkwarden database password"
+    else
+        log_info "Using provided Linkwarden database password"
+    fi
 }
 
 # Create secrets YAML content for middle server
@@ -261,7 +281,10 @@ solidtime-db-password: "$SOLIDTIME_DB_PASSWORD"
 karakeep-nextauth-secret: "$KARAKEEP_NEXTAUTH_SECRET"
 karakeep-meili-master-key: "$KARAKEEP_MEILI_MASTER_KEY"
 karakeep-oauth-client-secret: "$KARAKEEP_OAUTH_CLIENT_SECRET"
-karakeep-openai-api-key: "$KARAKEEP_OPENAI_API_KEY"
+openai-api-key: "$OPENAI_API_KEY"
+linkwarden-nextauth-secret: "$LINKWARDEN_NEXTAUTH_SECRET"
+linkwarden-db-password: "$LINKWARDEN_DB_PASSWORD"
+linkwarden-kanidm-client-secret: "$LINKWARDEN_KANIDM_CLIENT_SECRET"
 EOF
 }
 
@@ -342,7 +365,10 @@ main() {
     echo "  - Karakeep NextAuth Secret: ${KARAKEEP_NEXTAUTH_SECRET:0:16}..."
     echo "  - Karakeep Meili Master Key: ${KARAKEEP_MEILI_MASTER_KEY:0:16}..."
     echo "  - Karakeep OAuth Client Secret: ${KARAKEEP_OAUTH_CLIENT_SECRET:0:16}..."
-    echo "  - Karakeep OpenAI API Key: ${KARAKEEP_OPENAI_API_KEY:0:16}..."
+    echo "  - Karakeep OpenAI API Key: ${OPENAI_API_KEY:0:16}..."
+    echo "  - Linkwarden NextAuth Secret: ${LINKWARDEN_NEXTAUTH_SECRET:0:16}..."
+    echo "  - Linkwarden DB Password: ${LINKWARDEN_DB_PASSWORD:0:16}..."
+    echo "  - Linkwarden Kanidm Client Secret: ${LINKWARDEN_KANIDM_CLIENT_SECRET:0:16}..."
     echo
     
     # Encrypt for both machines
@@ -392,7 +418,10 @@ main() {
         echo "KARAKEEP_NEXTAUTH_SECRET=$KARAKEEP_NEXTAUTH_SECRET"
         echo "KARAKEEP_MEILI_MASTER_KEY=$KARAKEEP_MEILI_MASTER_KEY"
         echo "KARAKEEP_OAUTH_CLIENT_SECRET=$KARAKEEP_OAUTH_CLIENT_SECRET"
-        echo "KARAKEEP_OPENAI_API_KEY=$KARAKEEP_OPENAI_API_KEY"
+        echo "OPENAI_API_KEY=$OPENAI_API_KEY"
+        echo "LINKWARDEN_NEXTAUTH_SECRET=$LINKWARDEN_NEXTAUTH_SECRET"
+        echo "LINKWARDEN_DB_PASSWORD=$LINKWARDEN_DB_PASSWORD"
+        echo "LINKWARDEN_KANIDM_CLIENT_SECRET=$LINKWARDEN_KANIDM_CLIENT_SECRET"
     fi
 }
 
