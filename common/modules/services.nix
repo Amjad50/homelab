@@ -17,7 +17,10 @@
     enable = true;
     settings = {
       PasswordAuthentication = false;
+      KbdInteractiveAuthentication = false;
+      ChallengeResponseAuthentication = false;
       PermitRootLogin = "no";
+      PubkeyAuthentication = true;
       X11Forwarding = false;
     };
   };
