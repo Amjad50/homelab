@@ -126,6 +126,10 @@ check_env_vars() {
     if [ -z "${LINKWARDEN_KANIDM_CLIENT_SECRET:-}" ]; then
         missing_vars+=("LINKWARDEN_KANIDM_CLIENT_SECRET")
     fi
+
+    if [ -z "${STIRLINGPDF_KANIDM_CLIENT_SECRET:-}" ]; then
+        missing_vars+=("STIRLINGPDF_KANIDM_CLIENT_SECRET")
+    fi
     
     if [ ${#missing_vars[@]} -ne 0 ]; then
         log_error "Missing required environment variables: ${missing_vars[*]}"
@@ -285,6 +289,7 @@ openai-api-key: "$OPENAI_API_KEY"
 linkwarden-nextauth-secret: "$LINKWARDEN_NEXTAUTH_SECRET"
 linkwarden-db-password: "$LINKWARDEN_DB_PASSWORD"
 linkwarden-kanidm-client-secret: "$LINKWARDEN_KANIDM_CLIENT_SECRET"
+stirlingpdf-kanidm-client-secret: "$STIRLINGPDF_KANIDM_CLIENT_SECRET"
 EOF
 }
 
@@ -369,6 +374,7 @@ main() {
     echo "  - Linkwarden NextAuth Secret: ${LINKWARDEN_NEXTAUTH_SECRET:0:16}..."
     echo "  - Linkwarden DB Password: ${LINKWARDEN_DB_PASSWORD:0:16}..."
     echo "  - Linkwarden Kanidm Client Secret: ${LINKWARDEN_KANIDM_CLIENT_SECRET:0:16}..."
+    echo "  - StirlingPDF Kanidm Client Secret: ${STIRLINGPDF_KANIDM_CLIENT_SECRET:0:16}..."
     echo
     
     # Encrypt for both machines
@@ -422,6 +428,7 @@ main() {
         echo "LINKWARDEN_NEXTAUTH_SECRET=$LINKWARDEN_NEXTAUTH_SECRET"
         echo "LINKWARDEN_DB_PASSWORD=$LINKWARDEN_DB_PASSWORD"
         echo "LINKWARDEN_KANIDM_CLIENT_SECRET=$LINKWARDEN_KANIDM_CLIENT_SECRET"
+        echo "STIRLINGPDF_KANIDM_CLIENT_SECRET=$STIRLINGPDF_KANIDM_CLIENT_SECRET"
     fi
 }
 

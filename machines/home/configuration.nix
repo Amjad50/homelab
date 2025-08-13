@@ -35,6 +35,7 @@
     "filebrowser"
     "karakeep"
     "linkwarden"
+    "stirling-pdf"
   ];
 
   # Create btrfs subvolumes for docker services
@@ -179,6 +180,11 @@
         group = "docker";
         mode = "0400";
       };
+      stirlingpdf-kanidm-client-secret = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
     };
   };
 
@@ -286,6 +292,18 @@
       NEXTAUTH_SECRET=${config.sops.placeholder.linkwarden-nextauth-secret}
       AUTHELIA_CLIENT_SECRET=${config.sops.placeholder.linkwarden-kanidm-client-secret}
       OPENAI_API_KEY=${config.sops.placeholder.openai-api-key} # use same API key as Karakeep
+    '';
+  };
+
+  # Stirling-PDF environment template
+  sops.templates."stirlingpdf.env" = {
+    owner = "dock";
+    group = "docker";
+    mode = "0400";
+    path = "/var/lib/dock/stirlingpdf.env";
+    content = ''
+      # Stirling-PDF application configuration
+      SECURITY_OAUTH2_CLIENTSECRET=${config.sops.placeholder.stirlingpdf-kanidm-client-secret}
     '';
   };
 

@@ -1,0 +1,60 @@
+
+networks:
+  traefik:
+    external: true
+
+volumes:
+  tessdata:
+
+services:
+  tessdata-downloader:
+    image: alpine:latest
+    volumes:
+      - tessdata:/usr/share/tessdata
+    command: |
+      sh -c '
+        if [ ! -f /usr/share/tessdata/.downloaded ]; then
+          apk add --no-cache wget
+          cd /usr/share/tessdata
+          wget -q https://github.com/tesseract-ocr/tessdata/raw/main/ara.traineddata
+          wget -q https://github.com/tesseract-ocr/tessdata/raw/main/jpn.traineddata
+          touch .downloaded
+        fi
+      '
+  stirling-pdf:
+    image: docker.stirlingpdf.com/stirlingtools/stirling-pdf:latest
+    container_name: stirling-pdf
+    restart: unless-stopped
+    depends_on:
+      tessdata-downloader:
+        condition: service_completed_successfully
+    networks:
+      - traefik
+    volumes:
+      - tessdata:/usr/share/tessdata # Required for extra OCR languages
+      - /var/log/stirlingpdf:/logs/
+      # - ./StirlingPDF/customFiles:/customFiles/
+      # - ./StirlingPDF/pipeline:/pipeline/
+    env_file:
+      - path: /var/lib/dock/stirlingpdf.env
+        required: true
+    environment:
+      - DISABLE_ADDITIONAL_FEATURES=false
+      - LANGS=en_US
+      # configs
+      - SECURITY_ENABLELOGIN=true
+      - SECURITY_LOGINMETHOD=oauth2
+      - SECURITY_OAUTH2_ENABLED=true
+      - SECURITY_OAUTH2_ISSUER=https://idm.home.alsharafi.dev/oauth2/openid/stirlingpdf
+      - SECURITY_OAUTH2_CLIENTID=stirlingpdf
+      # - SECURITY_OAUTH2_CLIENTSECRET=set from env file
+      - SECURITY_OAUTH2_AUTOCREATEUSER=true
+      - SECURITY_OAUTH2_BLOCKREGISTRATION=false
+      - SECURITY_OAUTH2_USEASUSERNAME=email
+      - SECURITY_OAUTH2_SCOPES=openid,profile,email
+      - SECURITY_OAUTH2_PROVIDER=kanidm
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.stirlingpdf.loadbalancer.server.port=8080"
+      - "traefik.http.routers.stirlingpdf.rule=Host(`pdf.home.alsharafi.dev`)"
+      - "traefik.http.routers.stirlingpdf.middlewares=default-chain@file"
