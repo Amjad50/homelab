@@ -34,7 +34,8 @@
   # Networking configuration
   networking = {
     hostName = lib.mkDefault "server";
-    networkmanager.enable = true;
+    networkmanager.enable = false;
+    useNetworkd = true;
     usePredictableInterfaceNames = true;
     enableIPv6 = true;
     nat.enableIPv6 = true;
@@ -44,6 +45,7 @@
       enable = true;
     };
   };
+  services.resolved.enable = false;
 
   # Fail2ban intrusion prevention
   services.fail2ban = {

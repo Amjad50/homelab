@@ -57,6 +57,7 @@ in
   ];
   
   # Allow docker group to manage docker-compose services via polkit
+  config.security.polkit.enable = true;
   config.security.polkit.extraConfig = ''
     polkit.addRule(function(action, subject) {
         if (action.id == "org.freedesktop.systemd1.manage-units" &&

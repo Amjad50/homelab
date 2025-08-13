@@ -2,10 +2,6 @@
 {
   networking.hostName = "middle";
 
-  systemd.network.links."10-net-main" = {
-    matchConfig.Path = "pci-0000:00:12.0";
-    linkConfig.Name = "ens18";
-  };
   networking.interfaces.ens18 = {
     useDHCP = true; 
     ipv6.addresses = [
