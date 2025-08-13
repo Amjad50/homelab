@@ -41,6 +41,8 @@
     neofetch
     tree
     zellij
+    bind
+    dnsutils
 
     btrfs-list
 
