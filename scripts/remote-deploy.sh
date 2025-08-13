@@ -199,14 +199,8 @@ if [ "$ONLY_DOCKER" = false ]; then
         log_info "Updating flake before rebuild..."
         sudo nix flake update --flake /etc/nixos || log_warn "Failed to update flake"
     fi
-    # check if `nh` is installed
-    if command -v nh >/dev/null 2>&1; then
-        log_step "Running nh for nixos-rebuild..."
-        nh os switch /etc/nixos
-    else
-        log_step "Running nixos-rebuild switch..."
-        sudo nixos-rebuild switch
-    fi
+    log_step "Running nixos-rebuild switch..."
+    sudo nixos-rebuild switch --fast
 else
     log_info "Skipping nixos-rebuild (--only-docker flag)"
 fi
