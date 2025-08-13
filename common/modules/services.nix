@@ -10,6 +10,7 @@
   # Add snapper to system packages
   environment.systemPackages = with pkgs; [
     fail2ban
+    systemd
   ];
 
   # Enable the OpenSSH daemon

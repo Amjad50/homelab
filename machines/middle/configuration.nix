@@ -1,7 +1,6 @@
 { config, pkgs, ... }:
 {
   imports = [
-    ./netdata.nix
     ./fail2ban.nix
     ./networking.nix
   ];
@@ -14,6 +13,7 @@
     "kanidm"
     "oauth2-proxy" # OAuth2 proxy for authentication
     "adguard" # DNS server
+    "netdata" # Monitoring
   ];
 
   systemd.tmpfiles.rules = [
