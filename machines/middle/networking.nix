@@ -22,11 +22,15 @@
 
   # Firewall - allow web traffic, VPN, and rathole
   networking.firewall.allowedTCPPorts = [
+    53
     80
     443
     2333
   ];
-  networking.firewall.allowedUDPPorts = [ 51820 ];
+  networking.firewall.allowedUDPPorts = [
+    53
+    51820
+  ];
 
   # Sadly no way to do this in NixOS firewall
   # Allow ports 8080,19999 only from Docker networks (dynamically detect all Docker networks)
