@@ -28,7 +28,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.traefik.rule=Host(`traefik.home.alsharafi.dev`)"
       - "traefik.http.routers.traefik.service=api@internal"
-      - "traefik.http.routers.traefik.middlewares=internal-chain@file"
+      - "traefik.http.routers.traefik.middlewares=default-chain@file,oauth2-auth@docker"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:
@@ -36,3 +36,12 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+  debug-server:
+    image: traefik/whoami
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.debug.rule=Host(`debug.home.alsharafi.dev`)"
+      - "traefik.http.services.debug.loadbalancer.server.port=80"
+      - "traefik.http.routers.debug.middlewares=default-chain@file,oauth2-auth@docker"

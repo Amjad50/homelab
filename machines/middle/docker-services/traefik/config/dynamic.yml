@@ -107,7 +107,7 @@ http:
               - "webapp.home.alsharafi.dev"
               - "traefik-internal.home.alsharafi.dev"
               - "firefly.home.alsharafi.dev"
-              - "debug.home.alsharafi.dev"
+              - "debug-internal.home.alsharafi.dev"
               - "minio-console.home.alsharafi.dev"
               - "n8n.home.alsharafi.dev"
               - "solidtime.home.alsharafi.dev"
