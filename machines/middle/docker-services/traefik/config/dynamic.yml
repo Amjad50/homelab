@@ -58,6 +58,16 @@ http:
 
   # Custom routers
   routers:
+    netdata:
+      rule: "Host(`netdata-middle.home.alsharafi.dev`)"
+      service: "netdata"
+      entryPoints:
+        - websecure
+      middlewares:
+        - default-chain@file
+        - oauth2-auth@docker
+      priority: 50
+
     # FireflyIII API bypass (higher priority)
     firefly-api-bypass:
       rule: "Host(`firefly.home.alsharafi.dev`) && (HeaderRegexp(`Authorization`, `Bearer .+`) || HeaderRegexp(`X-API-Key`, `.+`) || Query(`api_token`, `.+`))"
@@ -137,6 +147,10 @@ http:
       loadBalancer:
         servers:
           - url: "http://host.docker.internal:8080"
+    netdata:
+      loadBalancer:
+        servers:
+          - url: "http://host.docker.internal:19999"
 
   serversTransports:
     kanidm-transport:

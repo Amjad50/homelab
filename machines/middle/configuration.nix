@@ -1,6 +1,7 @@
 { config, pkgs, ... }:
 {
   imports = [
+    ./netdata.nix
     ./fail2ban.nix
     ./networking.nix
   ];
