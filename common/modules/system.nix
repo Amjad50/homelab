@@ -40,6 +40,7 @@
     fd
     neofetch
     tree
+    zellij
 
     btrfs-list
 

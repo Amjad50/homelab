@@ -109,7 +109,7 @@ sops.templates."rathole-server.toml" = {
 - **dock:docker** - Docker service environment files
 - **www-data:www-data** - Web service configs (Firefly III)
 - **rathole:rathole** - Tunnel service configs
-- **nobody:nobody** - System service secrets
+- **nobody:nogroup** - System service secrets
 
 ## Adding New Secrets
 

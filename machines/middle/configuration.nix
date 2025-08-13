@@ -38,7 +38,7 @@
       };
       oauth2-proxy-client-secret = {
         owner = "nobody";
-        group = "nobody";
+        group = "nogroup";
         mode = "0400";
       };
       oauth2-proxy-cookie-secret = {

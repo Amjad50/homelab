@@ -15,6 +15,7 @@
   # Enable the OpenSSH daemon
   services.openssh = {
     enable = true;
+    openFirewall = true;
     settings = {
       PasswordAuthentication = false;
       KbdInteractiveAuthentication = false;
@@ -23,6 +24,11 @@
       PubkeyAuthentication = true;
       X11Forwarding = false;
     };
+  };
+  
+  programs.mosh = {
+    enable = true;
+    openFirewall = true;
   };
 
   # Networking configuration
@@ -36,7 +42,6 @@
     # Firewall configuration
     firewall = {
       enable = true;
-      allowedTCPPorts = [ 22 ];
     };
   };
 
