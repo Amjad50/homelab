@@ -14,9 +14,6 @@ services:
       - /storage/adguard/conf:/opt/adguardhome/conf
     networks:
       - traefik
-    ports:
-      - "53:53/udp" # DNS
-      - "53:53/tcp" # DNS
     labels:
       - "traefik.enable=true"
 

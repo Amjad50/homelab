@@ -18,13 +18,11 @@
 
   # Firewall - allow web traffic, VPN, and rathole
   networking.firewall.allowedTCPPorts = [
-    53
     80
     443
     2333
   ];
   networking.firewall.allowedUDPPorts = [
-    53
     51820
   ];
 
