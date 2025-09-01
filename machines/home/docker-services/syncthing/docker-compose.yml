@@ -1,0 +1,39 @@
+
+networks:
+  traefik:
+    external: true
+
+services:
+  fix-permissions:
+    image: alpine:latest
+    container_name: syncthing-fix-permissions
+    command: ["sh", "-c", "chown -R 1000:1000 /var/syncthing"]
+    volumes:
+      - ./config:/var/syncthing/config
+      - /mnt/storage/syncthing/data:/var/syncthing/data
+    restart: "no"
+    user: root
+
+  syncthing:
+    image: syncthing/syncthing:latest
+    container_name: syncthing
+    restart: unless-stopped
+    depends_on:
+      fix-permissions:
+        condition: service_completed_successfully
+    environment:
+      - PUID=1000
+      - PGID=1000
+    volumes:
+      - /mnt/storage/syncthing:/var/syncthing
+    ports:
+      - "22000:22000/tcp"  # Syncthing protocol
+      - "22000:22000/udp"  # Syncthing protocol
+      - "21027:21027/udp"  # Discovery
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.syncthing.rule=Host(`sync.home.alsharafi.dev`)"
+      - "traefik.http.services.syncthing.loadbalancer.server.port=8384"
+      - "traefik.http.routers.syncthing.middlewares=default-chain@file"

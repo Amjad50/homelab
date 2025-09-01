@@ -36,6 +36,7 @@
     "karakeep"
     "linkwarden"
     "stirling-pdf"
+    "syncthing"
   ];
 
   # Create btrfs subvolumes for docker services
@@ -57,6 +58,7 @@
     "d /mnt/storage/filebrowser/database 0755 1000 1000 - -"
     "v /mnt/storage/karakeep 0755 dock docker - -"
     "v /mnt/storage/linkwarden 0755 dock docker - -"
+    "v /mnt/storage/syncthing 0755 1000 1000 - -"
   ];
 
   # Sops secrets configuration using SSH host keys

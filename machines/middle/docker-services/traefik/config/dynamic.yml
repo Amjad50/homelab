@@ -120,6 +120,7 @@ http:
               - "qbittorrent.home.alsharafi.dev"
               - "glances.home.alsharafi.dev"
               - "filebrowser.home.alsharafi.dev"
+              - "sync.home.alsharafi.dev"
       middlewares:
         - oauth2-auth@docker
       priority: 1
