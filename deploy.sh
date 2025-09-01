@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Usage: ./deploy.sh <flake-name> [server] [--no-docker]
 # If server is provided, deploy remotely via SSH

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # NixOS Installation Script with Btrfs and SSH
 # Usage: ./install-nixos.sh /dev/sda [/dev/sdb]

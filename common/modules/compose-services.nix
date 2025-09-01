@@ -75,7 +75,7 @@ in
     
     # Quick status script
     (writeShellScriptBin "compose-status" ''
-      #!/bin/bash
+      #!/usr/bin/env bash
       compose-manage list
     '')
   ];

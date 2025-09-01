@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Secrets Generator
 # Generates and encrypts secrets for both middle and home machines

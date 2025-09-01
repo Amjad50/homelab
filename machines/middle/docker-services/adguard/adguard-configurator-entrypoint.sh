@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 CONFIG_PATH=${CONFIG_PATH:-/config/AdGuardHome.yaml}
