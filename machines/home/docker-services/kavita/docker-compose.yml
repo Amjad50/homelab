@@ -18,8 +18,6 @@ services:
       - /mnt/storage/media/comics:/comics
       - /mnt/storage/media/manga:/manga
       - /etc/localtime:/etc/localtime:ro
-    ports:
-      - "5000:5000"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.kavita.rule=Host(`books.home.alsharafi.dev`)"

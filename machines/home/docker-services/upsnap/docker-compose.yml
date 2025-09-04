@@ -1,0 +1,28 @@
+
+networks:
+  traefik:
+    external: true
+
+services:
+  upsnap:
+    container_name: upsnap
+    image: ghcr.io/seriousm4x/upsnap:5 # images are also available on docker hub: seriousm4x/upsnap:5
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - /mnt/storage/upsnap:/app/pb_data
+    user: 1000:1000
+    environment:
+      TZ: "Asia/Kuala_Lumpur"
+      UPSNAP_PING_PRIVILEGED: false
+      UPSNAP_SCAN_RANGE: "192.168.0.0/24"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.upsnap.rule=Host(`upsnap.home.alsharafi.dev`)"
+      - "traefik.http.routers.upsnap.middlewares=default-chain@file"
+      - "traefik.http.services.upsnap.loadbalancer.server.url=http://host.docker.internal:8090"
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8090/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

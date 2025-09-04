@@ -28,6 +28,8 @@ services:
       - "traefik.http.routers.traefik.rule=Host(`traefik-internal.home.alsharafi.dev`)"
       - "traefik.http.routers.traefik.service=api@internal"
       - "traefik.http.routers.traefik.middlewares=default-chain@file"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
       interval: 30s
