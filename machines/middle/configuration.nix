@@ -47,6 +47,22 @@
         group = "docker";
         mode = "0400";
       };
+      # Backup secrets
+      restic-repository-password = {
+        owner = "root";
+        group = "root";
+        mode = "0400";
+      };
+      backup-aws-access-key-id = {
+        owner = "root";
+        group = "root";
+        mode = "0400";
+      };
+      backup-aws-secret-access-key = {
+        owner = "root";
+        group = "root";
+        mode = "0400";
+      };
     };
   };
 
@@ -58,6 +74,18 @@
     path = "/var/lib/dock/oauth2-proxy.env";
     content = ''
       OAUTH2_PROXY_COOKIE_SECRET=${config.sops.placeholder.oauth2-proxy-cookie-secret}
+    '';
+  };
+
+  # S3 environment template for Backblaze B2
+  sops.templates."restic-s3.env" = {
+    owner = "root";
+    group = "root";
+    mode = "0400";
+    path = "/var/lib/restic/s3.env";
+    content = ''
+      AWS_ACCESS_KEY_ID=${config.sops.placeholder.backup-aws-access-key-id}
+      AWS_SECRET_ACCESS_KEY=${config.sops.placeholder.backup-aws-secret-access-key}
     '';
   };
 
@@ -107,4 +135,49 @@
       ExecStart = "${pkgs.rathole}/bin/rathole ${config.sops.templates."rathole-server.toml".path}";
     };
   };
+
+  # Restic backup configuration
+  services.restic.backups = {
+    # Daily backups for middle server
+    middle-daily = {
+      repository = "s3:s3.eu-central-003.backblazeb2.com/amsh-homelab-backup/backups/middle-daily";
+      passwordFile = config.sops.secrets.restic-repository-password.path;
+      environmentFile = config.sops.templates."restic-s3.env".path;
+      paths = [
+        "/tmp/middle-backups-daily" # Service backups
+        "/storage/adguard/conf" # AdGuard configuration (direct path backup)
+      ];
+      initialize = true;
+      timerConfig = {
+        OnCalendar = "03:00"; # Run at 3 AM (offset from home server)
+        RandomizedDelaySec = "15m";
+        Persistent = true;
+      };
+      pruneOpts = [
+        "--keep-daily 30"
+        "--keep-weekly 8"
+        "--keep-monthly 12"
+      ];
+      extraBackupArgs = [
+        "--tag daily"
+        "--tag homelab"
+        "--tag middle-server"
+      ];
+      backupPrepareCommand = ''
+        export PATH="${pkgs.docker}/bin:${pkgs.hostname}/bin:${pkgs.coreutils}/bin:${pkgs.gnugrep}/bin:${pkgs.gnused}/bin:${pkgs.gawk}/bin:${pkgs.findutils}/bin:${pkgs.gnutar}/bin:${pkgs.sqlite}/bin:$PATH"
+        ${pkgs.writeShellScriptBin "backup-prepare-middle" (builtins.readFile ./scripts/backup-prepare-middle.sh)}/bin/backup-prepare-middle /tmp/middle-backups-daily
+      '';
+      backupCleanupCommand = ''
+        export PATH="${pkgs.coreutils}/bin:$PATH"
+        ${pkgs.writeShellScriptBin "backup-cleanup-middle" (builtins.readFile ./scripts/backup-cleanup-middle.sh)}/bin/backup-cleanup-middle /tmp/middle-backups-daily
+      '';
+    };
+  };
+
+  # Install backup scripts as system packages
+  environment.systemPackages = with pkgs; [
+    sqlite
+    (writeShellScriptBin "backup-prepare-middle" (builtins.readFile ./scripts/backup-prepare-middle.sh))
+    (writeShellScriptBin "backup-cleanup-middle" (builtins.readFile ./scripts/backup-cleanup-middle.sh))
+  ];
 }

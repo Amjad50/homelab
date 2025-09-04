@@ -422,6 +422,7 @@
       extraBackupArgs = [
         "--tag daily"
         "--tag homelab"
+        "--tag home-server"
       ];
       backupPrepareCommand = ''
         export PATH="${pkgs.docker}/bin:${pkgs.hostname}/bin:${pkgs.coreutils}/bin:${pkgs.gnugrep}/bin:${pkgs.gnused}/bin:${pkgs.gawk}/bin:$PATH"

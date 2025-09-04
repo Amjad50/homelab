@@ -276,6 +276,9 @@ rathole-token: "$RATHOLE_TOKEN"
 rathole-noise-private: "$RATHOLE_NOISE_PRIVATE"
 oauth2-proxy-client-secret: "$OAUTH2_PROXY_CLIENT_SECRET"
 oauth2-proxy-cookie-secret: "$OAUTH2_PROXY_COOKIE_SECRET"
+restic-repository-password: "$RESTIC_REPOSITORY_PASSWORD"
+backup-aws-access-key-id: "$BACKUP_AWS_ACCESS_KEY_ID"
+backup-aws-secret-access-key: "$BACKUP_AWS_SECRET_ACCESS_KEY"
 EOF
 }
 
