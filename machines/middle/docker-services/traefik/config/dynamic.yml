@@ -71,6 +71,20 @@ http:
             sans:
               - "firefly.home.alsharafi.dev"
       priority: 100
+
+    # Solidtime PWA
+    solidtime-favicons-bypass:
+      rule: "Host(`solidtime.home.alsharafi.dev`) && PathPrefix(`/favicons`)"
+      service: "home-tunnel"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: "home.alsharafi.dev"
+            sans:
+              - "solidtime.home.alsharafi.dev"
+      priority: 100
     
     # Services which have their own authentication
     # and may need to bypass OAuth2
