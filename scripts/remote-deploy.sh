@@ -101,7 +101,7 @@ check_service_changes() {
             # Show diff using delta
             if command -v delta >/dev/null 2>&1; then
                 log_docker "  → Showing diff:"
-                diff -ruN "/opt/docker-services/$service_name" "$service_dir" | delta --line-numbers --side-by-side >&2
+                diff -ruN "/opt/docker-services/$service_name" "$service_dir" | delta --pager="none" --line-numbers --side-by-side >&2
             else
                 log_warn "  → delta not found, install it to see diffs"
             fi
