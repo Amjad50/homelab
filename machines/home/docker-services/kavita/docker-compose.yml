@@ -1,0 +1,32 @@
+networks:
+  traefik:
+    external: true
+
+services:
+  # Kavita - Digital library for comics, manga, and e-books
+  kavita:
+    image: jvmilazz0/kavita:nightly
+    container_name: kavita
+    restart: unless-stopped
+    networks:
+      - traefik
+    environment:
+      - TZ=Asia/Kuala_Lumpur
+    volumes:
+      - /mnt/storage/media/configs/kavita:/kavita/config
+      - /mnt/storage/media/books:/books
+      - /mnt/storage/media/comics:/comics
+      - /mnt/storage/media/manga:/manga
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "5000:5000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.kavita.rule=Host(`books.home.alsharafi.dev`)"
+      - "traefik.http.services.kavita.loadbalancer.server.port=5000"
+      - "traefik.http.routers.kavita.middlewares=default-chain@file"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

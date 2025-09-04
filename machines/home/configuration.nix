@@ -37,6 +37,7 @@
     "linkwarden"
     "stirling-pdf"
     "syncthing"
+    "kavita"
   ];
 
   # Create btrfs subvolumes for docker services
@@ -53,6 +54,9 @@
     "v /mnt/storage/media/tv 0755 1000 1000 - -"
     "v /mnt/storage/media/configs 0755 dock docker - -"
     "v /mnt/storage/media/downloads 0755 1000 1000 - -"
+    "v /mnt/storage/media/books 0755 1000 1000 - -"
+    "v /mnt/storage/media/comics 0755 1000 1000 - -"
+    "v /mnt/storage/media/manga 0755 1000 1000 - -"
     "v /mnt/storage/filebrowser 0755 1000 1000 - -"
     "d /mnt/storage/filebrowser/config 0755 1000 1000 - -"
     "d /mnt/storage/filebrowser/database 0755 1000 1000 - -"
