@@ -75,7 +75,7 @@ http:
     # Services which have their own authentication
     # and may need to bypass OAuth2
     home-public-sso:
-      rule: "Host(`blinko.home.alsharafi.dev`) || Host(`memos.home.alsharafi.dev`) || Host(`minio.home.alsharafi.dev`) || Host(`jellyfin.home.alsharafi.dev`) || Host(`karakeep.home.alsharafi.dev`) || Host(`linkwarden.home.alsharafi.dev`) || Host(`pdf.home.alsharafi.dev`) || Host(`books.home.alsharafi.dev`)"
+      rule: "Host(`blinko.home.alsharafi.dev`) || Host(`memos.home.alsharafi.dev`) || Host(`minio.home.alsharafi.dev`) || Host(`jellyfin.home.alsharafi.dev`) || Host(`karakeep.home.alsharafi.dev`) || Host(`linkwarden.home.alsharafi.dev`) || Host(`pdf.home.alsharafi.dev`) || Host(`books.home.alsharafi.dev`) || Host(`audiobooks.home.alsharafi.dev`)"
       service: "home-tunnel"
       entryPoints:
         - websecure
@@ -92,6 +92,7 @@ http:
               - "linkwarden.home.alsharafi.dev"
               - "pdf.home.alsharafi.dev"
               - "books.home.alsharafi.dev"
+              - "audiobooks.home.alsharafi.dev"
       priority: 10
 
     # Fallback route for all other *.home.alsharafi.dev domains (protected by OAuth2)

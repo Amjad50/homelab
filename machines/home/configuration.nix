@@ -38,6 +38,7 @@
     "stirling-pdf"
     "syncthing"
     "kavita"
+    "audiobookshelf"
   ];
 
   # Create btrfs subvolumes for docker services
@@ -57,6 +58,8 @@
     "v /mnt/storage/media/books 0755 1000 1000 - -"
     "v /mnt/storage/media/comics 0755 1000 1000 - -"
     "v /mnt/storage/media/manga 0755 1000 1000 - -"
+    "v /mnt/storage/media/audiobooks 0755 1000 1000 - -"
+    "v /mnt/storage/media/podcasts 0755 1000 1000 - -"
     "v /mnt/storage/filebrowser 0755 1000 1000 - -"
     "d /mnt/storage/filebrowser/config 0755 1000 1000 - -"
     "d /mnt/storage/filebrowser/database 0755 1000 1000 - -"
