@@ -30,15 +30,15 @@ log_error() {
 # Check if required tools are available
 check_dependencies() {
     local missing_tools=()
-    
-    if ! command -v sops &> /dev/null; then
+
+    if ! command -v sops &>/dev/null; then
         missing_tools+=("sops")
     fi
-    
-    if ! command -v openssl &> /dev/null; then
+
+    if ! command -v openssl &>/dev/null; then
         missing_tools+=("openssl")
     fi
-    
+
     if [ ${#missing_tools[@]} -ne 0 ]; then
         log_error "Missing required tools: ${missing_tools[*]}"
         log_info "Install with: nix-shell -p sops openssl"
@@ -56,7 +56,7 @@ dotenv() {
             fi
             # Export variable
             export "$key"="$value"
-        done < "$1"
+        done <"$1"
         log_info "Loaded environment variables from $1"
     else
         log_warn "No .env file found, using existing environment variables"
@@ -66,11 +66,11 @@ dotenv() {
 # Check required environment variables
 check_env_vars() {
     local missing_vars=()
-    
+
     if [ -z "${MIDDLE_AGE_KEY:-}" ]; then
         missing_vars+=("MIDDLE_AGE_KEY")
     fi
-    
+
     if [ -z "${HOME_AGE_KEY:-}" ]; then
         missing_vars+=("HOME_AGE_KEY")
     fi
@@ -163,7 +163,7 @@ generate_secrets() {
     else
         log_info "Using provided rathole token"
     fi
-    
+
     # Generate OAuth2 Proxy cookie secret if not provided (client secret must be from Kanidm)
     if [ -z "${OAUTH2_PROXY_COOKIE_SECRET:-}" ]; then
         OAUTH2_PROXY_COOKIE_SECRET=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-32)
@@ -171,7 +171,7 @@ generate_secrets() {
     else
         log_info "Using provided OAuth2 Proxy cookie secret"
     fi
-    
+
     # Generate FireflyIII app key if not provided
     if [ -z "${FIREFLY_APP_KEY:-}" ]; then
         FIREFLY_APP_KEY="base64:$(openssl rand -base64 32)"
@@ -179,7 +179,7 @@ generate_secrets() {
     else
         log_info "Using provided FireflyIII app key"
     fi
-    
+
     # Generate FireflyIII database password if not provided
     if [ -z "${FIREFLY_DB_PASSWORD:-}" ]; then
         FIREFLY_DB_PASSWORD=$(openssl rand -base64 32)
@@ -187,7 +187,7 @@ generate_secrets() {
     else
         log_info "Using provided FireflyIII database password"
     fi
-    
+
     # Generate Blinko NextAuth secret if not provided
     if [ -z "${BLINKO_NEXTAUTH_SECRET:-}" ]; then
         BLINKO_NEXTAUTH_SECRET=$(openssl rand -base64 32)
@@ -195,7 +195,7 @@ generate_secrets() {
     else
         log_info "Using provided Blinko NextAuth secret"
     fi
-    
+
     # Generate Blinko database password if not provided
     if [ -z "${BLINKO_DB_PASSWORD:-}" ]; then
         BLINKO_DB_PASSWORD=$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)
@@ -203,7 +203,7 @@ generate_secrets() {
     else
         log_info "Using provided Blinko database password"
     fi
-    
+
     # Generate n8n database password if not provided
     if [ -z "${N8N_DB_PASSWORD:-}" ]; then
         N8N_DB_PASSWORD=$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)
@@ -211,7 +211,7 @@ generate_secrets() {
     else
         log_info "Using provided n8n database password"
     fi
-    
+
     # Generate n8n encryption key if not provided
     if [ -z "${N8N_ENCRYPTION_KEY:-}" ]; then
         N8N_ENCRYPTION_KEY=$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)
@@ -219,7 +219,7 @@ generate_secrets() {
     else
         log_info "Using provided n8n encryption key"
     fi
-    
+
     # Generate solidtime database password if not provided
     if [ -z "${SOLIDTIME_DB_PASSWORD:-}" ]; then
         SOLIDTIME_DB_PASSWORD=$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)
@@ -271,7 +271,7 @@ generate_secrets() {
 
 # Create secrets YAML content for middle server
 create_middle_secrets_yaml() {
-    cat << EOF
+    cat <<EOF
 rathole-token: "$RATHOLE_TOKEN"
 rathole-noise-private: "$RATHOLE_NOISE_PRIVATE"
 oauth2-proxy-client-secret: "$OAUTH2_PROXY_CLIENT_SECRET"
@@ -284,7 +284,7 @@ EOF
 
 # Create secrets YAML content for home server
 create_home_secrets_yaml() {
-    cat << EOF
+    cat <<EOF
 rathole-token: "$RATHOLE_TOKEN"
 rathole-noise-public: "$RATHOLE_NOISE_PUBLIC"
 firefly-app-key: "$FIREFLY_APP_KEY"
@@ -320,22 +320,22 @@ encrypt_secrets() {
     local machine="$1"
     local age_key="$2"
     local output_file="machines/$machine/secrets.yaml"
-    
+
     log_info "Encrypting secrets for $machine..."
-    
+
     # Create machine directory if it doesn't exist
     mkdir -p "machines/$machine"
-    
+
     # Create and encrypt secrets based on machine type
     if [ "$machine" = "middle" ]; then
-        create_middle_secrets_yaml | sops --encrypt --input-type yaml --age "$age_key" /dev/stdin > "$output_file"
+        create_middle_secrets_yaml | sops --encrypt --input-type yaml --age "$age_key" /dev/stdin >"$output_file"
     elif [ "$machine" = "home" ]; then
-        create_home_secrets_yaml | sops --encrypt --input-type yaml --age "$age_key" /dev/stdin > "$output_file"
+        create_home_secrets_yaml | sops --encrypt --input-type yaml --age "$age_key" /dev/stdin >"$output_file"
     else
         log_error "Unknown machine type: $machine"
         return 1
     fi
-    
+
     if [ $? -eq 0 ]; then
         log_info "✓ Created $output_file"
     else
@@ -348,10 +348,10 @@ encrypt_secrets() {
 verify_secrets() {
     local machine="$1"
     local secrets_file="machines/$machine/secrets.yaml"
-    
+
     log_info "Verifying $machine secrets..."
-    
-    if sops --decrypt "$secrets_file" > /dev/null 2>&1; then
+
+    if sops --decrypt "$secrets_file" >/dev/null 2>&1; then
         log_info "✓ $machine secrets are valid"
     else
         log_warn "⚠ Cannot verify $machine secrets (age key not available locally)"
@@ -362,12 +362,12 @@ verify_secrets() {
 main() {
     echo "=== Secrets Generator ==="
     echo
-    
+
     check_dependencies
     dotenv .env
     check_env_vars
     generate_secrets
-    
+
     echo
     log_info "Generating secrets with:"
     echo "  - Rathole Token: ${RATHOLE_TOKEN:0:16}..."
@@ -401,16 +401,16 @@ main() {
     echo "  - Backup AWS Access Key ID: ${BACKUP_AWS_ACCESS_KEY_ID:0:16}..."
     echo "  - Backup AWS Secret Access Key: ${BACKUP_AWS_SECRET_ACCESS_KEY:0:16}..."
     echo
-    
+
     # Encrypt for both machines
     encrypt_secrets "middle" "$MIDDLE_AGE_KEY"
     encrypt_secrets "home" "$HOME_AGE_KEY"
-    
+
     echo
     log_info "Verifying encrypted files..."
     verify_secrets "middle"
     verify_secrets "home"
-    
+
     echo
     log_info "✅ Secrets generation complete!"
     echo
@@ -422,7 +422,7 @@ main() {
     echo "  1. Deploy configurations: ./deploy.sh middle user@middle-server"
     echo "  2. Deploy configurations: ./deploy.sh home user@home-server"
     echo "  3. Verify services: systemctl status rathole-server"
-    
+
     # Show generated values for reference (optional)
     if [ "${SHOW_SECRETS:-false}" = "true" ]; then
         echo

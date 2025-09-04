@@ -2,7 +2,11 @@
 {
   networking.hostName = "home";
 
-  networking.firewall.allowedTCPPorts = [ 5055 8096 8090 ];
+  networking.firewall.allowedTCPPorts = [
+    5055
+    8096
+    8090
+  ];
 
   # Use static ipv4
   networking.interfaces.eno2 = {
@@ -284,8 +288,12 @@
 
       # Application configuration  
       APP_KEY="${config.sops.placeholder.solidtime-app-key}"
-      PASSPORT_PRIVATE_KEY="${builtins.replaceStrings ["\\\\"] ["\\"] config.sops.placeholder.solidtime-passport-private-key}"
-      PASSPORT_PUBLIC_KEY="${builtins.replaceStrings ["\\\\"] ["\\"] config.sops.placeholder.solidtime-passport-public-key}"
+      PASSPORT_PRIVATE_KEY="${
+        builtins.replaceStrings [ "\\\\" ] [ "\\" ] config.sops.placeholder.solidtime-passport-private-key
+      }"
+      PASSPORT_PUBLIC_KEY="${
+        builtins.replaceStrings [ "\\\\" ] [ "\\" ] config.sops.placeholder.solidtime-passport-public-key
+      }"
       SUPER_ADMINS="${config.sops.placeholder.solidtime-super-admins}"
     '';
   };
