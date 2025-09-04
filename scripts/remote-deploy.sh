@@ -97,6 +97,15 @@ check_service_changes() {
         log_info "  old → $old_checksum"
         if [ "$new_checksum" != "$old_checksum" ]; then
             log_docker "  → Changes detected in $service_name"
+            
+            # Show diff using delta
+            if command -v delta >/dev/null 2>&1; then
+                log_docker "  → Showing diff:"
+                diff -ruN "/opt/docker-services/$service_name" "$service_dir" | delta --line-numbers --side-by-side >&2
+            else
+                log_warn "  → delta not found, install it to see diffs"
+            fi
+            
             return 0  # Changed
         else
             log_info "  → No changes in $service_name"
