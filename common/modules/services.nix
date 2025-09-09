@@ -26,7 +26,7 @@
       X11Forwarding = false;
     };
   };
-  
+
   programs.mosh = {
     enable = true;
     openFirewall = true;
@@ -45,9 +45,15 @@
     firewall = {
       enable = true;
     };
-    nameservers = [ "1.1.1.1" "1.0.0.1" "2606:4700:4700::1111" "2606:4700:4700::1001" "8.8.8.8" "8.8.4.4" ];
+    nameservers = [
+      "1.1.1.1"
+      "1.0.0.1"
+      "2606:4700:4700::1111"
+      "2606:4700:4700::1001"
+      "8.8.8.8"
+      "8.8.4.4"
+    ];
   };
-  services.resolved.enable = false;
 
   # Fail2ban intrusion prevention
   services.fail2ban = {

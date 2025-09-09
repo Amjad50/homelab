@@ -9,8 +9,7 @@ services:
     container_name: syncthing-fix-permissions
     command: ["sh", "-c", "chown -R 1000:1000 /var/syncthing"]
     volumes:
-      - ./config:/var/syncthing/config
-      - /mnt/storage/syncthing/data:/var/syncthing/data
+      - /mnt/storage/syncthing:/var/syncthing
     restart: "no"
     user: root
 
