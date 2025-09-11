@@ -50,15 +50,15 @@ services:
       
       # NextAuth configuration
       # NEXTAUTH_SECRET: set from env file
-      NEXTAUTH_URL: https://blinko.home.alsharafi.dev
-      NEXT_PUBLIC_BASE_URL: https://blinko.home.alsharafi.dev
+      NEXTAUTH_URL: https://blinko.home.amsh.dev
+      NEXT_PUBLIC_BASE_URL: https://blinko.home.amsh.dev
       
     volumes:
       - /mnt/storage/blinko/data:/app/.blinko
     labels:
       # Enable Traefik
       - "traefik.enable=true"
-      - "traefik.http.routers.blinko.rule=Host(`blinko.home.alsharafi.dev`)"
+      - "traefik.http.routers.blinko.rule=Host(`blinko.home.amsh.dev`)"
       - "traefik.http.routers.blinko.service=blinko"
       - "traefik.http.routers.blinko.middlewares=default-chain@file"
       - "traefik.http.services.blinko.loadbalancer.server.port=1111"

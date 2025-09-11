@@ -58,7 +58,7 @@ systemctl status rathole-server  # middle
 systemctl status rathole-client  # home
 
 # Test connectivity
-curl https://app.home.alsharafi.dev
+curl https://app.home.amsh.dev
 ```
 
 ## Configuration Patterns

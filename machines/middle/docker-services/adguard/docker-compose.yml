@@ -18,18 +18,18 @@ services:
       - "traefik.enable=true"
 
       # First setup
-      - "traefik.http.routers.adguard-init.rule=Host(`dns-initial.home.alsharafi.dev`)"
+      - "traefik.http.routers.adguard-init.rule=Host(`dns-initial.home.amsh.dev`)"
       - "traefik.http.routers.adguard-init.middlewares=default-chain@file,oauth2-auth@docker"
       - "traefik.http.routers.adguard-init.service=adguard-init"
       - "traefik.http.services.adguard-init.loadbalancer.server.port=3000"
 
       # DOH query
-      - "traefik.http.routers.adguard-query.rule=Host(`dns.home.alsharafi.dev`) && PathPrefix(`/dns-query`)"
+      - "traefik.http.routers.adguard-query.rule=Host(`dns.home.amsh.dev`) && PathPrefix(`/dns-query`)"
       - "traefik.http.routers.adguard-query.service=adguard"
       - "traefik.http.routers.adguard-query.middlewares=default-chain@file"
 
       # Main
-      - "traefik.http.routers.adguard.rule=Host(`dns.home.alsharafi.dev`)"
+      - "traefik.http.routers.adguard.rule=Host(`dns.home.amsh.dev`)"
       - "traefik.http.services.adguard.loadbalancer.server.port=80"
       - "traefik.http.routers.adguard.service=adguard"
       - "traefik.http.routers.adguard.middlewares=default-chain@file,oauth2-auth@docker"
@@ -41,7 +41,7 @@ services:
       dockerfile: adguard-configurator.Dockerfile
     container_name: adguard-configurator
     environment:
-      - SERVER_NAME=dns.home.alsharafi.dev
+      - SERVER_NAME=dns.home.amsh.dev
       - CONFIG_PATH=/config/AdGuardHome.yaml
       - ADGUARD_CONTAINER_NAME=adguard
     volumes:

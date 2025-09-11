@@ -7,8 +7,8 @@
 
 ## Domains
 
-- `traefik.home.alsharafi.dev` - Traefik dashboard (VPN-only)
-- `wg.home.alsharafi.dev` - WireGuard management UI (public)
+- `traefik.home.amsh.dev` - Traefik dashboard (VPN-only)
+- `wg.home.amsh.dev` - WireGuard management UI (public)
 
 ## Ports
 

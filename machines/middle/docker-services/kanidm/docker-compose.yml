@@ -13,7 +13,7 @@ services:
       - kanidm_data:/data
       - ./generate-certs.sh:/generate-certs.sh:ro
     environment:
-      DOMAIN: "idm.home.alsharafi.dev"
+      DOMAIN: "idm.home.amsh.dev"
     command: sh /generate-certs.sh
 
   kanidm:
@@ -34,7 +34,7 @@ services:
     labels:
       # Enable Traefik
       - "traefik.enable=true"
-      - "traefik.http.routers.kanidm.rule=Host(`idm.home.alsharafi.dev`)"
+      - "traefik.http.routers.kanidm.rule=Host(`idm.home.amsh.dev`)"
       - "traefik.http.routers.kanidm.service=kanidm"
       - "traefik.http.services.kanidm.loadbalancer.server.port=8443"
       - "traefik.http.services.kanidm.loadbalancer.server.scheme=https"

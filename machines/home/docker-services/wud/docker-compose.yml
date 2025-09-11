@@ -21,7 +21,7 @@ services:
       # Auth
       WUD_AUTH_OIDC_KANIDM_CLIENTID: "wud"
       WUD_AUTH_OIDC_KANIDM_CLIENTSECRET__FILE: /run/secrets/wud-openid-client-secret
-      WUD_AUTH_OIDC_KANIDM_DISCOVERY: https://idm.home.alsharafi.dev/oauth2/openid/wud/.well-known/openid-configuration
+      WUD_AUTH_OIDC_KANIDM_DISCOVERY: https://idm.home.amsh.dev/oauth2/openid/wud/.well-known/openid-configuration
       WUD_AUTH_OIDC_KANIDM_REDIRECT: true # skip login UI
       
       # Logs
@@ -33,7 +33,7 @@ services:
     labels:
       # Enable Traefik
       - "traefik.enable=true"
-      - "traefik.http.routers.wud.rule=Host(`wud.home.alsharafi.dev`)"
+      - "traefik.http.routers.wud.rule=Host(`wud.home.amsh.dev`)"
       - "traefik.http.routers.wud.service=wud"
       - "traefik.http.routers.wud.middlewares=default-chain@file"
       - "traefik.http.services.wud.loadbalancer.server.port=3000"

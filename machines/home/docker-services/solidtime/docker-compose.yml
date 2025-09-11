@@ -54,7 +54,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.solidtime.loadbalancer.server.port=8000"
-      - "traefik.http.routers.solidtime.rule=Host(`solidtime.home.alsharafi.dev`)"
+      - "traefik.http.routers.solidtime.rule=Host(`solidtime.home.amsh.dev`)"
       - "traefik.http.routers.solidtime.middlewares=default-chain@file"
     networks:
       - traefik
@@ -78,7 +78,7 @@ services:
       # Laravel
       APP_ENV: "production"
       APP_DEBUG: false
-      APP_URL: "https://solidtime.home.alsharafi.dev"
+      APP_URL: "https://solidtime.home.amsh.dev"
       APP_ENABLE_REGISTRATION: false
       TRUSTED_PROXIES: "0.0.0.0/0,2000:0:0:0:0:0:0:0/3"
 

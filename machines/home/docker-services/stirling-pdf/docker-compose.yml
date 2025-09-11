@@ -45,7 +45,7 @@ services:
       - SECURITY_ENABLELOGIN=true
       - SECURITY_LOGINMETHOD=oauth2
       - SECURITY_OAUTH2_ENABLED=true
-      - SECURITY_OAUTH2_ISSUER=https://idm.home.alsharafi.dev/oauth2/openid/stirlingpdf
+      - SECURITY_OAUTH2_ISSUER=https://idm.home.amsh.dev/oauth2/openid/stirlingpdf
       - SECURITY_OAUTH2_CLIENTID=stirlingpdf
       # - SECURITY_OAUTH2_CLIENTSECRET=set from env file
       - SECURITY_OAUTH2_AUTOCREATEUSER=true
@@ -56,5 +56,5 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.stirlingpdf.loadbalancer.server.port=8080"
-      - "traefik.http.routers.stirlingpdf.rule=Host(`pdf.home.alsharafi.dev`)"
+      - "traefik.http.routers.stirlingpdf.rule=Host(`pdf.home.amsh.dev`)"
       - "traefik.http.routers.stirlingpdf.middlewares=default-chain@file"

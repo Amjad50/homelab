@@ -5,8 +5,8 @@ bindaddress = "0.0.0.0:8443"
 ldapbindaddress = "0.0.0.0:3636"
 
 # Domain and origin settings
-domain = "idm.home.alsharafi.dev"
-origin = "https://idm.home.alsharafi.dev"
+domain = "idm.home.amsh.dev"
+origin = "https://idm.home.amsh.dev"
 
 # Database settings
 db_path = "/data/kanidm.db"

@@ -21,7 +21,7 @@ entryPoints:
     asDefault: true
     http:
       tls:
-        certResolver: letsencrypt
+        certResolver: cloudflare
 
   ping:
     address: ":8082"
@@ -41,12 +41,15 @@ providers:
 
 # Certificate resolvers
 certificatesResolvers:
-  letsencrypt:
+  cloudflare:
     acme:
       email: amjadsharafi10@gmail.com
       storage: /letsencrypt/acme.json
-      httpChallenge:
-        entryPoint: web
+      dnsChallenge:
+        provider: cloudflare
+        resolvers:
+          - "1.1.1.1:53"
+          - "8.8.8.8:53"
 
 # Logging
 log:

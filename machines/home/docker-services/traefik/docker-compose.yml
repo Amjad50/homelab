@@ -3,9 +3,6 @@ networks:
     name: traefik
     driver: bridge
 
-volumes:
-  letsencrypt:
-
 services:
   traefik:
     image: traefik:v3
@@ -19,13 +16,12 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /var/log/traefik:/data/logs
-      - letsencrypt:/letsencrypt
       - ./config/traefik.yml:/etc/traefik/traefik.yml:ro
       - ./config/dynamic.yml:/etc/traefik/dynamic.yml:ro
     labels:
       # Dashboard
       - "traefik.enable=true"
-      - "traefik.http.routers.traefik.rule=Host(`traefik-internal.home.alsharafi.dev`)"
+      - "traefik.http.routers.traefik.rule=Host(`traefik-internal.home.amsh.dev`)"
       - "traefik.http.routers.traefik.service=api@internal"
       - "traefik.http.routers.traefik.middlewares=default-chain@file"
     extra_hosts:
@@ -41,6 +37,6 @@ services:
       - traefik
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.debug.rule=Host(`debug-internal.home.alsharafi.dev`)"
+      - "traefik.http.routers.debug.rule=Host(`debug-internal.home.amsh.dev`)"
       - "traefik.http.services.debug.loadbalancer.server.port=80"
       - "traefik.http.routers.debug.middlewares=default-chain@file"

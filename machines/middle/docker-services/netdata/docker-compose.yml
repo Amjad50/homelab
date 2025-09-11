@@ -38,6 +38,6 @@ services:
       - TZ=Asia/Kuala_Lumpur
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.netdata.rule=Host(`netdata-middle.home.alsharafi.dev`)"
+      - "traefik.http.routers.netdata.rule=Host(`netdata-middle.home.amsh.dev`)"
       - "traefik.http.routers.netdata.middlewares=default-chain@file,oauth2-auth@docker"
       - "traefik.http.services.netdata.loadbalancer.server.port=19999"

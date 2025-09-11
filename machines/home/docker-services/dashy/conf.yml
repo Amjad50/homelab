@@ -24,49 +24,49 @@ sections:
       - title: Jellyfin
         description: Media Server
         icon: hl-jellyfin
-        url: https://jellyfin.home.alsharafi.dev
+        url: https://jellyfin.home.amsh.dev
         statusCheck: true
         statusCheckUrl: http://jellyfin:8096/health
         id: 0_1348_jellyfin
       - title: Jellyseerr
         description: Media Requests
         icon: hl-jellyseerr
-        url: https://jellyseerr.home.alsharafi.dev
+        url: https://jellyseerr.home.amsh.dev
         statusCheck: true
         statusCheckUrl: http://jellyseerr:5055/api/v1/status
         id: 1_1348_jellyseerr
       - title: Sonarr
         description: TV Series Management
         icon: hl-sonarr
-        url: https://sonarr.home.alsharafi.dev
+        url: https://sonarr.home.amsh.dev
         statusCheck: true
         statusCheckUrl: http://sonarr:8989/ping
         id: 2_1348_sonarr
       - title: Radarr
         description: Movie Management
         icon: hl-radarr
-        url: https://radarr.home.alsharafi.dev
+        url: https://radarr.home.amsh.dev
         statusCheck: true
         statusCheckUrl: http://radarr:7878/ping
         id: 3_1348_radarr
       - title: Prowlarr
         description: Indexer Management
         icon: hl-prowlarr
-        url: https://prowlarr.home.alsharafi.dev
+        url: https://prowlarr.home.amsh.dev
         statusCheck: true
         statusCheckUrl: http://prowlarr:9696/health
         id: 4_1348_prowlarr
       - title: Bazarr
         description: Subtitle Management
         icon: hl-bazarr
-        url: https://bazarr.home.alsharafi.dev
+        url: https://bazarr.home.amsh.dev
         statusCheck: true
         statusCheckUrl: http://bazarr:6767/system/status
         id: 5_1348_bazarr
       - title: qBittorrent
         description: Torrent Client
         icon: hl-qbittorrent
-        url: https://qbittorrent.home.alsharafi.dev
+        url: https://qbittorrent.home.amsh.dev
         statusCheck: true
         statusCheckUrl: http://qbittorrent:8080
         id: 6_1348_qbittorrent
@@ -81,57 +81,57 @@ sections:
       - title: Firefly III
         description: Personal Finance Manager
         icon: hl-firefly
-        url: https://firefly.home.alsharafi.dev
+        url: https://firefly.home.amsh.dev
         statusCheck: true
         statusCheckUrl: http://fireflyiii:8080/health
         id: 0_1704_fireflyiii
       - title: Blinko
         description: Note Taking
         icon: https://cdn.jsdelivr.net/gh/selfhst/icons/svg/blinko.svg
-        url: https://blinko.home.alsharafi.dev
+        url: https://blinko.home.amsh.dev
         statusCheck: true
         statusCheckUrl: http://blinko:1111
         id: 1_1704_blinko
       - title: Memos
         description: Memo Service
         icon: hl-memos
-        url: https://memos.home.alsharafi.dev
+        url: https://memos.home.amsh.dev
         statusCheck: true
         statusCheckUrl: http://memos:5230/healthz
         id: 2_1704_memos
       - title: SolidTime
         description: Time Tracking
         icon: hl-solidtime
-        url: https://solidtime.home.alsharafi.dev
+        url: https://solidtime.home.amsh.dev
         statusCheck: true
         statusCheckUrl: http://solidtime:8000/health-check/up
         id: 3_1704_solidtime
       - title: Adguard
         description: Adblocker DNS
         icon: hl-adguard-home
-        url: https://dns.home.alsharafi.dev
+        url: https://dns.home.amsh.dev
         statusCheck: true
-        statusCheckUrl: https://dns.home.alsharafi.dev/dns-query
+        statusCheckUrl: https://dns.home.amsh.dev/dns-query
         statusCheckAcceptCodes: '400'
         id: 4_1704_adguard
       - title: FileBrowser
         description: File browser for storage and other files
         icon: hl-filebrowser
-        url: https://filebrowser.home.alsharafi.dev
+        url: https://filebrowser.home.amsh.dev
         statusCheck: true
         statusCheckUrl: http://filebrowser:80
         id: 5_1704_filebrowser
       - title: Karakeep
         description: Personal Knowledge Management
         icon: hl-karakeep
-        url: https://karakeep.home.alsharafi.dev
+        url: https://karakeep.home.amsh.dev
         statusCheck: true
         statusCheckUrl: http://karakeep:3000/api/health
         id: 6_1704_karakeep
       - title: Linkwarden
         description: Personal Knowledge Management, bookmarks and archives
         icon: hl-linkwarden
-        url: https://linkwarden.home.alsharafi.dev
+        url: https://linkwarden.home.amsh.dev
         statusCheck: true
         statusCheckUrl: http://linkwarden:3000
         id: 7_1704_linkwarden
@@ -146,14 +146,14 @@ sections:
       - title: MinIO
         description: Object Storage
         icon: hl-minio
-        url: https://minio.home.alsharafi.dev
+        url: https://minio.home.amsh.dev
         statusCheck: true
         statusCheckUrl: http://minio:9000/minio/health/live
         id: 0_1884_minio
       - title: n8n
         description: Workflow Automation
         icon: hl-n8n
-        url: https://n8n.home.alsharafi.dev
+        url: https://n8n.home.amsh.dev
         statusCheck: true
         statusCheckUrl: http://n8n:5678/healthz
         id: 1_1884_nn
@@ -168,14 +168,14 @@ sections:
       - title: WUD
         description: What's Up Docker
         icon: https://cdn.jsdelivr.net/gh/selfhst/icons/svg/wud.svg
-        url: https://wud.home.alsharafi.dev
+        url: https://wud.home.amsh.dev
         statusCheck: true
         statusCheckUrl: http://wud:3000/health
         id: 0_1739_wud
       - title: Glances
         description: Glances Monitoring
         icon: hl-glances
-        url: https://glances.home.alsharafi.dev
+        url: https://glances.home.amsh.dev
         statusCheck: true
         statusCheckUrl: http://glances:61208
         id: 0_1739_glances
@@ -190,26 +190,26 @@ sections:
       - title: Traefik middle
         description: Reverse Proxy
         icon: hl-traefik
-        url: https://traefik.home.alsharafi.dev
+        url: https://traefik.home.amsh.dev
         statusCheck: true
         statusCheckAcceptCodes: '403'
         id: 0_1858_traefikmiddle
       - title: WG easy
         description: Wireguard service
         icon: hl-wireguard
-        url: https://wg.home.alsharafi.dev
+        url: https://wg.home.amsh.dev
         statusCheck: false
         id: 1_1858_wgeasy
       - title: Traefik internal
         description: Reverse Proxy
         icon: hl-traefik
-        url: https://traefik-internal.home.alsharafi.dev
+        url: https://traefik-internal.home.amsh.dev
         statusCheck: true
         statusCheckUrl: http://traefik:8082/ping
         id: 2_1858_traefikinternal
       - title: Kanidm
         description: Identity management and SSO
         icon: hl-kanidm
-        url: https://idm.home.alsharafi.dev
+        url: https://idm.home.amsh.dev
         statusCheck: true
         id: 3_1858_kanidm

@@ -16,7 +16,7 @@ services:
       - traefik
       - media
     environment:
-      - JELLYFIN_PublishedServerUrl=https://jellyfin.home.alsharafi.dev
+      - JELLYFIN_PublishedServerUrl=https://jellyfin.home.amsh.dev
     volumes:
       - /mnt/storage/media/configs/jellyfin:/config
       - jellyfin-cache:/cache
@@ -28,7 +28,7 @@ services:
       - "8096:8096" # for local network access
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.jellyfin.rule=Host(`jellyfin.home.alsharafi.dev`)"
+      - "traefik.http.routers.jellyfin.rule=Host(`jellyfin.home.amsh.dev`)"
       - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
       - "traefik.http.routers.jellyfin.middlewares=default-chain@file"
     healthcheck:
@@ -56,7 +56,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.sonarr.rule=Host(`sonarr.home.alsharafi.dev`)"
+      - "traefik.http.routers.sonarr.rule=Host(`sonarr.home.amsh.dev`)"
       - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
       - "traefik.http.routers.sonarr.middlewares=default-chain@file"
     healthcheck:
@@ -84,7 +84,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.radarr.rule=Host(`radarr.home.alsharafi.dev`)"
+      - "traefik.http.routers.radarr.rule=Host(`radarr.home.amsh.dev`)"
       - "traefik.http.services.radarr.loadbalancer.server.port=7878"
       - "traefik.http.routers.radarr.middlewares=default-chain@file"
     healthcheck:
@@ -110,7 +110,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.home.alsharafi.dev`)"
+      - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.home.amsh.dev`)"
       - "traefik.http.services.prowlarr.loadbalancer.server.port=9696"
       - "traefik.http.routers.prowlarr.middlewares=default-chain@file"
     healthcheck:
@@ -135,7 +135,7 @@ services:
       - TZ=Europe/Kuala_Lumpur
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.flaresolverr.rule=Host(`flaresolverr.home.alsharafi.dev`)"
+      - "traefik.http.routers.flaresolverr.rule=Host(`flaresolverr.home.amsh.dev`)"
       - "traefik.http.services.flaresolverr.loadbalancer.server.port=8191"
       - "traefik.http.routers.flaresolverr.middlewares=default-chain@file"
 
@@ -157,7 +157,7 @@ services:
       - "5055:5055" # for local network access
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.jellyseerr.rule=Host(`jellyseerr.home.alsharafi.dev`)"
+      - "traefik.http.routers.jellyseerr.rule=Host(`jellyseerr.home.amsh.dev`)"
       - "traefik.http.services.jellyseerr.loadbalancer.server.port=5055"
       - "traefik.http.routers.jellyseerr.middlewares=default-chain@file"
     healthcheck:
@@ -188,7 +188,7 @@ services:
       - "6881:6881/udp"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.qbittorrent.rule=Host(`qbittorrent.home.alsharafi.dev`)"
+      - "traefik.http.routers.qbittorrent.rule=Host(`qbittorrent.home.amsh.dev`)"
       - "traefik.http.services.qbittorrent.loadbalancer.server.port=8080"
       - "traefik.http.routers.qbittorrent.middlewares=default-chain@file"
     healthcheck:
@@ -216,7 +216,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.bazarr.rule=Host(`bazarr.home.alsharafi.dev`)"
+      - "traefik.http.routers.bazarr.rule=Host(`bazarr.home.amsh.dev`)"
       - "traefik.http.services.bazarr.loadbalancer.server.port=6767"
       - "traefik.http.routers.bazarr.middlewares=default-chain@file"
     healthcheck:

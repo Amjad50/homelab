@@ -12,7 +12,7 @@ Internet → Middle Server (Public IP) → Rathole Tunnel → Home Server (Priva
 
 ### Traffic Flow
 
-1. **User** requests `*.home.alsharafi.dev`
+1. **User** requests `*.home.amsh.dev`
 2. **DNS** resolves to middle server public IP
 3. **Traefik** (middle) receives HTTPS request on port 443
 4. **Traefik** routes to rathole server on localhost:8080
@@ -52,7 +52,7 @@ To route a new service through the tunnel:
 # In docker-compose.yml
 labels:
   - "traefik.enable=true"
-  - "traefik.http.routers.myapp.rule=Host(`myapp.home.alsharafi.dev`)"
+  - "traefik.http.routers.myapp.rule=Host(`myapp.home.amsh.dev`)"
   - "traefik.http.services.myapp.loadbalancer.server.port=3000"
 ```
 

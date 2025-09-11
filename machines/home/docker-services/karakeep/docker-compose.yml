@@ -26,11 +26,11 @@ services:
     environment:
       MEILI_ADDR: http://meilisearch:7700
       BROWSER_WEB_URL: http://chrome:9222
-      NEXTAUTH_URL: https://karakeep.home.alsharafi.dev
+      NEXTAUTH_URL: https://karakeep.home.amsh.dev
       DISABLE_NEW_RELEASE_CHECK: "true"
       DB_WAL_MODE: "true"
       DISABLE_PASSWORD_AUTH: "true"
-      OAUTH_WELLKNOWN_URL: "https://idm.home.alsharafi.dev/oauth2/openid/karakeep/.well-known/openid-configuration"
+      OAUTH_WELLKNOWN_URL: "https://idm.home.amsh.dev/oauth2/openid/karakeep/.well-known/openid-configuration"
       OAUTH_CLIENT_ID: "karakeep"
       # OAUTH_CLIENT_SECRET: set from env file
       OAUTH_SCOPE: "openid profile email"
@@ -52,7 +52,7 @@ services:
     labels:
       # Enable Traefik
       - "traefik.enable=true"
-      - "traefik.http.routers.karakeep.rule=Host(`karakeep.home.alsharafi.dev`)"
+      - "traefik.http.routers.karakeep.rule=Host(`karakeep.home.amsh.dev`)"
       - "traefik.http.routers.karakeep.service=karakeep"
       - "traefik.http.routers.karakeep.middlewares=default-chain@file"
       - "traefik.http.services.karakeep.loadbalancer.server.port=3000"

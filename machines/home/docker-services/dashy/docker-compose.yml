@@ -14,7 +14,7 @@ services:
       - NODE_ENV=production
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.dashy.rule=Host(`home.alsharafi.dev`)"
+      - "traefik.http.routers.dashy.rule=Host(`home.amsh.dev`)"
       - "traefik.http.services.dashy.loadbalancer.server.port=8080"
       - "traefik.http.routers.dashy.middlewares=default-chain@file"
     networks:
@@ -44,7 +44,7 @@ services:
       - "GLANCES_OPT=-C /glances/conf/glances.conf -w"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.glances.rule=Host(`glances.home.alsharafi.dev`)"
+      - "traefik.http.routers.glances.rule=Host(`glances.home.amsh.dev`)"
       - "traefik.http.services.glances.loadbalancer.server.port=61208"
       - "traefik.http.routers.glances.middlewares=default-chain@file"
     networks:

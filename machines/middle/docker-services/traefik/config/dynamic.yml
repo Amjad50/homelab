@@ -60,84 +60,57 @@ http:
   routers:
     # FireflyIII API bypass (higher priority)
     firefly-api-bypass:
-      rule: "Host(`firefly.home.alsharafi.dev`) && (HeaderRegexp(`Authorization`, `Bearer .+`) || HeaderRegexp(`X-API-Key`, `.+`) || Query(`api_token`, `.+`))"
+      rule: "Host(`firefly.home.amsh.dev`) && (HeaderRegexp(`Authorization`, `Bearer .+`) || HeaderRegexp(`X-API-Key`, `.+`) || Query(`api_token`, `.+`))"
       service: "home-tunnel"
       entryPoints:
         - websecure
-      tls:
-        certResolver: letsencrypt
-        domains:
-          - main: "home.alsharafi.dev"
-            sans:
-              - "firefly.home.alsharafi.dev"
       priority: 100
 
     # Solidtime PWA
     solidtime-favicons-bypass:
-      rule: "Host(`solidtime.home.alsharafi.dev`) && PathPrefix(`/favicons`)"
+      rule: "Host(`solidtime.home.amsh.dev`) && PathPrefix(`/favicons`)"
       service: "home-tunnel"
       entryPoints:
         - websecure
-      tls:
-        certResolver: letsencrypt
-        domains:
-          - main: "home.alsharafi.dev"
-            sans:
-              - "solidtime.home.alsharafi.dev"
       priority: 100
     
     # Services which have their own authentication
     # and may need to bypass OAuth2
     home-public-sso:
-      rule: "Host(`blinko.home.alsharafi.dev`) || Host(`memos.home.alsharafi.dev`) || Host(`minio.home.alsharafi.dev`) || Host(`jellyfin.home.alsharafi.dev`) || Host(`karakeep.home.alsharafi.dev`) || Host(`linkwarden.home.alsharafi.dev`) || Host(`pdf.home.alsharafi.dev`) || Host(`books.home.alsharafi.dev`) || Host(`audiobooks.home.alsharafi.dev`) || Host(`upsnap.home.alsharafi.dev`)"
+      rule: "Host(`blinko.home.amsh.dev`) || Host(`memos.home.amsh.dev`) || Host(`minio.home.amsh.dev`) || Host(`jellyfin.home.amsh.dev`) || Host(`karakeep.home.amsh.dev`) || Host(`linkwarden.home.amsh.dev`) || Host(`pdf.home.amsh.dev`) || Host(`books.home.amsh.dev`) || Host(`audiobooks.home.amsh.dev`) || Host(`upsnap.home.amsh.dev`)"
       service: "home-tunnel"
       entryPoints:
         - websecure
-      tls:
-        certResolver: letsencrypt
-        domains:
-          - main: "home.alsharafi.dev"
-            sans:
-              - "blinko.home.alsharafi.dev"
-              - "memos.home.alsharafi.dev"
-              - "minio.home.alsharafi.dev"
-              - "jellyfin.home.alsharafi.dev"
-              - "karakeep.home.alsharafi.dev"
-              - "linkwarden.home.alsharafi.dev"
-              - "pdf.home.alsharafi.dev"
-              - "books.home.alsharafi.dev"
-              - "audiobooks.home.alsharafi.dev"
-              - "upsnap.home.alsharafi.dev"
       priority: 10
 
-    # Fallback route for all other *.home.alsharafi.dev domains (protected by OAuth2)
+    # Fallback route for all other *.home.amsh.dev domains (protected by OAuth2)
     home-fallback:
-      rule: "HostRegexp(`^.+\\.home\\.alsharafi\\.dev$`) || Host(`home.alsharafi.dev`)"
+      rule: "HostRegexp(`^.+\\.home\\.amsh\\.dev$`) || Host(`home.amsh.dev`)"
       service: "home-tunnel"
       entryPoints:
         - websecure
       tls:
-        certResolver: letsencrypt
+        certResolver: cloudflare
         domains:
-          - main: "home.alsharafi.dev"
+          - main: "home.amsh.dev"
             sans:
-              - "wud.home.alsharafi.dev"
-              - "webapp.home.alsharafi.dev"
-              - "traefik-internal.home.alsharafi.dev"
-              - "firefly.home.alsharafi.dev"
-              - "debug-internal.home.alsharafi.dev"
-              - "minio-console.home.alsharafi.dev"
-              - "n8n.home.alsharafi.dev"
-              - "solidtime.home.alsharafi.dev"
-              - "sonarr.home.alsharafi.dev"
-              - "radarr.home.alsharafi.dev"
-              - "prowlarr.home.alsharafi.dev"
-              - "jellyseerr.home.alsharafi.dev"
-              - "bazarr.home.alsharafi.dev"
-              - "qbittorrent.home.alsharafi.dev"
-              - "glances.home.alsharafi.dev"
-              - "filebrowser.home.alsharafi.dev"
-              - "sync.home.alsharafi.dev"
+              - "wud.home.amsh.dev"
+              - "webapp.home.amsh.dev"
+              - "traefik-internal.home.amsh.dev"
+              - "firefly.home.amsh.dev"
+              - "debug-internal.home.amsh.dev"
+              - "minio-console.home.amsh.dev"
+              - "n8n.home.amsh.dev"
+              - "solidtime.home.amsh.dev"
+              - "sonarr.home.amsh.dev"
+              - "radarr.home.amsh.dev"
+              - "prowlarr.home.amsh.dev"
+              - "jellyseerr.home.amsh.dev"
+              - "bazarr.home.amsh.dev"
+              - "qbittorrent.home.amsh.dev"
+              - "glances.home.amsh.dev"
+              - "filebrowser.home.amsh.dev"
+              - "sync.home.amsh.dev"
       middlewares:
         - oauth2-auth@docker
       priority: 1

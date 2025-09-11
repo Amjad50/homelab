@@ -30,16 +30,16 @@ services:
       OAUTH2_PROXY_PROVIDER: "oidc"
       OAUTH2_PROXY_SCOPE: "openid email groups"
       OAUTH2_PROXY_PROVIDER_DISPLAY_NAME: "Kanidm"
-      OAUTH2_PROXY_OIDC_ISSUER_URL: "https://idm.home.alsharafi.dev/oauth2/openid/oauth2-proxy"
+      OAUTH2_PROXY_OIDC_ISSUER_URL: "https://idm.home.amsh.dev/oauth2/openid/oauth2-proxy"
       OAUTH2_PROXY_CODE_CHALLENGE_METHOD: "S256"
       OAUTH2_PROXY_CLIENT_ID: "oauth2-proxy"
       OAUTH2_PROXY_CLIENT_SECRET_FILE: "/run/secrets/oauth2-proxy-client-secret"
-      OAUTH2_PROXY_REDIRECT_URL: "https://oauth2.home.alsharafi.dev/oauth2/callback"
+      OAUTH2_PROXY_REDIRECT_URL: "https://oauth2.home.amsh.dev/oauth2/callback"
       
       # Cookie settings
       OAUTH2_PROXY_COOKIE_NAME: "_oauth2_proxy"
       #OAUTH2_PROXY_COOKIE_SECRET: set via env file
-      OAUTH2_PROXY_COOKIE_DOMAINS: ".home.alsharafi.dev"
+      OAUTH2_PROXY_COOKIE_DOMAINS: ".home.amsh.dev"
       OAUTH2_PROXY_COOKIE_SECURE: "true"
       OAUTH2_PROXY_COOKIE_HTTPONLY: "true"
       OAUTH2_PROXY_COOKIE_SAMESITE: "lax"
@@ -47,7 +47,7 @@ services:
       
       # Security
       OAUTH2_PROXY_EMAIL_DOMAINS: "*"
-      OAUTH2_PROXY_WHITELIST_DOMAINS: ".home.alsharafi.dev"
+      OAUTH2_PROXY_WHITELIST_DOMAINS: ".home.amsh.dev"
       OAUTH2_PROXY_SKIP_PROVIDER_BUTTON: "true"
 
       
@@ -58,7 +58,7 @@ services:
     labels:
       # Enable Traefik
       - "traefik.enable=true"
-      - "traefik.http.routers.oauth2-proxy.rule=Host(`oauth2.home.alsharafi.dev`)"
+      - "traefik.http.routers.oauth2-proxy.rule=Host(`oauth2.home.amsh.dev`)"
       - "traefik.http.routers.oauth2-proxy.entrypoints=websecure"
       - "traefik.http.routers.oauth2-proxy.service=oauth2-proxy"
       - "traefik.http.services.oauth2-proxy.loadbalancer.server.port=4180"

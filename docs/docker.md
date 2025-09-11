@@ -74,7 +74,7 @@ services:
       - traefik
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.myapp.rule=Host(`myapp.home.alsharafi.dev`)"
+      - "traefik.http.routers.myapp.rule=Host(`myapp.home.amsh.dev`)"
       - "traefik.http.services.myapp.loadbalancer.server.port=3000"
 ```
 

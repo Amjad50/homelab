@@ -93,10 +93,10 @@ services:
       N8N_RUNNERS_ENABLED: true
       
       # n8n configuration
-      N8N_HOST: "n8n.home.alsharafi.dev"
+      N8N_HOST: "n8n.home.amsh.dev"
       N8N_PORT: 5678
       N8N_PROTOCOL: "https"
-      WEBHOOK_URL: "https://n8n.home.alsharafi.dev"
+      WEBHOOK_URL: "https://n8n.home.amsh.dev"
 
       # Telemetry
       N8N_DIAGNOSTICS_ENABLED: "false"
@@ -109,7 +109,7 @@ services:
       - "traefik.enable=true"
       
       # n8n Service
-      - "traefik.http.routers.n8n.rule=Host(`n8n.home.alsharafi.dev`)"
+      - "traefik.http.routers.n8n.rule=Host(`n8n.home.amsh.dev`)"
       - "traefik.http.routers.n8n.service=n8n"
       - "traefik.http.routers.n8n.middlewares=default-chain@file"
       - "traefik.http.services.n8n.loadbalancer.server.port=5678"

@@ -27,7 +27,7 @@ services:
     labels:
       # Enable Traefik
       - "traefik.enable=true"
-      - "traefik.http.routers.memos.rule=Host(`memos.home.alsharafi.dev`)"
+      - "traefik.http.routers.memos.rule=Host(`memos.home.amsh.dev`)"
       - "traefik.http.routers.memos.service=memos"
       - "traefik.http.routers.memos.middlewares=default-chain@file"
       - "traefik.http.services.memos.loadbalancer.server.port=5230"
@@ -51,7 +51,7 @@ services:
     labels:
       # Enable Traefik
       - "traefik.enable=true"
-      - "traefik.http.routers.mortis.rule=Host(`memos.home.alsharafi.dev`) && PathPrefix(`/api/v1/`)"
+      - "traefik.http.routers.mortis.rule=Host(`memos.home.amsh.dev`) && PathPrefix(`/api/v1/`)"
       - "traefik.http.routers.mortis.service=mortis"
       - "traefik.http.routers.mortis.middlewares=default-chain@file"
       - "traefik.http.services.mortis.loadbalancer.server.port=5231"

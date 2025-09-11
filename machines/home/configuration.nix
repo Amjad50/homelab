@@ -363,7 +363,7 @@
     restartUnits = [ "rathole-client.service" ];
     content = ''
       [client]
-      remote_addr = "home.alsharafi.dev:2333"
+      remote_addr = "home.amsh.dev:2333"
       default_token = "${config.sops.placeholder.rathole-token}"
 
       [client.transport]

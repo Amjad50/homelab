@@ -20,7 +20,7 @@ services:
       UPSNAP_SCAN_RANGE: "192.168.0.0/24"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.upsnap.rule=Host(`upsnap.home.alsharafi.dev`)"
+      - "traefik.http.routers.upsnap.rule=Host(`upsnap.home.amsh.dev`)"
       - "traefik.http.routers.upsnap.middlewares=default-chain@file"
       - "traefik.http.services.upsnap.loadbalancer.server.url=http://host.docker.internal:8090"
     healthcheck:

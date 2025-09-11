@@ -9,7 +9,7 @@ set -e
 apk add --no-cache openssl
 
 CERT_DIR="/data"
-DOMAIN="${DOMAIN:-idm.home.alsharafi.dev}"
+DOMAIN="${DOMAIN:-idm.home.amsh.dev}"
 
 if [ -f "$CERT_DIR/chain.pem" ] && [ -f "$CERT_DIR/key.pem" ]; then
     echo "Certificates already exist, skipping generation."

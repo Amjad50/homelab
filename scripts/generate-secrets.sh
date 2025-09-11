@@ -139,6 +139,18 @@ check_env_vars() {
         missing_vars+=("BACKUP_AWS_SECRET_ACCESS_KEY")
     fi
 
+    if [ -z "${CLOUDFLARE_EMAIL:-}" ]; then
+        missing_vars+=("CLOUDFLARE_EMAIL")
+    fi
+
+    if [ -z "${CLOUDFLARE_DNS_API_TOKEN:-}" ]; then
+        missing_vars+=("CLOUDFLARE_DNS_API_TOKEN")
+    fi
+
+    if [ -z "${CLOUDFLARE_ZONE_API_TOKEN:-}" ]; then
+        missing_vars+=("CLOUDFLARE_ZONE_API_TOKEN")
+    fi
+
     if [ ${#missing_vars[@]} -ne 0 ]; then
         log_error "Missing required environment variables: ${missing_vars[*]}"
         echo
@@ -279,6 +291,9 @@ oauth2-proxy-cookie-secret: "$OAUTH2_PROXY_COOKIE_SECRET"
 restic-repository-password: "$RESTIC_REPOSITORY_PASSWORD"
 backup-aws-access-key-id: "$BACKUP_AWS_ACCESS_KEY_ID"
 backup-aws-secret-access-key: "$BACKUP_AWS_SECRET_ACCESS_KEY"
+cloudflare-email: "$CLOUDFLARE_EMAIL"
+cloudflare-dns-api-token: "$CLOUDFLARE_DNS_API_TOKEN"
+cloudflare-zone-api-token: "$CLOUDFLARE_ZONE_API_TOKEN"
 EOF
 }
 
@@ -400,6 +415,9 @@ main() {
     echo "  - Restic Repository Password: ${RESTIC_REPOSITORY_PASSWORD:0:16}..."
     echo "  - Backup AWS Access Key ID: ${BACKUP_AWS_ACCESS_KEY_ID:0:16}..."
     echo "  - Backup AWS Secret Access Key: ${BACKUP_AWS_SECRET_ACCESS_KEY:0:16}..."
+    echo "  - Cloudflare Email: ${CLOUDFLARE_EMAIL:0:16}..."
+    echo "  - Cloudflare DNS API Token: ${CLOUDFLARE_DNS_API_TOKEN:0:16}..."
+    echo "  - Cloudflare Zone API Token: ${CLOUDFLARE_ZONE_API_TOKEN:0:16}..."
     echo
 
     # Encrypt for both machines
@@ -457,6 +475,11 @@ main() {
         echo "RESTIC_REPOSITORY_PASSWORD=$RESTIC_REPOSITORY_PASSWORD"
         echo "BACKUP_AWS_ACCESS_KEY_ID=$BACKUP_AWS_ACCESS_KEY_ID"
         echo "BACKUP_AWS_SECRET_ACCESS_KEY=$BACKUP_AWS_SECRET_ACCESS_KEY"
+        echo "CLOUDFLARE_EMAIL=$CLOUDFLARE_EMAIL"
+        echo "CLOUDFLARE_DNS_API_TOKEN=$CLOUDFLARE_DNS_API_TOKEN"
+        echo "CLOUDFLARE_ZONE_API_TOKEN=$CLOUDFLARE_ZONE_API_TOKEN"
+    else
+        log_info "Set SHOW_SECRETS=true to display generated secrets"
     fi
 }
 

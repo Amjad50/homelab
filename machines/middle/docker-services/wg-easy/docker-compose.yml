@@ -21,7 +21,7 @@ services:
     container_name: wg-easy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.wg.rule=Host(`wg.home.alsharafi.dev`)"
+      - "traefik.http.routers.wg.rule=Host(`wg.home.amsh.dev`)"
       - "traefik.http.services.wg.loadbalancer.server.port=51821"
       - "traefik.http.routers.wg.middlewares=default-chain@file,oauth2-auth@docker"
     environment:

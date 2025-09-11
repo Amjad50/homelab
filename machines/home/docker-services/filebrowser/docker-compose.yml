@@ -21,7 +21,7 @@ services:
       # Enable Traefik
       - "traefik.enable=true"
 
-      - "traefik.http.routers.filebrowser.rule=Host(`filebrowser.home.alsharafi.dev`)"
+      - "traefik.http.routers.filebrowser.rule=Host(`filebrowser.home.amsh.dev`)"
       - "traefik.http.routers.filebrowser.service=filebrowser"
       - "traefik.http.routers.filebrowser.middlewares=default-chain@file"
       - "traefik.http.services.filebrowser.loadbalancer.server.port=80"

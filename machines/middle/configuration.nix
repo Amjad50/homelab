@@ -47,6 +47,21 @@
         group = "docker";
         mode = "0400";
       };
+      cloudflare-email = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      cloudflare-dns-api-token = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      cloudflare-zone-api-token = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
       # Backup secrets
       restic-repository-password = {
         owner = "root";

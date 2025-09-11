@@ -20,7 +20,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.kavita.rule=Host(`books.home.alsharafi.dev`)"
+      - "traefik.http.routers.kavita.rule=Host(`books.home.amsh.dev`)"
       - "traefik.http.services.kavita.loadbalancer.server.port=5000"
       - "traefik.http.routers.kavita.middlewares=default-chain@file"
     healthcheck:

@@ -55,7 +55,7 @@ services:
       APP_ENV: production
       APP_DEBUG: false
       APP_KEY_FILE: /run/secrets/firefly-app-key
-      APP_URL: https://firefly.home.alsharafi.dev
+      APP_URL: https://firefly.home.amsh.dev
       TRUSTED_PROXIES: "*"
       
       # Database configuration
@@ -87,7 +87,7 @@ services:
     labels:
       # Enable Traefik
       - "traefik.enable=true"
-      - "traefik.http.routers.fireflyiii.rule=Host(`firefly.home.alsharafi.dev`)"
+      - "traefik.http.routers.fireflyiii.rule=Host(`firefly.home.amsh.dev`)"
       - "traefik.http.routers.fireflyiii.service=fireflyiii"
       - "traefik.http.routers.fireflyiii.middlewares=default-chain@file"
       - "traefik.http.services.fireflyiii.loadbalancer.server.port=8080"
