@@ -19,6 +19,8 @@ services:
       - "traefik.http.routers.dashy.middlewares=default-chain@file"
     networks:
       - traefik
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     healthcheck:
       test: ['CMD', 'node', '/app/services/healthcheck']
       interval: 30s

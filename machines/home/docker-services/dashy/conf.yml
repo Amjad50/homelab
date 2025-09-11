@@ -70,6 +70,20 @@ sections:
         statusCheck: true
         statusCheckUrl: http://qbittorrent:8080
         id: 6_1348_qbittorrent
+      - title: Kavita
+        description: Digital library for comics, manga, and e-books
+        icon: hl-kavita
+        url: https://books.home.amsh.dev
+        statusCheck: true
+        statusCheckUrl: http://kavita:5000/api/health
+        id: 7_1348_kavita
+      - title: Audiobookshelf
+        description: Audiobook and podcast server
+        icon: hl-audiobookshelf
+        url: https://audiobooks.home.amsh.dev
+        statusCheck: true
+        statusCheckUrl: http://audiobookshelf:80
+        id: 8_1348_audiobookshelf
   - name: Personal Services
     displayData:
       sortBy: alphabetical
@@ -135,6 +149,13 @@ sections:
         statusCheck: true
         statusCheckUrl: http://linkwarden:3000
         id: 7_1704_linkwarden
+      - title: Stirling PDF
+        description: PDF Tools and Editor
+        icon: hl-stirling-pdf
+        url: https://pdf.home.amsh.dev
+        statusCheck: true
+        statusCheckUrl: http://stirling-pdf:8080
+        id: 8_1704_stirlingpdf
   - name: Storage & Automation
     displayData:
       sortBy: alphabetical
@@ -157,6 +178,13 @@ sections:
         statusCheck: true
         statusCheckUrl: http://n8n:5678/healthz
         id: 1_1884_nn
+      - title: Syncthing
+        description: File Synchronization
+        icon: hl-syncthing
+        url: https://sync.home.amsh.dev
+        statusCheck: true
+        statusCheckUrl: http://syncthing:8384
+        id: 2_1884_syncthing
   - name: System Monitoring
     displayData:
       sortBy: alphabetical
@@ -178,7 +206,29 @@ sections:
         url: https://glances.home.amsh.dev
         statusCheck: true
         statusCheckUrl: http://glances:61208
-        id: 0_1739_glances
+        id: 1_1739_glances
+      - title: Upsnap
+        description: Network Discovery and Wake-on-LAN
+        icon: hl-upsnap
+        url: https://upsnap.home.amsh.dev
+        statusCheck: true
+        statusCheckUrl: http://host.docker.internal:8090/api/health
+        id: 2_1739_upsnap
+      - title: Netdata middle
+        description: Real-time System Monitoring
+        icon: hl-netdata
+        url: https://netdata-middle.home.amsh.dev
+        statusCheck: true
+        statusCheckUrl: https://netdata-middle.home.amsh.dev/api/v1/info
+        statusCheckAcceptCodes: '401'
+        id: 3_1739_netdata
+      - title: Uptime Kuma
+        description: External Uptime Monitoring
+        icon: hl-uptime-kuma
+        url: https://monitor.amsh.dev
+        statusCheck: true
+        statusCheckUrl: https://monitor.amsh.dev/api/status-page/heartbeat/amsh
+        id: 4_1739_uptimekuma
   - name: Networks and access
     displayData:
       sortBy: default
@@ -192,7 +242,7 @@ sections:
         icon: hl-traefik
         url: https://traefik.home.amsh.dev
         statusCheck: true
-        statusCheckAcceptCodes: '403'
+        statusCheckAcceptCodes: '401'
         id: 0_1858_traefikmiddle
       - title: WG easy
         description: Wireguard service
