@@ -44,6 +44,7 @@
     "kavita"
     "audiobookshelf"
     "upsnap"
+    "freshrss"
   ];
 
   # Create btrfs subvolumes for docker services
@@ -72,6 +73,7 @@
     "v /mnt/storage/linkwarden 0755 dock docker - -"
     "v /mnt/storage/syncthing 0755 1000 1000 - -"
     "v /mnt/storage/upsnap 0755 1000 1000 - -"
+    "v /mnt/storage/freshrss 0755 dock docker - -"
   ];
 
   # Sops secrets configuration using SSH host keys
@@ -196,6 +198,16 @@
         mode = "0400";
       };
       stirlingpdf-kanidm-client-secret = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      freshrss-kanidm-client-secret = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      freshrss-crypto-secret = {
         owner = "dock";
         group = "docker";
         mode = "0400";
@@ -339,6 +351,19 @@
     content = ''
       # Stirling-PDF application configuration
       SECURITY_OAUTH2_CLIENTSECRET=${config.sops.placeholder.stirlingpdf-kanidm-client-secret}
+    '';
+  };
+
+  # FreshRSS environment template
+  sops.templates."freshrss.env" = {
+    owner = "dock";
+    group = "docker";
+    mode = "0400";
+    path = "/var/lib/dock/freshrss.env";
+    content = ''
+      # FreshRSS OIDC configuration
+      OIDC_CLIENT_SECRET=${config.sops.placeholder.freshrss-kanidm-client-secret}
+      OIDC_CLIENT_CRYPTO_KEY=${config.sops.placeholder.freshrss-crypto-secret}
     '';
   };
 

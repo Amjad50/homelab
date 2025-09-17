@@ -131,6 +131,10 @@ check_env_vars() {
         missing_vars+=("STIRLINGPDF_KANIDM_CLIENT_SECRET")
     fi
 
+    if [ -z "${FRESHRSS_KANIDM_CLIENT_SECRET:-}" ]; then
+        missing_vars+=("FRESHRSS_KANIDM_CLIENT_SECRET")
+    fi
+
     if [ -z "${BACKUP_AWS_ACCESS_KEY_ID:-}" ]; then
         missing_vars+=("BACKUP_AWS_ACCESS_KEY_ID")
     fi
@@ -279,6 +283,14 @@ generate_secrets() {
     else
         log_info "Using provided restic repository password"
     fi
+
+    # Generate freshrss client crypto secret if not provided
+    if [ -z "${FRESHRSS_CRYPTO_SECRET:-}" ]; then
+        FRESHRSS_CRYPTO_SECRET=$(openssl rand -base64 32 | tr -d '\n/+=' | cut -c1-32)
+        log_info "Generated new freshrss crypto secret"
+    else
+        log_info "Using provided freshrss crypto secret"
+    fi
 }
 
 # Create secrets YAML content for middle server
@@ -324,6 +336,8 @@ linkwarden-nextauth-secret: "$LINKWARDEN_NEXTAUTH_SECRET"
 linkwarden-db-password: "$LINKWARDEN_DB_PASSWORD"
 linkwarden-kanidm-client-secret: "$LINKWARDEN_KANIDM_CLIENT_SECRET"
 stirlingpdf-kanidm-client-secret: "$STIRLINGPDF_KANIDM_CLIENT_SECRET"
+freshrss-kanidm-client-secret: "$FRESHRSS_KANIDM_CLIENT_SECRET"
+freshrss-crypto-secret: "$FRESHRSS_CRYPTO_SECRET"
 restic-repository-password: "$RESTIC_REPOSITORY_PASSWORD"
 backup-aws-access-key-id: "$BACKUP_AWS_ACCESS_KEY_ID"
 backup-aws-secret-access-key: "$BACKUP_AWS_SECRET_ACCESS_KEY"
@@ -412,6 +426,8 @@ main() {
     echo "  - Linkwarden DB Password: ${LINKWARDEN_DB_PASSWORD:0:16}..."
     echo "  - Linkwarden Kanidm Client Secret: ${LINKWARDEN_KANIDM_CLIENT_SECRET:0:16}..."
     echo "  - StirlingPDF Kanidm Client Secret: ${STIRLINGPDF_KANIDM_CLIENT_SECRET:0:16}..."
+    echo "  - FreshRSS Kanidm Client Secret: ${FRESHRSS_KANIDM_CLIENT_SECRET:0:16}..."
+    echo "  - FreshRSS Crypto Secret: ${FRESHRSS_CRYPTO_SECRET:0:16}..."
     echo "  - Restic Repository Password: ${RESTIC_REPOSITORY_PASSWORD:0:16}..."
     echo "  - Backup AWS Access Key ID: ${BACKUP_AWS_ACCESS_KEY_ID:0:16}..."
     echo "  - Backup AWS Secret Access Key: ${BACKUP_AWS_SECRET_ACCESS_KEY:0:16}..."
@@ -472,6 +488,8 @@ main() {
         echo "LINKWARDEN_DB_PASSWORD=$LINKWARDEN_DB_PASSWORD"
         echo "LINKWARDEN_KANIDM_CLIENT_SECRET=$LINKWARDEN_KANIDM_CLIENT_SECRET"
         echo "STIRLINGPDF_KANIDM_CLIENT_SECRET=$STIRLINGPDF_KANIDM_CLIENT_SECRET"
+        echo "FRESHRSS_KANIDM_CLIENT_SECRET=$FRESHRSS_KANIDM_CLIENT_SECRET"
+        echo "FRESHRSS_CRYPTO_SECRET=$FRESHRSS_CRYPTO_SECRET"
         echo "RESTIC_REPOSITORY_PASSWORD=$RESTIC_REPOSITORY_PASSWORD"
         echo "BACKUP_AWS_ACCESS_KEY_ID=$BACKUP_AWS_ACCESS_KEY_ID"
         echo "BACKUP_AWS_SECRET_ACCESS_KEY=$BACKUP_AWS_SECRET_ACCESS_KEY"

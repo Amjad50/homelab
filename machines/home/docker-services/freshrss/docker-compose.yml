@@ -1,0 +1,47 @@
+networks:
+  traefik:
+    external: true
+
+services:
+  freshrss-prestart:
+    image: alpine
+    user: root
+    volumes:
+      - /mnt/storage/freshrss/data:/var/www/FreshRSS/data
+      - /mnt/storage/freshrss/extensions:/var/www/FreshRSS/extensions
+    entrypoint: >
+      sh -c "
+        chown 33:33 -R /var/www/FreshRSS &&
+        echo 'Initialized successfully.'
+      "
+
+  freshrss:
+    image: freshrss/freshrss:latest
+    container_name: freshrss
+    restart: unless-stopped
+    networks:
+      - traefik
+    depends_on:
+      freshrss-prestart:
+        condition: service_completed_successfully
+    environment:
+      TZ: "Asia/Kuala_Lumpur"
+      CRON_MIN: "*/15"  # Update feeds every 15 minutes
+      OIDC_ENABLED: "1"
+      OIDC_PROVIDER_METADATA_URL: "https://idm.home.amsh.dev/oauth2/openid/freshrss/.well-known/openid-configuration"
+      OIDC_CLIENT_ID: "freshrss"
+      # OICD_CLIENT_SECRET: set in env file
+      OIDC_REMOTE_USER_CLAIM: "preferred_username"
+      OIDC_SCOPES: "openid email profile"
+      OIDC_X_FORWARDED_HEADERS: "X-Forwarded-Host X-Forwarded-Proto X-Forwarded-Port"
+    env_file:
+      - path: /var/lib/dock/freshrss.env
+        required: true
+    volumes:
+      - /mnt/storage/freshrss/data:/var/www/FreshRSS/data
+      - /mnt/storage/freshrss/extensions:/var/www/FreshRSS/extensions
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.freshrss.rule=Host(`rss.home.amsh.dev`)"
+      - "traefik.http.services.freshrss.loadbalancer.server.port=80"
+      - "traefik.http.routers.freshrss.middlewares=default-chain@file"

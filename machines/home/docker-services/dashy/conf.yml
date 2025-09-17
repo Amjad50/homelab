@@ -156,6 +156,13 @@ sections:
         statusCheck: true
         statusCheckUrl: http://stirling-pdf:8080
         id: 8_1704_stirlingpdf
+      - title: FreshRSS
+        description: RSS Feed Reader
+        icon: hl-freshrss
+        url: https://rss.home.amsh.dev
+        statusCheck: true
+        statusCheckUrl: http://freshrss:80
+        id: 9_1704_freshrss
   - name: Storage & Automation
     displayData:
       sortBy: alphabetical
