@@ -447,6 +447,7 @@
         "/mnt/storage/syncthing/data" # data being synced
         "/mnt/storage/media/configs"
         "/mnt/storage/media/books"
+        "/mnt/storage/immich/upload/library"
       ];
       initialize = true;
       timerConfig = {
@@ -466,7 +467,7 @@
       ];
       backupPrepareCommand = ''
         export PATH="${pkgs.docker}/bin:${pkgs.hostname}/bin:${pkgs.coreutils}/bin:${pkgs.gnugrep}/bin:${pkgs.gnused}/bin:${pkgs.gawk}/bin:$PATH"
-        ${pkgs.writeShellScriptBin "backup-prepare" (builtins.readFile ./scripts/backup-prepare.sh)}/bin/backup-prepare /tmp/db-dumps-daily fireflyiii-db blinko-db n8n-db solidtime-db linkwarden-db
+        ${pkgs.writeShellScriptBin "backup-prepare" (builtins.readFile ./scripts/backup-prepare.sh)}/bin/backup-prepare /tmp/db-dumps-daily fireflyiii-db blinko-db n8n-db solidtime-db linkwarden-db immich_postgres
       '';
       backupCleanupCommand = ''
         export PATH="${pkgs.coreutils}/bin:$PATH"
