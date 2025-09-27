@@ -1,0 +1,90 @@
+networks:
+  traefik:
+    external: true
+  immich:
+    internal: true
+
+volumes:
+  model-cache:
+
+secrets:
+  immich-db-password:
+    file: /run/secrets/immich-db-password
+
+services:
+  immich-server:
+    container_name: immich_server
+    image: ghcr.io/immich-app/immich-server:release
+    extends:
+      file: hwaccel.transcoding.yml
+      service: quicksync
+    volumes:
+      - /mnt/storage/immich/upload:/data
+      - /etc/localtime:/etc/localtime:ro
+    secrets:
+      - immich-db-password
+    environment:
+      DB_HOSTNAME: database
+      DB_USERNAME: postgres
+      DB_DATABASE_NAME: immich
+      DB_PASSWORD_FILE: /run/secrets/immich-db-password
+    depends_on:
+      - redis
+      - database
+    restart: always
+    healthcheck:
+      disable: false
+    networks:
+      - immich
+      - traefik
+    ports:
+      - "2283:2283" # LAN access
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.immich.rule=Host(`immich.home.amsh.dev`)"
+      - "traefik.http.routers.immich.service=immich"
+      - "traefik.http.routers.immich.middlewares=default-chain@file"
+      - "traefik.http.services.immich.loadbalancer.server.port=2283"
+
+  immich-machine-learning:
+    container_name: immich_machine_learning
+    # For hardware acceleration, add one of -[armnn, cuda, rocm, openvino, rknn] to the image tag.
+    # Example tag: ${IMMICH_VERSION:-release}-cuda
+    image: ghcr.io/immich-app/immich-machine-learning:release
+    # extends: # uncomment this section for hardware acceleration - see https://immich.app/docs/features/ml-hardware-acceleration
+    #   file: hwaccel.ml.yml
+    #   service: cpu # set to one of [armnn, cuda, rocm, openvino, openvino-wsl, rknn] for accelerated inference - use the `-wsl` version for WSL2 where applicable
+    volumes:
+      - model-cache:/cache
+    restart: always
+    healthcheck:
+      disable: false
+    networks:
+      - immich
+
+  redis:
+    container_name: immich_redis
+    image: docker.io/valkey/valkey:8-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
+    healthcheck:
+      test: redis-cli ping || exit 1
+    restart: always
+    networks:
+      - immich
+
+  database:
+    container_name: immich_postgres
+    image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:c44be5f2871c59362966d71eab4268170eb6f5653c0e6170184e72b38ffdf107
+    secrets:
+      - immich-db-password
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/immich-db-password
+      POSTGRES_USER: postgres
+      POSTGRES_DB: immich
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+      DB_STORAGE_TYPE: "HDD"
+    volumes:
+      - /mnt/storage/immich/database:/var/lib/postgresql/data
+    shm_size: 128mb
+    restart: always
+    networks:
+      - immich

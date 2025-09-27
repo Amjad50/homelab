@@ -9,7 +9,7 @@ appConfig:
   enableMaterialIcons: true
 pages:
   - name: System monitoring
-    path: 'monitoring.yml'
+    path: "monitoring.yml"
     displayData:
       hideForGuests: false
 sections:
@@ -84,6 +84,13 @@ sections:
         statusCheck: true
         statusCheckUrl: http://audiobookshelf:80
         id: 8_1348_audiobookshelf
+      - title: Immich
+        description: Photo and video management
+        icon: hl-immich
+        url: https://immich.home.amsh.dev
+        statusCheck: true
+        statusCheckUrl: http://immich-server:2283/api/server/ping
+        id: 9_1348_immich
   - name: Personal Services
     displayData:
       sortBy: alphabetical
@@ -126,7 +133,7 @@ sections:
         url: https://dns.home.amsh.dev
         statusCheck: true
         statusCheckUrl: https://dns.home.amsh.dev/dns-query
-        statusCheckAcceptCodes: '400'
+        statusCheckAcceptCodes: "400"
         id: 4_1704_adguard
       - title: FileBrowser
         description: File browser for storage and other files
@@ -227,7 +234,7 @@ sections:
         url: https://netdata-middle.home.amsh.dev
         statusCheck: true
         statusCheckUrl: https://netdata-middle.home.amsh.dev/api/v1/info
-        statusCheckAcceptCodes: '401'
+        statusCheckAcceptCodes: "401"
         id: 3_1739_netdata
       - title: Uptime Kuma
         description: External Uptime Monitoring
@@ -249,7 +256,7 @@ sections:
         icon: hl-traefik
         url: https://traefik.home.amsh.dev
         statusCheck: true
-        statusCheckAcceptCodes: '401'
+        statusCheckAcceptCodes: "401"
         id: 0_1858_traefikmiddle
       - title: WG easy
         description: Wireguard service

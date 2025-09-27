@@ -37,11 +37,11 @@ http:
     internal-whitelist:
       ipAllowList:
         sourceRange:
-          - "10.0.0.0/8"      # Private networks
-          - "192.168.0.0/16"  # Private networks
-          - "172.16.0.0/12"   # Docker networks
-          - "127.0.0.1/32"    # Localhost
-          - "10.8.0.0/24"     # WireGuard VPN subnet
+          - "10.0.0.0/8" # Private networks
+          - "192.168.0.0/16" # Private networks
+          - "172.16.0.0/12" # Docker networks
+          - "127.0.0.1/32" # Localhost
+          - "10.8.0.0/24" # WireGuard VPN subnet
 
     # Chain multiple middlewares
     default-chain:
@@ -73,11 +73,11 @@ http:
       entryPoints:
         - websecure
       priority: 100
-    
+
     # Services which have their own authentication
     # and may need to bypass OAuth2
     home-public-sso:
-      rule: "Host(`blinko.home.amsh.dev`) || Host(`memos.home.amsh.dev`) || Host(`minio.home.amsh.dev`) || Host(`jellyfin.home.amsh.dev`) || Host(`karakeep.home.amsh.dev`) || Host(`linkwarden.home.amsh.dev`) || Host(`pdf.home.amsh.dev`) || Host(`books.home.amsh.dev`) || Host(`audiobooks.home.amsh.dev`) || Host(`upsnap.home.amsh.dev`) || Host(`rss.home.amsh.dev`)"
+      rule: "Host(`blinko.home.amsh.dev`) || Host(`memos.home.amsh.dev`) || Host(`minio.home.amsh.dev`) || Host(`jellyfin.home.amsh.dev`) || Host(`karakeep.home.amsh.dev`) || Host(`linkwarden.home.amsh.dev`) || Host(`pdf.home.amsh.dev`) || Host(`books.home.amsh.dev`) || Host(`audiobooks.home.amsh.dev`) || Host(`upsnap.home.amsh.dev`) || Host(`rss.home.amsh.dev`) || Host(`immich.home.amsh.dev`)"
       service: "home-tunnel"
       entryPoints:
         - websecure

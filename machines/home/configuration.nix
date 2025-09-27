@@ -45,6 +45,7 @@
     "audiobookshelf"
     "upsnap"
     "freshrss"
+    "immich"
   ];
 
   # Create btrfs subvolumes for docker services
@@ -74,6 +75,7 @@
     "v /mnt/storage/syncthing 0755 1000 1000 - -"
     "v /mnt/storage/upsnap 0755 1000 1000 - -"
     "v /mnt/storage/freshrss 0755 dock docker - -"
+    "v /mnt/storage/immich 0755 dock docker - -"
   ];
 
   # Sops secrets configuration using SSH host keys
@@ -212,6 +214,11 @@
         group = "docker";
         mode = "0400";
       };
+      immich-db-password = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
       # Backup secrets
       restic-repository-password = {
         owner = "root";
@@ -298,7 +305,7 @@
       # Database configuration
       DB_PASSWORD=${config.sops.placeholder.solidtime-db-password}
 
-      # Application configuration  
+      # Application configuration
       APP_KEY="${config.sops.placeholder.solidtime-app-key}"
       PASSPORT_PRIVATE_KEY="${
         builtins.replaceStrings [ "\\\\" ] [ "\\" ] config.sops.placeholder.solidtime-passport-private-key

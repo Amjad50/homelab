@@ -291,6 +291,14 @@ generate_secrets() {
     else
         log_info "Using provided freshrss crypto secret"
     fi
+
+    # Generate Immich database password if not provided
+    if [ -z "${IMMICH_DB_PASSWORD:-}" ]; then
+        IMMICH_DB_PASSWORD=$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)
+        log_info "Generated new Immich database password"
+    else
+        log_info "Using provided Immich database password"
+    fi
 }
 
 # Create secrets YAML content for middle server
@@ -338,6 +346,7 @@ linkwarden-kanidm-client-secret: "$LINKWARDEN_KANIDM_CLIENT_SECRET"
 stirlingpdf-kanidm-client-secret: "$STIRLINGPDF_KANIDM_CLIENT_SECRET"
 freshrss-kanidm-client-secret: "$FRESHRSS_KANIDM_CLIENT_SECRET"
 freshrss-crypto-secret: "$FRESHRSS_CRYPTO_SECRET"
+immich-db-password: "$IMMICH_DB_PASSWORD"
 restic-repository-password: "$RESTIC_REPOSITORY_PASSWORD"
 backup-aws-access-key-id: "$BACKUP_AWS_ACCESS_KEY_ID"
 backup-aws-secret-access-key: "$BACKUP_AWS_SECRET_ACCESS_KEY"
@@ -428,6 +437,7 @@ main() {
     echo "  - StirlingPDF Kanidm Client Secret: ${STIRLINGPDF_KANIDM_CLIENT_SECRET:0:16}..."
     echo "  - FreshRSS Kanidm Client Secret: ${FRESHRSS_KANIDM_CLIENT_SECRET:0:16}..."
     echo "  - FreshRSS Crypto Secret: ${FRESHRSS_CRYPTO_SECRET:0:16}..."
+    echo "  - Immich DB Password: ${IMMICH_DB_PASSWORD:0:16}..."
     echo "  - Restic Repository Password: ${RESTIC_REPOSITORY_PASSWORD:0:16}..."
     echo "  - Backup AWS Access Key ID: ${BACKUP_AWS_ACCESS_KEY_ID:0:16}..."
     echo "  - Backup AWS Secret Access Key: ${BACKUP_AWS_SECRET_ACCESS_KEY:0:16}..."
@@ -490,6 +500,7 @@ main() {
         echo "STIRLINGPDF_KANIDM_CLIENT_SECRET=$STIRLINGPDF_KANIDM_CLIENT_SECRET"
         echo "FRESHRSS_KANIDM_CLIENT_SECRET=$FRESHRSS_KANIDM_CLIENT_SECRET"
         echo "FRESHRSS_CRYPTO_SECRET=$FRESHRSS_CRYPTO_SECRET"
+        echo "IMMICH_DB_PASSWORD=$IMMICH_DB_PASSWORD"
         echo "RESTIC_REPOSITORY_PASSWORD=$RESTIC_REPOSITORY_PASSWORD"
         echo "BACKUP_AWS_ACCESS_KEY_ID=$BACKUP_AWS_ACCESS_KEY_ID"
         echo "BACKUP_AWS_SECRET_ACCESS_KEY=$BACKUP_AWS_SECRET_ACCESS_KEY"
