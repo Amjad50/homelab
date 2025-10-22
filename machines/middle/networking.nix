@@ -3,18 +3,27 @@
   networking.hostName = "middle";
 
   networking.interfaces.ens18 = {
-    useDHCP = true;
-
+    useDHCP = false;
     ipv6.addresses = [
       {
         address = "2407:3640:2270:5255::1";
         prefixLength = 64;
       }
     ];
+    ipv4.addresses = [
+      {
+        address = "62.146.239.217";
+        prefixLength = 21;
+      }
+    ];
   };
   networking.defaultGateway6 = {
     address = "fe80::1"; # common link-local gw in VPS hosts
     interface = "ens18"; # must specify interface for fe80::
+  };
+  networking.defaultGateway = {
+    address = "62.146.232.1";
+    interface = "ens18";
   };
 
   # IPv6 NAT support for WireGuard
