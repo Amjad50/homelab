@@ -7,7 +7,6 @@ The system manages Docker Compose services in `/opt/docker-services/`. Each dire
 ## Active Services
 
 ### Home Machine
-- **webapp** - Static website (nginx)
 - **traefik** - Reverse proxy (internal port 8080)
 - **fireflyiii** - Personal finance manager
 - **blinko** - Note-taking app with PostgreSQL
@@ -18,7 +17,6 @@ The system manages Docker Compose services in `/opt/docker-services/`. Each dire
 ### Middle Machine
 - **traefik** - Reverse proxy with HTTPS (ports 80/443)
 - **wg-easy** - WireGuard VPN management
-- **ys-sitecore** - Django web application
 - **kanidm** - Identity management server
 - **oauth2-proxy** - Authentication proxy
 

@@ -142,13 +142,6 @@ sections:
         statusCheck: true
         statusCheckUrl: http://filebrowser:80
         id: 5_1704_filebrowser
-      - title: Karakeep
-        description: Personal Knowledge Management
-        icon: hl-karakeep
-        url: https://karakeep.home.amsh.dev
-        statusCheck: true
-        statusCheckUrl: http://karakeep:3000/api/health
-        id: 6_1704_karakeep
       - title: Linkwarden
         description: Personal Knowledge Management, bookmarks and archives
         icon: hl-linkwarden

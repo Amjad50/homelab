@@ -3,7 +3,6 @@
 
   # Docker services for applications
   services.compose-services.services = [
-    "webapp"
     "traefik"
     "fireflyiii"
     "blinko"
@@ -15,7 +14,6 @@
     "media-stack"
     "dashy"
     "filebrowser"
-    "karakeep"
     "linkwarden"
     "stirling-pdf"
     "syncthing"
@@ -48,7 +46,6 @@
     "v /mnt/storage/filebrowser 0755 1000 1000 - -"
     "d /mnt/storage/filebrowser/config 0755 1000 1000 - -"
     "d /mnt/storage/filebrowser/database 0755 1000 1000 - -"
-    "v /mnt/storage/karakeep 0755 dock docker - -"
     "v /mnt/storage/linkwarden 0755 dock docker - -"
     "v /mnt/storage/syncthing 0755 1000 1000 - -"
     "v /mnt/storage/upsnap 0755 1000 1000 - -"
@@ -138,21 +135,6 @@
         mode = "0400";
       };
       solidtime-super-admins = {
-        owner = "dock";
-        group = "docker";
-        mode = "0400";
-      };
-      karakeep-nextauth-secret = {
-        owner = "dock";
-        group = "docker";
-        mode = "0400";
-      };
-      karakeep-meili-master-key = {
-        owner = "dock";
-        group = "docker";
-        mode = "0400";
-      };
-      karakeep-oauth-client-secret = {
         owner = "dock";
         group = "docker";
         mode = "0400";
@@ -292,20 +274,6 @@
         builtins.replaceStrings [ "\\\\" ] [ "\\" ] config.sops.placeholder.solidtime-passport-public-key
       }"
       SUPER_ADMINS="${config.sops.placeholder.solidtime-super-admins}"
-    '';
-  };
-
-  # karakeep environment template
-  sops.templates."karakeep.env" = {
-    owner = "dock";
-    group = "docker";
-    mode = "0400";
-    path = "/var/lib/dock/karakeep.env";
-    content = ''
-      NEXTAUTH_SECRET=${config.sops.placeholder.karakeep-nextauth-secret}
-      MEILI_MASTER_KEY=${config.sops.placeholder.karakeep-meili-master-key}
-      OAUTH_CLIENT_SECRET=${config.sops.placeholder.karakeep-oauth-client-secret}
-      OPENAI_API_KEY=${config.sops.placeholder.openai-api-key}
     '';
   };
 

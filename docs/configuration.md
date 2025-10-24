@@ -28,13 +28,13 @@ Each machine has its own directory in `machines/MACHINE_NAME/`:
 - `secrets.yaml` - Machine-specific encrypted secrets
 
 ### Home Machine (`machines/home/`)
-Services: webapp, traefik, fireflyiii, blinko, memos, minio, n8n
+Services: traefik, fireflyiii, blinko, memos, minio, n8n
 - Internal traefik (port 8080 only)
 - Rathole client configuration
 - Application-specific users (www-data for web services)
 
 ### Middle Machine (`machines/middle/`)
-Services: traefik, wg-easy, ys-sitecore, kanidm, oauth2-proxy
+Services: traefik, wg-easy, kanidm, oauth2-proxy
 - Public traefik (ports 80/443)
 - Rathole server configuration
 - OAuth2 proxy integration

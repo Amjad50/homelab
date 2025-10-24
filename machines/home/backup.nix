@@ -18,7 +18,6 @@
         "/mnt/storage/solidtime/app"
         "/mnt/storage/wud"
         "/mnt/storage/filebrowser"
-        "/mnt/storage/karakeep"
         "/mnt/storage/upsnap"
         "/mnt/storage/syncthing/config"
         "/mnt/storage/syncthing/data" # data being synced

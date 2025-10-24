@@ -9,7 +9,6 @@
   services.compose-services.services = [
     "traefik" # Reverse proxy with HTTPS
     "wg-easy" # WireGuard VPN management
-    "ys-sitecore" # Django web application
     "kanidm"
     "oauth2-proxy" # OAuth2 proxy for authentication
     "adguard" # DNS server
