@@ -202,6 +202,12 @@ else
     log_info "Skipping configuration deployment (--only-docker flag)"
 fi
 
+# Pull docker images if --update is provided and docker is not skipped
+if [ "$UPDATE_FLAKE" = true ] && [ "$NO_DOCKER" = false ]; then
+    log_step "Pulling docker images before system update..."
+    compose-manage pull --up || log_warn "Failed to pull docker images"
+fi
+
 # Run nixos-rebuild (unless only-docker)
 if [ "$ONLY_DOCKER" = false ]; then
     if [ "$UPDATE_FLAKE" = true ]; then

@@ -129,6 +129,57 @@ case "$1" in
       docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
     fi
     ;;
+  pull)
+    shift  # Remove 'pull' from arguments
+    # Check if first argument is '--up' flag
+    do_up=false
+    if [ "$1" = "--up" ]; then
+      do_up=true
+      shift
+    fi
+
+    if [ $# -eq 0 ]; then
+      # Pull images for all services
+      echo -e "${BLUE}Pulling images for all services...${NC}"
+      for service in "$COMPOSE_ROOT"/*; do
+        if [ -d "$service" ] && [ -f "$service/docker-compose.yml" ]; then
+          name=$(basename "$service")
+          echo -e "${YELLOW}=== $name ===${NC}"
+          cd "$service" && sudo -u dock docker compose pull
+
+          # If 'up' flag is set and service is active, bring containers up
+          if [ "$do_up" = true ]; then
+            status=$(systemctl is-active "docker-compose-$name" 2>/dev/null)
+            if [ "$status" = "active" ]; then
+              echo -e "${BLUE}Bringing up containers for${NC} $name..."
+              sudo -u dock docker compose up -d --remove-orphans
+            fi
+          fi
+        fi
+      done
+      echo -e "${GREEN}All images updated${NC}"
+    else
+      # Pull images for specified services
+      for service in "$@"; do
+        if [ -d "$COMPOSE_ROOT/$service" ]; then
+          echo -e "${BLUE}Pulling images for${NC} $service..."
+          cd "$COMPOSE_ROOT/$service" && sudo -u dock docker compose pull
+
+          # If 'up' flag is set and service is active, bring containers up
+          if [ "$do_up" = true ]; then
+            status=$(systemctl is-active "docker-compose-$service" 2>/dev/null)
+            if [ "$status" = "active" ]; then
+              echo -e "${BLUE}Bringing up containers for${NC} $service..."
+              sudo -u dock docker compose up -d --remove-orphans
+            fi
+          fi
+        else
+          echo -e "${RED}Error:${NC} Service '$service' not found in $COMPOSE_ROOT"
+          exit 1
+        fi
+      done
+    fi
+    ;;
   *)
     echo -e "${BLUE}Docker Compose Services Manager${NC}"
     echo ""
@@ -138,7 +189,7 @@ case "$1" in
     echo "  list                     - List all available services"
     echo "  status [service]         - Show status of service(s)"
     echo "  start <service>          - Start a service"
-    echo "  stop <service>           - Stop a service" 
+    echo "  stop <service>           - Stop a service"
     echo "  restart <service>        - Restart a service"
     echo "  enable <service>         - Enable auto-start on boot"
     echo "  disable <service>        - Disable auto-start on boot"
@@ -147,11 +198,15 @@ case "$1" in
     echo "  logs <service> [container] - Follow logs"
     echo "  exec <service> <container> <cmd> - Execute command in container"
     echo "  ps [service]             - Show running containers"
+    echo "  pull [--up] [services...]  - Pull images (add --up to bring up if running)"
     echo ""
     echo -e "${YELLOW}Examples:${NC}"
     echo "  compose-manage list"
     echo "  compose-manage start nginx"
     echo "  compose-manage logs postgres"
     echo "  compose-manage exec nginx web bash"
+    echo "  compose-manage pull                     # Pull all services"
+    echo "  compose-manage pull nginx postgres      # Pull specific services"
+    echo "  compose-manage pull --up nginx postgres # Pull and bring up if running"
     ;;
 esac
