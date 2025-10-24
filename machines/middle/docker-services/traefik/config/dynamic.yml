@@ -98,6 +98,7 @@ http:
               - "traefik-internal.home.amsh.dev"
               - "firefly.home.amsh.dev"
               - "debug-internal.home.amsh.dev"
+              - "dockge-internal.home.amsh.dev"
               - "minio-console.home.amsh.dev"
               - "n8n.home.amsh.dev"
               - "solidtime.home.amsh.dev"

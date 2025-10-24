@@ -24,6 +24,8 @@
         "/mnt/storage/media/configs"
         "/mnt/storage/media/books"
         "/mnt/storage/immich/upload/library"
+        "/mnt/storage/dockge/data/db-config.json"
+        "/mnt/storage/dockge/data/dockge.db"
       ];
       initialize = true;
       timerConfig = {

@@ -13,6 +13,7 @@
     "solidtime"
     "media-stack"
     "dashy"
+    "dockge"
     "filebrowser"
     "linkwarden"
     "stirling-pdf"
@@ -27,6 +28,7 @@
   # Create btrfs subvolumes for docker services
   systemd.tmpfiles.rules = [
     "v /mnt/storage/blinko 0755 dock docker - -"
+    "v /mnt/storage/dockge 0755 dock docker - -"
     "v /mnt/storage/firefly 0755 dock docker - -"
     "v /mnt/storage/memos 0755 dock docker - -"
     "v /mnt/storage/minio 0755 dock docker - -"
@@ -352,6 +354,10 @@
       [client.services.traefik]
       type = "tcp"
       local_addr = "127.0.0.1:8080"
+
+      [client.services.dockge]
+      type = "tcp"
+      local_addr = "127.0.0.1:5001"
     '';
   };
 

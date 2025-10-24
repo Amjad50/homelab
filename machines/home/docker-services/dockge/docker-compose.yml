@@ -1,0 +1,32 @@
+networks:
+  traefik:
+    external: true
+
+services:
+  # Dockege - Docker Engine GUI
+  dockge:
+    container_name: dockge
+    image: louislam/dockge:1
+    restart: unless-stopped
+    networks:
+      - traefik
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /mnt/storage/dockge/data:/app/data
+      - /opt/docker-services/:/opt/docker-services/:ro
+      - /var/lib/dock:/var/lib/dock:ro
+      - /run/secrets/rendered:/run/secrets/rendered:ro
+    environment:
+      - DOCKGE_STACKS_DIR=/opt/docker-services/
+    ports:
+      - "127.0.0.1:5001:5001"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dockge.rule=Host(`dockge-internal.home.amsh.dev`)"
+      - "traefik.http.services.dockge.loadbalancer.server.port=5001"
+      - "traefik.http.routers.dockge.middlewares=default-chain@file"
+    healthcheck:
+      test: ["CMD", "curl", "--silent", "--fail", "http://localhost:5001"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

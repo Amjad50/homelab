@@ -9,6 +9,7 @@
   services.compose-services.services = [
     "traefik" # Reverse proxy with HTTPS
     "wg-easy" # WireGuard VPN management
+    "dockge"
     "kanidm"
     "oauth2-proxy" # OAuth2 proxy for authentication
     "adguard" # DNS server
@@ -17,6 +18,7 @@
 
   systemd.tmpfiles.rules = [
     "v /storage 0755 dock docker - -"
+    "v /storage/dockge 0755 dock docker - -"
     "v /storage/adguard 0755 dock docker - -"
   ];
 
@@ -132,6 +134,10 @@
       [server.services.traefik]
       type = "tcp"
       bind_addr = "0.0.0.0:8080"
+
+      [server.services.dockge]
+      type = "tcp"
+      bind_addr = "0.0.0.0:5001"
     '';
   };
 
@@ -160,6 +166,8 @@
       paths = [
         "/tmp/middle-backups-daily" # Service backups
         "/storage/adguard/conf" # AdGuard configuration (direct path backup)
+        "/storage/dockge/data/db-config.json"
+        "/storage/dockge/data/dockge.db"
       ];
       initialize = true;
       timerConfig = {
