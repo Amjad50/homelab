@@ -3,6 +3,7 @@ networks:
     external: true
   immich:
     internal: true
+  internet: {}
 
 volumes:
   model-cache:
@@ -61,6 +62,7 @@ services:
       disable: false
     networks:
       - immich
+      - internet
 
   redis:
     container_name: immich_redis
