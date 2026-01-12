@@ -63,93 +63,84 @@ dotenv() {
     fi
 }
 
-# Check required environment variables
-check_env_vars() {
+# Define secrets (VAR_NAME|TYPE|TARGET|YAML_KEY|GENERATOR)
+# TYPE: req (required), gen (generatable)
+# TARGET: middle, home, both, none
+# GENERATOR: bash command to generate value
+SECRETS=(
+    # Connection tokens
+    "RATHOLE_TOKEN|gen|both|rathole-token|openssl rand -hex 32"
+    "RATHOLE_NOISE_PRIVATE|req|middle|rathole-noise-private|"
+    "RATHOLE_NOISE_PUBLIC|req|home|rathole-noise-public|"
+
+    # OAuth and Auth
+    "OAUTH2_PROXY_CLIENT_SECRET|req|middle|oauth2-proxy-client-secret|"
+    "OAUTH2_PROXY_COOKIE_SECRET|gen|middle|oauth2-proxy-cookie-secret|openssl rand -base64 32 | tr -d '=+/' | cut -c1-32"
+
+    # Services - Home
+    "FIREFLY_APP_KEY|gen|home|firefly-app-key|echo \"base64:\$(openssl rand -base64 32)\""
+    "FIREFLY_DB_PASSWORD|gen|home|firefly-db-password|openssl rand -base64 32"
+    "BLINKO_NEXTAUTH_SECRET|gen|home|blinko-nextauth-secret|openssl rand -base64 32"
+    "BLINKO_DB_PASSWORD|gen|home|blinko-db-password|openssl rand -base64 32 | tr -d '/+=' | cut -c1-32"
+    "MEMOS_TELEGRAM_BOT_TOKEN|req|home|memos-telegram-bot-token|"
+    "MINIO_ROOT_PASSWORD|req|home|minio-root-password|"
+    "N8N_DB_PASSWORD|gen|home|n8n-db-password|openssl rand -base64 32 | tr -d '/+=' | cut -c1-32"
+    "N8N_ENCRYPTION_KEY|gen|home|n8n-encryption-key|openssl rand -base64 32 | tr -d '/+=' | cut -c1-32"
+    "WUD_OPENID_CLIENT_SECRET|req|home|wud-openid-client-secret|"
+    "SOLIDTIME_APP_KEY|req|home|solidtime-app-key|"
+    "SOLIDTIME_PASSPORT_PRIVATE_KEY|req|home|solidtime-passport-private-key|"
+    "SOLIDTIME_PASSPORT_PUBLIC_KEY|req|home|solidtime-passport-public-key|"
+    "SOLIDTIME_SUPER_ADMINS|req|home|solidtime-super-admins|"
+    "SOLIDTIME_DB_PASSWORD|gen|home|solidtime-db-password|openssl rand -base64 32 | tr -d '/+=' | cut -c1-32"
+    "OPENAI_API_KEY|req|home|openai-api-key|"
+    "LINKWARDEN_NEXTAUTH_SECRET|gen|home|linkwarden-nextauth-secret|openssl rand -base64 32 | tr -d '/+=' | cut -c1-32"
+    "LINKWARDEN_DB_PASSWORD|gen|home|linkwarden-db-password|openssl rand -base64 32 | tr -d '/+=' | cut -c1-32"
+    "LINKWARDEN_KANIDM_CLIENT_SECRET|req|home|linkwarden-kanidm-client-secret|"
+    "STIRLINGPDF_KANIDM_CLIENT_SECRET|req|home|stirlingpdf-kanidm-client-secret|"
+    "FRESHRSS_KANIDM_CLIENT_SECRET|req|home|freshrss-kanidm-client-secret|"
+    "FRESHRSS_CRYPTO_SECRET|gen|home|freshrss-crypto-secret|openssl rand -base64 32 | tr -d '\n/+=' | cut -c1-32"
+    "IMMICH_DB_PASSWORD|gen|home|immich-db-password|openssl rand -base64 32 | tr -d '/+=' | cut -c1-32"
+
+    # Infrastructure and Backup
+    "RESTIC_REPOSITORY_PASSWORD|gen|both|restic-repository-password|openssl rand -base64 64 | tr -d '\n/+=' | cut -c1-64"
+    "BACKUP_AWS_ACCESS_KEY_ID|req|both|backup-aws-access-key-id|"
+    "BACKUP_AWS_SECRET_ACCESS_KEY|req|both|backup-aws-secret-access-key|"
+    "CLOUDFLARE_EMAIL|req|middle|cloudflare-email|"
+    "CLOUDFLARE_DNS_API_TOKEN|req|middle|cloudflare-dns-api-token|"
+    "CLOUDFLARE_ZONE_API_TOKEN|req|middle|cloudflare-zone-api-token|"
+)
+
+# Process secrets: check required and generate missing
+process_secrets() {
     local missing_vars=()
+    GENERATED_COUNT=0
 
-    if [ -z "${MIDDLE_AGE_KEY:-}" ]; then
-        missing_vars+=("MIDDLE_AGE_KEY")
-    fi
+    # First check age keys
+    if [ -z "${MIDDLE_AGE_KEY:-}" ]; then missing_vars+=("MIDDLE_AGE_KEY"); fi
+    if [ -z "${HOME_AGE_KEY:-}" ]; then missing_vars+=("HOME_AGE_KEY"); fi
 
-    if [ -z "${HOME_AGE_KEY:-}" ]; then
-        missing_vars+=("HOME_AGE_KEY")
-    fi
+    for secret in "${SECRETS[@]}"; do
+        IFS='|' read -r var_name type target yaml_key generator <<<"$secret"
 
-    if [ -z "${RATHOLE_NOISE_PRIVATE:-}" ]; then
-        missing_vars+=("RATHOLE_NOISE_PRIVATE")
-    fi
+        local current_val="${!var_name:-}"
 
-    if [ -z "${RATHOLE_NOISE_PUBLIC:-}" ]; then
-        missing_vars+=("RATHOLE_NOISE_PUBLIC")
-    fi
-
-    if [ -z "${OAUTH2_PROXY_CLIENT_SECRET:-}" ]; then
-        missing_vars+=("OAUTH2_PROXY_CLIENT_SECRET")
-    fi
-
-    if [ -z "${MEMOS_TELEGRAM_BOT_TOKEN:-}" ]; then
-        missing_vars+=("MEMOS_TELEGRAM_BOT_TOKEN")
-    fi
-
-    if [ -z "${MINIO_ROOT_PASSWORD:-}" ]; then
-        missing_vars+=("MINIO_ROOT_PASSWORD")
-    fi
-
-    if [ -z "${WUD_OPENID_CLIENT_SECRET:-}" ]; then
-        missing_vars+=("WUD_OPENID_CLIENT_SECRET")
-    fi
-
-    if [ -z "${SOLIDTIME_APP_KEY:-}" ]; then
-        missing_vars+=("SOLIDTIME_APP_KEY")
-    fi
-
-    if [ -z "${SOLIDTIME_PASSPORT_PRIVATE_KEY:-}" ]; then
-        missing_vars+=("SOLIDTIME_PASSPORT_PRIVATE_KEY")
-    fi
-
-    if [ -z "${SOLIDTIME_PASSPORT_PUBLIC_KEY:-}" ]; then
-        missing_vars+=("SOLIDTIME_PASSPORT_PUBLIC_KEY")
-    fi
-
-    if [ -z "${SOLIDTIME_SUPER_ADMINS:-}" ]; then
-        missing_vars+=("SOLIDTIME_SUPER_ADMINS")
-    fi
-
-    if [ -z "${OPENAI_API_KEY:-}" ]; then
-        missing_vars+=("OPENAI_API_KEY")
-    fi
-
-    if [ -z "${LINKWARDEN_KANIDM_CLIENT_SECRET:-}" ]; then
-        missing_vars+=("LINKWARDEN_KANIDM_CLIENT_SECRET")
-    fi
-
-    if [ -z "${STIRLINGPDF_KANIDM_CLIENT_SECRET:-}" ]; then
-        missing_vars+=("STIRLINGPDF_KANIDM_CLIENT_SECRET")
-    fi
-
-    if [ -z "${FRESHRSS_KANIDM_CLIENT_SECRET:-}" ]; then
-        missing_vars+=("FRESHRSS_KANIDM_CLIENT_SECRET")
-    fi
-
-    if [ -z "${BACKUP_AWS_ACCESS_KEY_ID:-}" ]; then
-        missing_vars+=("BACKUP_AWS_ACCESS_KEY_ID")
-    fi
-
-    if [ -z "${BACKUP_AWS_SECRET_ACCESS_KEY:-}" ]; then
-        missing_vars+=("BACKUP_AWS_SECRET_ACCESS_KEY")
-    fi
-
-    if [ -z "${CLOUDFLARE_EMAIL:-}" ]; then
-        missing_vars+=("CLOUDFLARE_EMAIL")
-    fi
-
-    if [ -z "${CLOUDFLARE_DNS_API_TOKEN:-}" ]; then
-        missing_vars+=("CLOUDFLARE_DNS_API_TOKEN")
-    fi
-
-    if [ -z "${CLOUDFLARE_ZONE_API_TOKEN:-}" ]; then
-        missing_vars+=("CLOUDFLARE_ZONE_API_TOKEN")
-    fi
+        if [ "$type" = "req" ]; then
+            if [ -z "$current_val" ]; then
+                missing_vars+=("$var_name")
+            fi
+        elif [ "$type" = "gen" ]; then
+            if [ -z "$current_val" ]; then
+                log_info "Generating new $var_name"
+                # Execute generator and capture value
+                local new_val
+                new_val=$(eval "$generator")
+                export "$var_name"="$new_val"
+                GENERATED_COUNT=$((GENERATED_COUNT + 1))
+            else
+                log_info "Using provided $var_name"
+            fi
+        fi
+    done
 
     if [ ${#missing_vars[@]} -ne 0 ]; then
         log_error "Missing required environment variables: ${missing_vars[*]}"
@@ -158,176 +149,28 @@ check_env_vars() {
         echo "  export MIDDLE_AGE_KEY=\"age1abc123...\""
         echo "  export HOME_AGE_KEY=\"age1def456...\""
         echo "  $0"
-        echo
-        log_info "To get age keys from SSH host keys:"
-        echo "  ssh user@middle-server \"cat /etc/ssh/ssh_host_ed25519_key.pub\" | ssh-to-age"
-        echo "  ssh user@home-server \"cat /etc/ssh/ssh_host_ed25519_key.pub\" | ssh-to-age"
         exit 1
     fi
 }
 
-# Generate secrets if not provided
-generate_secrets() {
-    # Generate rathole token if not provided
-    if [ -z "${RATHOLE_TOKEN:-}" ]; then
-        RATHOLE_TOKEN=$(openssl rand -hex 32)
-        log_info "Generated new rathole token"
-    else
-        log_info "Using provided rathole token"
-    fi
+# Create secrets YAML content for a machine
+generate_machine_yaml() {
+    local machine="$1"
 
-    # Generate OAuth2 Proxy cookie secret if not provided (client secret must be from Kanidm)
-    if [ -z "${OAUTH2_PROXY_COOKIE_SECRET:-}" ]; then
-        OAUTH2_PROXY_COOKIE_SECRET=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-32)
-        log_info "Generated new OAuth2 Proxy cookie secret"
-    else
-        log_info "Using provided OAuth2 Proxy cookie secret"
-    fi
+    for secret in "${SECRETS[@]}"; do
+        IFS='|' read -r var_name type target yaml_key generator <<<"$secret"
 
-    # Generate FireflyIII app key if not provided
-    if [ -z "${FIREFLY_APP_KEY:-}" ]; then
-        FIREFLY_APP_KEY="base64:$(openssl rand -base64 32)"
-        log_info "Generated new FireflyIII app key"
-    else
-        log_info "Using provided FireflyIII app key"
-    fi
+        if [[ "$target" == "$machine" || "$target" == "both" ]]; then
+            local val="${!var_name}"
 
-    # Generate FireflyIII database password if not provided
-    if [ -z "${FIREFLY_DB_PASSWORD:-}" ]; then
-        FIREFLY_DB_PASSWORD=$(openssl rand -base64 32)
-        log_info "Generated new FireflyIII database password"
-    else
-        log_info "Using provided FireflyIII database password"
-    fi
+            # Special escaping for multiline/complex values (like Solidtime keys)
+            if [[ "$var_name" == *"PASSPORT"* ]]; then
+                val=$(printf '%q' "$val")
+            fi
 
-    # Generate Blinko NextAuth secret if not provided
-    if [ -z "${BLINKO_NEXTAUTH_SECRET:-}" ]; then
-        BLINKO_NEXTAUTH_SECRET=$(openssl rand -base64 32)
-        log_info "Generated new Blinko NextAuth secret"
-    else
-        log_info "Using provided Blinko NextAuth secret"
-    fi
-
-    # Generate Blinko database password if not provided
-    if [ -z "${BLINKO_DB_PASSWORD:-}" ]; then
-        BLINKO_DB_PASSWORD=$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)
-        log_info "Generated new Blinko database password"
-    else
-        log_info "Using provided Blinko database password"
-    fi
-
-    # Generate n8n database password if not provided
-    if [ -z "${N8N_DB_PASSWORD:-}" ]; then
-        N8N_DB_PASSWORD=$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)
-        log_info "Generated new n8n database password"
-    else
-        log_info "Using provided n8n database password"
-    fi
-
-    # Generate n8n encryption key if not provided
-    if [ -z "${N8N_ENCRYPTION_KEY:-}" ]; then
-        N8N_ENCRYPTION_KEY=$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)
-        log_info "Generated new n8n encryption key"
-    else
-        log_info "Using provided n8n encryption key"
-    fi
-
-    # Generate solidtime database password if not provided
-    if [ -z "${SOLIDTIME_DB_PASSWORD:-}" ]; then
-        SOLIDTIME_DB_PASSWORD=$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)
-        log_info "Generated new solidtime database password"
-    else
-        log_info "Using provided solidtime database password"
-    fi
-
-    # Generate Linkwarden NextAuth secret if not provided
-    if [ -z "${LINKWARDEN_NEXTAUTH_SECRET:-}" ]; then
-        LINKWARDEN_NEXTAUTH_SECRET=$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)
-        log_info "Generated new Linkwarden NextAuth secret"
-    else
-        log_info "Using provided Linkwarden NextAuth secret"
-    fi
-
-    # Generate Linkwarden database password if not provided
-    if [ -z "${LINKWARDEN_DB_PASSWORD:-}" ]; then
-        LINKWARDEN_DB_PASSWORD=$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)
-        log_info "Generated new Linkwarden database password"
-    else
-        log_info "Using provided Linkwarden database password"
-    fi
-
-    # Generate restic repository password if not provided
-    if [ -z "${RESTIC_REPOSITORY_PASSWORD:-}" ]; then
-        RESTIC_REPOSITORY_PASSWORD=$(openssl rand -base64 64 | tr -d '\n/+=' | cut -c1-64)
-        log_info "Generated new restic repository password"
-    else
-        log_info "Using provided restic repository password"
-    fi
-
-    # Generate freshrss client crypto secret if not provided
-    if [ -z "${FRESHRSS_CRYPTO_SECRET:-}" ]; then
-        FRESHRSS_CRYPTO_SECRET=$(openssl rand -base64 32 | tr -d '\n/+=' | cut -c1-32)
-        log_info "Generated new freshrss crypto secret"
-    else
-        log_info "Using provided freshrss crypto secret"
-    fi
-
-    # Generate Immich database password if not provided
-    if [ -z "${IMMICH_DB_PASSWORD:-}" ]; then
-        IMMICH_DB_PASSWORD=$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)
-        log_info "Generated new Immich database password"
-    else
-        log_info "Using provided Immich database password"
-    fi
-}
-
-# Create secrets YAML content for middle server
-create_middle_secrets_yaml() {
-    cat <<EOF
-rathole-token: "$RATHOLE_TOKEN"
-rathole-noise-private: "$RATHOLE_NOISE_PRIVATE"
-oauth2-proxy-client-secret: "$OAUTH2_PROXY_CLIENT_SECRET"
-oauth2-proxy-cookie-secret: "$OAUTH2_PROXY_COOKIE_SECRET"
-restic-repository-password: "$RESTIC_REPOSITORY_PASSWORD"
-backup-aws-access-key-id: "$BACKUP_AWS_ACCESS_KEY_ID"
-backup-aws-secret-access-key: "$BACKUP_AWS_SECRET_ACCESS_KEY"
-cloudflare-email: "$CLOUDFLARE_EMAIL"
-cloudflare-dns-api-token: "$CLOUDFLARE_DNS_API_TOKEN"
-cloudflare-zone-api-token: "$CLOUDFLARE_ZONE_API_TOKEN"
-EOF
-}
-
-# Create secrets YAML content for home server
-create_home_secrets_yaml() {
-    cat <<EOF
-rathole-token: "$RATHOLE_TOKEN"
-rathole-noise-public: "$RATHOLE_NOISE_PUBLIC"
-firefly-app-key: "$FIREFLY_APP_KEY"
-firefly-db-password: "$FIREFLY_DB_PASSWORD"
-blinko-nextauth-secret: "$BLINKO_NEXTAUTH_SECRET"
-blinko-db-password: "$BLINKO_DB_PASSWORD"
-memos-telegram-bot-token: "$MEMOS_TELEGRAM_BOT_TOKEN"
-minio-root-password: "$MINIO_ROOT_PASSWORD"
-n8n-db-password: "$N8N_DB_PASSWORD"
-n8n-encryption-key: "$N8N_ENCRYPTION_KEY"
-wud-openid-client-secret: "$WUD_OPENID_CLIENT_SECRET"
-solidtime-app-key: "$SOLIDTIME_APP_KEY"
-solidtime-passport-private-key: "$(printf '%q' "$SOLIDTIME_PASSPORT_PRIVATE_KEY")"
-solidtime-passport-public-key: "$(printf '%q' "$SOLIDTIME_PASSPORT_PUBLIC_KEY")"
-solidtime-super-admins: "$SOLIDTIME_SUPER_ADMINS"
-solidtime-db-password: "$SOLIDTIME_DB_PASSWORD"
-openai-api-key: "$OPENAI_API_KEY"
-linkwarden-nextauth-secret: "$LINKWARDEN_NEXTAUTH_SECRET"
-linkwarden-db-password: "$LINKWARDEN_DB_PASSWORD"
-linkwarden-kanidm-client-secret: "$LINKWARDEN_KANIDM_CLIENT_SECRET"
-stirlingpdf-kanidm-client-secret: "$STIRLINGPDF_KANIDM_CLIENT_SECRET"
-freshrss-kanidm-client-secret: "$FRESHRSS_KANIDM_CLIENT_SECRET"
-freshrss-crypto-secret: "$FRESHRSS_CRYPTO_SECRET"
-immich-db-password: "$IMMICH_DB_PASSWORD"
-restic-repository-password: "$RESTIC_REPOSITORY_PASSWORD"
-backup-aws-access-key-id: "$BACKUP_AWS_ACCESS_KEY_ID"
-backup-aws-secret-access-key: "$BACKUP_AWS_SECRET_ACCESS_KEY"
-EOF
+            echo "$yaml_key: \"$val\""
+        fi
+    done
 }
 
 # Encrypt secrets for a machine
@@ -341,15 +184,8 @@ encrypt_secrets() {
     # Create machine directory if it doesn't exist
     mkdir -p "machines/$machine"
 
-    # Create and encrypt secrets based on machine type
-    if [ "$machine" = "middle" ]; then
-        create_middle_secrets_yaml | sops --encrypt --input-type yaml --age "$age_key" /dev/stdin >"$output_file"
-    elif [ "$machine" = "home" ]; then
-        create_home_secrets_yaml | sops --encrypt --input-type yaml --age "$age_key" /dev/stdin >"$output_file"
-    else
-        log_error "Unknown machine type: $machine"
-        return 1
-    fi
+    # Create and encrypt secrets
+    generate_machine_yaml "$machine" | sops --encrypt --input-type yaml --age "$age_key" /dev/stdin >"$output_file"
 
     if [ $? -eq 0 ]; then
         log_info "✓ Created $output_file"
@@ -366,6 +202,11 @@ verify_secrets() {
 
     log_info "Verifying $machine secrets..."
 
+    if [ ! -f "$secrets_file" ]; then
+        log_error "Secrets file not found: $secrets_file"
+        return 1
+    fi
+
     if sops --decrypt "$secrets_file" >/dev/null 2>&1; then
         log_info "✓ $machine secrets are valid"
     else
@@ -380,44 +221,15 @@ main() {
 
     check_dependencies
     dotenv .env
-    check_env_vars
-    generate_secrets
+    process_secrets
 
     echo
-    log_info "Generating secrets with:"
-    echo "  - Rathole Token: ${RATHOLE_TOKEN:0:16}..."
-    echo "  - Noise Private: ${RATHOLE_NOISE_PRIVATE:0:16}..."
-    echo "  - Noise Public: ${RATHOLE_NOISE_PUBLIC:0:16}..."
-    echo "  - OAuth2 Proxy Client Secret: ${OAUTH2_PROXY_CLIENT_SECRET:0:16}..."
-    echo "  - OAuth2 Proxy Cookie Secret: ${OAUTH2_PROXY_COOKIE_SECRET:0:16}..."
-    echo "  - FireflyIII App Key: ${FIREFLY_APP_KEY:0:16}..."
-    echo "  - FireflyIII DB Password: ${FIREFLY_DB_PASSWORD:0:16}..."
-    echo "  - Blinko NextAuth Secret: ${BLINKO_NEXTAUTH_SECRET:0:16}..."
-    echo "  - Blinko DB Password: ${BLINKO_DB_PASSWORD:0:16}..."
-    echo "  - Memos Telegram Bot Token: ${MEMOS_TELEGRAM_BOT_TOKEN:0:16}..."
-    echo "  - MinIO Root Password: ${MINIO_ROOT_PASSWORD:0:16}..."
-    echo "  - n8n DB Password: ${N8N_DB_PASSWORD:0:16}..."
-    echo "  - n8n Encryption Key: ${N8N_ENCRYPTION_KEY:0:16}..."
-    echo "  - WUD OpenID Client Secret: ${WUD_OPENID_CLIENT_SECRET:0:16}..."
-    echo "  - Solidtime App Key: ${SOLIDTIME_APP_KEY:0:16}..."
-    echo "  - Solidtime Passport Private Key: ${SOLIDTIME_PASSPORT_PRIVATE_KEY:0:16}..."
-    echo "  - Solidtime Passport Public Key: ${SOLIDTIME_PASSPORT_PUBLIC_KEY:0:16}..."
-    echo "  - Solidtime Super Admins: ${SOLIDTIME_SUPER_ADMINS:0:16}..."
-    echo "  - Solidtime DB Password: ${SOLIDTIME_DB_PASSWORD:0:16}..."
-    echo "  - OpenAI API Key: ${OPENAI_API_KEY:0:16}..."
-    echo "  - Linkwarden NextAuth Secret: ${LINKWARDEN_NEXTAUTH_SECRET:0:16}..."
-    echo "  - Linkwarden DB Password: ${LINKWARDEN_DB_PASSWORD:0:16}..."
-    echo "  - Linkwarden Kanidm Client Secret: ${LINKWARDEN_KANIDM_CLIENT_SECRET:0:16}..."
-    echo "  - StirlingPDF Kanidm Client Secret: ${STIRLINGPDF_KANIDM_CLIENT_SECRET:0:16}..."
-    echo "  - FreshRSS Kanidm Client Secret: ${FRESHRSS_KANIDM_CLIENT_SECRET:0:16}..."
-    echo "  - FreshRSS Crypto Secret: ${FRESHRSS_CRYPTO_SECRET:0:16}..."
-    echo "  - Immich DB Password: ${IMMICH_DB_PASSWORD:0:16}..."
-    echo "  - Restic Repository Password: ${RESTIC_REPOSITORY_PASSWORD:0:16}..."
-    echo "  - Backup AWS Access Key ID: ${BACKUP_AWS_ACCESS_KEY_ID:0:16}..."
-    echo "  - Backup AWS Secret Access Key: ${BACKUP_AWS_SECRET_ACCESS_KEY:0:16}..."
-    echo "  - Cloudflare Email: ${CLOUDFLARE_EMAIL:0:16}..."
-    echo "  - Cloudflare DNS API Token: ${CLOUDFLARE_DNS_API_TOKEN:0:16}..."
-    echo "  - Cloudflare Zone API Token: ${CLOUDFLARE_ZONE_API_TOKEN:0:16}..."
+    log_info "Status of secrets:"
+    for secret in "${SECRETS[@]}"; do
+        IFS='|' read -r var_name type target yaml_key generator <<<"$secret"
+        local val="${!var_name}"
+        echo "  - $var_name: ${val:0:16}..."
+    done
     echo
 
     # Encrypt for both machines
@@ -430,55 +242,26 @@ main() {
     verify_secrets "home"
 
     echo
-    log_info "✅ Secrets generation complete!"
+    if [ "$GENERATED_COUNT" -gt 0 ]; then
+        log_info "✅ Secrets generation complete! ($GENERATED_COUNT new secrets generated)"
+    else
+        log_info "✅ Secrets generation complete! (No new secrets generated)"
+    fi
     echo
     log_info "Generated files:"
     echo "  - machines/middle/secrets.yaml"
     echo "  - machines/home/secrets.yaml"
-    echo
-    log_info "Next steps:"
-    echo "  1. Deploy configurations: ./deploy.sh middle user@middle-server"
-    echo "  2. Deploy configurations: ./deploy.sh home user@home-server"
-    echo "  3. Verify services: systemctl status rathole-server"
 
     # Show generated values for reference (optional)
     if [ "${SHOW_SECRETS:-false}" = "true" ]; then
         echo
         log_warn "Generated secrets (SHOW_SECRETS=true):"
-        echo "RATHOLE_TOKEN=$RATHOLE_TOKEN"
-        echo "RATHOLE_NOISE_PRIVATE=$RATHOLE_NOISE_PRIVATE"
-        echo "RATHOLE_NOISE_PUBLIC=$RATHOLE_NOISE_PUBLIC"
-        echo "OAUTH2_PROXY_CLIENT_SECRET=$OAUTH2_PROXY_CLIENT_SECRET"
-        echo "OAUTH2_PROXY_COOKIE_SECRET=$OAUTH2_PROXY_COOKIE_SECRET"
-        echo "FIREFLY_APP_KEY=$FIREFLY_APP_KEY"
-        echo "FIREFLY_DB_PASSWORD=$FIREFLY_DB_PASSWORD"
-        echo "BLINKO_NEXTAUTH_SECRET=$BLINKO_NEXTAUTH_SECRET"
-        echo "BLINKO_DB_PASSWORD=$BLINKO_DB_PASSWORD"
-        echo "MEMOS_TELEGRAM_BOT_TOKEN=$MEMOS_TELEGRAM_BOT_TOKEN"
-        echo "MINIO_ROOT_PASSWORD=$MINIO_ROOT_PASSWORD"
-        echo "N8N_DB_PASSWORD=$N8N_DB_PASSWORD"
-        echo "N8N_ENCRYPTION_KEY=$N8N_ENCRYPTION_KEY"
-        echo "WUD_OPENID_CLIENT_SECRET=$WUD_OPENID_CLIENT_SECRET"
-        echo "SOLIDTIME_APP_KEY=$SOLIDTIME_APP_KEY"
-        echo "SOLIDTIME_PASSPORT_PRIVATE_KEY=$SOLIDTIME_PASSPORT_PRIVATE_KEY"
-        echo "SOLIDTIME_PASSPORT_PUBLIC_KEY=$SOLIDTIME_PASSPORT_PUBLIC_KEY"
-        echo "SOLIDTIME_SUPER_ADMINS=$SOLIDTIME_SUPER_ADMINS"
-        echo "SOLIDTIME_DB_PASSWORD=$SOLIDTIME_DB_PASSWORD"
-        echo "OPENAI_API_KEY=$OPENAI_API_KEY"
-        echo "LINKWARDEN_NEXTAUTH_SECRET=$LINKWARDEN_NEXTAUTH_SECRET"
-        echo "LINKWARDEN_DB_PASSWORD=$LINKWARDEN_DB_PASSWORD"
-        echo "LINKWARDEN_KANIDM_CLIENT_SECRET=$LINKWARDEN_KANIDM_CLIENT_SECRET"
-        echo "STIRLINGPDF_KANIDM_CLIENT_SECRET=$STIRLINGPDF_KANIDM_CLIENT_SECRET"
-        echo "FRESHRSS_KANIDM_CLIENT_SECRET=$FRESHRSS_KANIDM_CLIENT_SECRET"
-        echo "FRESHRSS_CRYPTO_SECRET=$FRESHRSS_CRYPTO_SECRET"
-        echo "IMMICH_DB_PASSWORD=$IMMICH_DB_PASSWORD"
-        echo "RESTIC_REPOSITORY_PASSWORD=$RESTIC_REPOSITORY_PASSWORD"
-        echo "BACKUP_AWS_ACCESS_KEY_ID=$BACKUP_AWS_ACCESS_KEY_ID"
-        echo "BACKUP_AWS_SECRET_ACCESS_KEY=$BACKUP_AWS_SECRET_ACCESS_KEY"
-        echo "CLOUDFLARE_EMAIL=$CLOUDFLARE_EMAIL"
-        echo "CLOUDFLARE_DNS_API_TOKEN=$CLOUDFLARE_DNS_API_TOKEN"
-        echo "CLOUDFLARE_ZONE_API_TOKEN=$CLOUDFLARE_ZONE_API_TOKEN"
+        for secret in "${SECRETS[@]}"; do
+            IFS='|' read -r var_name type target yaml_key generator <<<"$secret"
+            echo "$var_name=${!var_name}"
+        done
     else
+        echo
         log_info "Set SHOW_SECRETS=true to display generated secrets"
     fi
 }
