@@ -43,7 +43,7 @@ services:
       - LANGS=en_US
       # configs
       - SECURITY_ENABLELOGIN=true
-      - SECURITY_LOGINMETHOD=oauth2
+      - SECURITY_LOGINMETHOD=all
       - SECURITY_OAUTH2_ENABLED=true
       - SECURITY_OAUTH2_ISSUER=https://idm.home.amsh.dev/oauth2/openid/stirlingpdf
       - SECURITY_OAUTH2_CLIENTID=stirlingpdf
