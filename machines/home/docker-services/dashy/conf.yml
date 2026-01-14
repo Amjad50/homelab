@@ -154,7 +154,7 @@ sections:
         icon: hl-stirling-pdf
         url: https://pdf.home.amsh.dev
         statusCheck: true
-        statusCheckUrl: http://stirling-pdf:8080
+        statusCheckUrl: http://stirling-pdf:8080/api/v1/info/status
         id: 8_1704_stirlingpdf
       - title: FreshRSS
         description: RSS Feed Reader
@@ -236,6 +236,13 @@ sections:
         statusCheck: true
         statusCheckUrl: https://monitor.amsh.dev/api/status-page/heartbeat/amsh
         id: 4_1739_uptimekuma
+      - title: Dockge
+        description: Docker Container Management
+        icon: hl-dockge
+        url: https://dockge.home.amsh.dev
+        statusCheck: true
+        statusCheckUrl: http://dockge:5001
+        id: 5_1739_dockge
   - name: Networks and access
     displayData:
       sortBy: default
