@@ -39,8 +39,3 @@ services:
       - "traefik.http.services.kanidm.loadbalancer.server.port=8443"
       - "traefik.http.services.kanidm.loadbalancer.server.scheme=https"
       - "traefik.http.services.kanidm.loadbalancer.serverstransport=kanidm-transport@file"
-    healthcheck:
-      test: ["CMD", "kanidmd", "healthcheck"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
