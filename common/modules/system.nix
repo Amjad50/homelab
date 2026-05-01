@@ -64,7 +64,7 @@
       "flakes"
     ];
     substituters = [
-      "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store/" # Tsinghua University mirror
+      "https://mirrors.ustc.edu.cn/nix-channels/store"
       "https://nix-community.cachix.org" # Nix community cache
       "https://cache.garnix.io" # Garnix cache
       "https://cache.nixos.org" # Official cache (default)
