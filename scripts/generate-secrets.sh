@@ -47,16 +47,36 @@ check_dependencies() {
 }
 
 # Load environment variables from .env file
+# Supports unquoted, single-quoted, double-quoted, and multiline double-quoted values
 dotenv() {
     if [ -f "$1" ]; then
-        while IFS='=' read -r key value || [ -n "$key" ]; do
-            # Skip comments and empty lines
-            if [[ -z "$key" || "$key" =~ ^# ]]; then
-                continue
-            fi
-            # Export variable
-            export "$key"="$value"
-        done <"$1"
+        # Extract key names defined in the file (skip comments and blank lines)
+        local keys
+        mapfile -t keys < <(grep -E '^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=' "$1" | sed 's/=.*//')
+
+        # Build a script file for the child bash to avoid quoting issues in print_cmd
+        local tmp_script
+        tmp_script=$(mktemp)
+        {
+            echo "set -a; source \"$1\"; set +a"
+            for key in "${keys[@]}"; do
+                # Use a here-doc per key to avoid outer-shell expansion of \n
+                cat <<EOF
+v="\${${key}}"
+v="\${v//$'\n'/NEWLINE_PLACEHOLDER}"
+printf '%s=%s\n' "${key}" "\$v"
+EOF
+            done
+        } > "$tmp_script"
+
+        while IFS= read -r line; do
+            local k="${line%%=*}"
+            local v="${line#*=}"
+            export "$k"="${v//NEWLINE_PLACEHOLDER/$'\n'}"
+        done < <(bash "$tmp_script" 2>/dev/null)
+
+        rm -f "$tmp_script"
+
         log_info "Loaded environment variables from $1"
     else
         log_warn "No .env file found, using existing environment variables"
@@ -177,12 +197,16 @@ generate_machine_yaml() {
         if [[ "$target" == "$machine" || "$target" == "both" ]]; then
             local val="${!var_name}"
 
-            # Special escaping for multiline/complex values (like Solidtime keys)
-            if [[ "$var_name" == *"PASSPORT"* ]]; then
-                val=$(printf '%q' "$val")
+            if [[ "$val" == *$'\n'* ]]; then
+                # Multiline: use YAML literal block scalar (strip trailing newline first)
+                val="${val%$'\n'}"
+                echo "$yaml_key: |"
+                while IFS= read -r l; do
+                    echo "  $l"
+                done <<< "$val"
+            else
+                echo "$yaml_key: \"$val\""
             fi
-
-            echo "$yaml_key: \"$val\""
         fi
     done
 }
