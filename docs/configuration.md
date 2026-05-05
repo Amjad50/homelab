@@ -28,7 +28,7 @@ Each machine has its own directory in `machines/MACHINE_NAME/`:
 - `secrets.yaml` - Machine-specific encrypted secrets
 
 ### Home Machine (`machines/home/`)
-Services: traefik, fireflyiii, blinko, memos, minio, n8n, vault
+Services: traefik, fireflyiii, blinko, memos, minio, n8n
 - Internal traefik (port 8080 only)
 - Rathole client configuration
 - Application-specific users (www-data for web services)

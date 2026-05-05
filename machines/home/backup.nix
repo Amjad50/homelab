@@ -10,7 +10,6 @@
       environmentFile = config.sops.templates."restic-s3.env".path;
       paths = [
         "/tmp/db-dumps-daily" # Database dumps
-        "/tmp/extra-backups-daily" # Extra service-specific backups
         "/mnt/storage/blinko/data" # blinko extra data
         "/mnt/storage/firefly/upload" # firefly uploads
         "/mnt/storage/memos"
@@ -47,11 +46,10 @@
       backupPrepareCommand = ''
         export PATH="${pkgs.docker}/bin:${pkgs.hostname}/bin:${pkgs.coreutils}/bin:${pkgs.gnugrep}/bin:${pkgs.gnused}/bin:${pkgs.gawk}/bin:$PATH"
         ${pkgs.writeShellScriptBin "backup-prepare" (builtins.readFile ./scripts/backup-prepare.sh)}/bin/backup-prepare /tmp/db-dumps-daily fireflyiii-db blinko-db n8n-db solidtime-db linkwarden-db immich_postgres infisical-db
-        ${pkgs.writeShellScriptBin "extra-backup-prepare" (builtins.readFile ./scripts/extra-backup-prepare.sh)}/bin/extra-backup-prepare /tmp/extra-backups-daily
       '';
       backupCleanupCommand = ''
         export PATH="${pkgs.coreutils}/bin:$PATH"
-        ${pkgs.writeShellScriptBin "backup-cleanup" (builtins.readFile ./scripts/backup-cleanup.sh)}/bin/backup-cleanup /tmp/db-dumps-daily /tmp/extra-backups-daily
+        ${pkgs.writeShellScriptBin "backup-cleanup" (builtins.readFile ./scripts/backup-cleanup.sh)}/bin/backup-cleanup /tmp/db-dumps-daily
       '';
     };
   };
@@ -59,7 +57,6 @@
   # Install backup scripts as system packages
   environment.systemPackages = with pkgs; [
     (writeShellScriptBin "backup-prepare" (builtins.readFile ./scripts/backup-prepare.sh))
-    (writeShellScriptBin "extra-backup-prepare" (builtins.readFile ./scripts/extra-backup-prepare.sh))
     (writeShellScriptBin "backup-cleanup" (builtins.readFile ./scripts/backup-cleanup.sh))
   ];
 }

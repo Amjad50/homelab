@@ -119,8 +119,6 @@ SECRETS=(
     "STIRLINGPDF_KANIDM_CLIENT_SECRET|req|home|stirlingpdf-kanidm-client-secret|"
     "FRESHRSS_KANIDM_CLIENT_SECRET|req|home|freshrss-kanidm-client-secret|"
     "FRESHRSS_CRYPTO_SECRET|gen|home|freshrss-crypto-secret|openssl rand -base64 32 | tr -d '\n/+=' | cut -c1-32"
-    "VAULT_KANIDM_CLIENT_SECRET|req|home|vault-kanidm-client-secret|"
-    "VAULT_BOOTSTRAP_TOKEN|req|home|vault-bootstrap-token|"
     "IMMICH_DB_PASSWORD|gen|home|immich-db-password|openssl rand -base64 32 | tr -d '/+=' | cut -c1-32"
     "INFISICAL_DB_PASSWORD|gen|home|infisical-db-password|openssl rand -base64 32 | tr -d '/+=' | cut -c1-32"
     "INFISICAL_AUTH_SECRET|gen|home|infisical-auth-secret|openssl rand -base64 32"

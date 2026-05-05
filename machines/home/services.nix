@@ -23,7 +23,6 @@
     "upsnap"
     "freshrss"
     "immich"
-    "vault"
     "infisical"
   ];
 
@@ -55,7 +54,6 @@
     "v /mnt/storage/upsnap 0755 1000 1000 - -"
     "v /mnt/storage/freshrss 0755 dock docker - -"
     "v /mnt/storage/immich 0755 dock docker - -"
-    "v /mnt/storage/vault 0750 100 100 - -"
     "v /mnt/storage/infisical 0755 dock docker - -"
     "d /mnt/storage/infisical/database 0755 dock docker - -"
   ];
@@ -177,16 +175,6 @@
         mode = "0400";
       };
       freshrss-crypto-secret = {
-        owner = "dock";
-        group = "docker";
-        mode = "0400";
-      };
-      vault-kanidm-client-secret = {
-        owner = "dock";
-        group = "docker";
-        mode = "0400";
-      };
-      vault-bootstrap-token = {
         owner = "dock";
         group = "docker";
         mode = "0400";
@@ -384,19 +372,6 @@
       # FreshRSS OIDC configuration
       OIDC_CLIENT_SECRET=${config.sops.placeholder.freshrss-kanidm-client-secret}
       OIDC_CLIENT_CRYPTO_KEY=${config.sops.placeholder.freshrss-crypto-secret}
-    '';
-  };
-
-  # Vault bootstrap environment template
-  sops.templates."vault-bootstrap.env" = {
-    owner = "dock";
-    group = "docker";
-    mode = "0400";
-    path = "/var/lib/dock/vault-bootstrap.env";
-    restartUnits = [ "docker-compose-vault.service" ];
-    content = ''
-      VAULT_TOKEN=${config.sops.placeholder.vault-bootstrap-token}
-      VAULT_OIDC_CLIENT_SECRET=${config.sops.placeholder.vault-kanidm-client-secret}
     '';
   };
 

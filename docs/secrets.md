@@ -20,8 +20,6 @@ Uses sops-nix with SSH host key encryption for secure secrets management. Secret
 - **minio-root-password**: MinIO admin password
 - **n8n-db-password**: n8n PostgreSQL password
 - **n8n-encryption-key**: n8n workflow encryption key
-- **vault-kanidm-client-secret**: Vault OIDC client secret from Kanidm
-- **vault-bootstrap-token**: Vault bootstrap token used by the automatic OIDC bootstrap sidecar
 - **infisical-db-password**: Infisical PostgreSQL password (generated)
 - **infisical-auth-secret**: Infisical JWT signing key (generated, `openssl rand -base64 32`)
 - **infisical-encryption-key**: Infisical platform encryption key (generated, `openssl rand -hex 16`)
@@ -47,8 +45,6 @@ MIDDLE_AGE_KEY=age1abc123...  # Get from: ssh user@middle "cat /etc/ssh/ssh_host
 HOME_AGE_KEY=age1def456...    # Get from: ssh user@home "cat /etc/ssh/ssh_host_ed25519_key.pub" | ssh-to-age
 RATHOLE_NOISE_PRIVATE=your-private-key
 RATHOLE_NOISE_PUBLIC=your-public-key
-VAULT_KANIDM_CLIENT_SECRET=your-kanidm-basic-secret
-VAULT_BOOTSTRAP_TOKEN=your-vault-bootstrap-token
 EOF
 
 # Generate and encrypt secrets
