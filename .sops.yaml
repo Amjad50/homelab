@@ -1,0 +1,22 @@
+keys:
+  - &amjad age1j05a4xt2vruugk4az5lgpkrcett5z9ekre96ss32a2t98076j9ys85kzf3
+  - &home age1c0uun7danrxwjxuwf39h6ls4s73m5w02kmluulpdr44mekgpcucq3wsg76
+  - &middle age1yme4sdrx3957ss4x29v7vaexsa34fkmfgxgpalsm6nrk4uzl9cmq48spcj
+  - &home_vm age1cq5ajcwekaqe0mtxmv3cr84q9xxv4savvpdkhc53n8567h8kee4q5dx4a2
+
+creation_rules:
+  - path_regex: machines/home/secrets\.yaml$
+    key_groups:
+      - age:
+        - *amjad
+        - *home
+  - path_regex: machines/middle/secrets\.yaml$
+    key_groups:
+      - age:
+        - *amjad
+        - *middle
+  - path_regex: machines/home-vm/secrets\.yaml$
+    key_groups:
+      - age:
+        - *amjad
+        - *home_vm
