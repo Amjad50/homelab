@@ -16,17 +16,19 @@ The homelab uses NixOS's built-in `services.restic.backups` with:
 ### Data Types
 1. **Database dumps**: PostgreSQL databases exported to SQL files  
 2. **SQLite backups**: SQLite databases with proper backup commands
-3. **Application data**: File-based storage (configs, uploads, user data)
-4. **Media files**: Books and configuration files (movies/TV excluded)
-5. **Service configurations**: Direct filesystem paths for simple configs
+3. **Vault snapshots**: Integrated storage Raft snapshots exported with Vault's native snapshot command
+4. **Application data**: File-based storage (configs, uploads, user data)
+5. **Media files**: Books and configuration files (movies/TV excluded)
+6. **Service configurations**: Direct filesystem paths for simple configs
 
 ### Backup Flow
 ```
 Daily (scheduled per server):
-1. backup-prepare → Create database dumps and service-specific backups
-2. restic backup → Upload dumps + application data + direct paths to B2
-3. backup-cleanup → Remove temporary dump files
-4. restic prune → Clean up old backup data (retention policy)
+1. backup-prepare → Create database dumps
+2. extra-backup-prepare → Create Vault Raft snapshot and other future non-DB artifacts
+3. restic backup → Upload dumps + extra backup artifacts + application data + direct paths to B2
+4. backup-cleanup → Remove temporary dump files
+5. restic prune → Clean up old backup data (retention policy)
 ```
 
 ### Server Types
@@ -53,6 +55,7 @@ Example configuration:
 ```nix
 paths = [
   "/tmp/db-dumps-daily"        # Database dumps
+  "/tmp/extra-backups-daily"   # Extra service-specific artifacts (Vault snapshots, etc.)
   "/mnt/storage/*/data"        # Application data directories
   "/mnt/storage/*/config"      # Configuration directories
   "/mnt/storage/media/books"   # Media libraries
@@ -87,9 +90,19 @@ paths = [
 backup-prepare <dump-directory> <container1> <container2> ...
 ```
 
+**extra-backup-prepare.sh** - Extra service-specific backup artifact script:
+- Exports a Vault Raft snapshot using `vault operator raft snapshot save`
+- Creates a manifest for additional backup artifacts
+- Intended for non-database service backups
+
+**Usage:**
+```bash
+extra-backup-prepare <backup-directory>
+```
+
 **backup-cleanup.sh** - Cleanup script for temporary dump directories:
 ```bash
-backup-cleanup <dump-directory>
+backup-cleanup <dump-directory> [extra-directory]
 ```
 
 ### Middle Server Scripts
@@ -159,6 +172,28 @@ restic-<backup-name> restore SNAPSHOT_ID --target /tmp/restore
 
 # Restore specific files only
 restic-<backup-name> restore latest --target /tmp/restore --include "/path/to/files/*"
+```
+
+### Vault Restore
+
+Vault should be restored from the Raft snapshot artifact, not from a raw copy of the live Raft storage directory.
+
+Expected snapshot file in the restored backup tree:
+
+```bash
+/tmp/restore/tmp/extra-backups-daily/vault-raft.snap
+```
+
+Typical restore flow:
+
+```bash
+# Restore backup contents locally
+restic-homelab-daily restore latest --target /tmp/restore
+
+# Copy the snapshot to the Vault host and restore it with Vault tooling
+docker cp /tmp/restore/tmp/extra-backups-daily/vault-raft.snap vault:/tmp/vault-raft.snap
+docker exec -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN='<root-token>' vault \
+  vault operator raft snapshot restore -force /tmp/vault-raft.snap
 ```
 
 ## Secrets Management

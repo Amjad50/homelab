@@ -154,7 +154,7 @@ main() {
     # Create dump directory
     mkdir -p "$DUMP_DIR"
     log_info "Created dump directory: $DUMP_DIR"
-    
+
     local successful=0
     local failed=0
     
