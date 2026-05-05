@@ -22,6 +22,11 @@ Uses sops-nix with SSH host key encryption for secure secrets management. Secret
 - **n8n-encryption-key**: n8n workflow encryption key
 - **vault-kanidm-client-secret**: Vault OIDC client secret from Kanidm
 - **vault-bootstrap-token**: Vault bootstrap token used by the automatic OIDC bootstrap sidecar
+- **infisical-db-password**: Infisical PostgreSQL password (generated)
+- **infisical-auth-secret**: Infisical JWT signing key (generated, `openssl rand -base64 32`)
+- **infisical-encryption-key**: Infisical platform encryption key (generated, `openssl rand -hex 16`)
+- **infisical-github-oauth-client-id**: GitHub OAuth App Client ID (SSO login + GitHub connection)
+- **infisical-github-oauth-client-secret**: GitHub OAuth App Client Secret (SSO login + GitHub connection)
 
 ### Authentication Secrets (Middle Machine)
 - **oauth2-proxy-client-secret**: OAuth2 proxy client secret

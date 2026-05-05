@@ -24,6 +24,7 @@
     "freshrss"
     "immich"
     "vault"
+    "infisical"
   ];
 
   # Create btrfs subvolumes for docker services
@@ -55,6 +56,8 @@
     "v /mnt/storage/freshrss 0755 dock docker - -"
     "v /mnt/storage/immich 0755 dock docker - -"
     "v /mnt/storage/vault 0750 100 100 - -"
+    "v /mnt/storage/infisical 0755 dock docker - -"
+    "d /mnt/storage/infisical/database 0755 dock docker - -"
   ];
 
   # Sops secrets configuration using SSH host keys
@@ -189,6 +192,56 @@
         mode = "0400";
       };
       immich-db-password = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      infisical-db-password = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      infisical-auth-secret = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      infisical-encryption-key = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      infisical-github-oauth-client-id = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      infisical-github-oauth-client-secret = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      infisical-github-app-client-id = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      infisical-github-app-client-secret = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      infisical-github-app-slug = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      infisical-github-app-id = {
+        owner = "dock";
+        group = "docker";
+        mode = "0400";
+      };
+      infisical-github-app-private-key = {
         owner = "dock";
         group = "docker";
         mode = "0400";
@@ -344,6 +397,43 @@
     content = ''
       VAULT_TOKEN=${config.sops.placeholder.vault-bootstrap-token}
       VAULT_OIDC_CLIENT_SECRET=${config.sops.placeholder.vault-kanidm-client-secret}
+    '';
+  };
+
+  # Infisical environment template
+  sops.templates."infisical.env" = {
+    owner = "dock";
+    group = "docker";
+    mode = "0400";
+    path = "/var/lib/dock/infisical.env";
+    content = ''
+      # Database
+      POSTGRES_PASSWORD=${config.sops.placeholder.infisical-db-password}
+      DB_CONNECTION_URI=postgresql://infisical:${config.sops.placeholder.infisical-db-password}@infisical-db:5432/infisical
+
+      # Redis
+      REDIS_URL=redis://infisical-redis:6379
+
+      # Encryption / JWT
+      ENCRYPTION_KEY=${config.sops.placeholder.infisical-encryption-key}
+      AUTH_SECRET=${config.sops.placeholder.infisical-auth-secret}
+
+      # GitHub SSO login (OAuth App — callback: /api/v1/sso/github)
+      CLIENT_ID_GITHUB_LOGIN=${config.sops.placeholder.infisical-github-oauth-client-id}
+      CLIENT_SECRET_GITHUB_LOGIN=${config.sops.placeholder.infisical-github-oauth-client-secret}
+
+      # GitHub OAuth Connection (same OAuth App — callback: /organization/app-connections/github/oauth/callback)
+      INF_APP_CONNECTION_GITHUB_OAUTH_CLIENT_ID=${config.sops.placeholder.infisical-github-oauth-client-id}
+      INF_APP_CONNECTION_GITHUB_OAUTH_CLIENT_SECRET=${config.sops.placeholder.infisical-github-oauth-client-secret}
+
+      # GitHub App Connection (separate GitHub App — callback: /organization/app-connections/github/oauth/callback)
+      INF_APP_CONNECTION_GITHUB_APP_CLIENT_ID=${config.sops.placeholder.infisical-github-app-client-id}
+      INF_APP_CONNECTION_GITHUB_APP_CLIENT_SECRET=${config.sops.placeholder.infisical-github-app-client-secret}
+      INF_APP_CONNECTION_GITHUB_APP_SLUG=${config.sops.placeholder.infisical-github-app-slug}
+      INF_APP_CONNECTION_GITHUB_APP_ID=${config.sops.placeholder.infisical-github-app-id}
+      INF_APP_CONNECTION_GITHUB_APP_PRIVATE_KEY="${
+        builtins.replaceStrings [ "\\\\" ] [ "\\" ] config.sops.placeholder.infisical-github-app-private-key
+      }"
     '';
   };
 

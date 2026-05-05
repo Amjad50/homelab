@@ -102,6 +102,16 @@ SECRETS=(
     "VAULT_KANIDM_CLIENT_SECRET|req|home|vault-kanidm-client-secret|"
     "VAULT_BOOTSTRAP_TOKEN|req|home|vault-bootstrap-token|"
     "IMMICH_DB_PASSWORD|gen|home|immich-db-password|openssl rand -base64 32 | tr -d '/+=' | cut -c1-32"
+    "INFISICAL_DB_PASSWORD|gen|home|infisical-db-password|openssl rand -base64 32 | tr -d '/+=' | cut -c1-32"
+    "INFISICAL_AUTH_SECRET|gen|home|infisical-auth-secret|openssl rand -base64 32"
+    "INFISICAL_ENCRYPTION_KEY|gen|home|infisical-encryption-key|openssl rand -hex 16"
+    "INFISICAL_GITHUB_OAUTH_CLIENT_ID|req|home|infisical-github-oauth-client-id|"
+    "INFISICAL_GITHUB_OAUTH_CLIENT_SECRET|req|home|infisical-github-oauth-client-secret|"
+    "INFISICAL_GITHUB_APP_CLIENT_ID|req|home|infisical-github-app-client-id|"
+    "INFISICAL_GITHUB_APP_CLIENT_SECRET|req|home|infisical-github-app-client-secret|"
+    "INFISICAL_GITHUB_APP_SLUG|req|home|infisical-github-app-slug|"
+    "INFISICAL_GITHUB_APP_ID|req|home|infisical-github-app-id|"
+    "INFISICAL_GITHUB_APP_PRIVATE_KEY|req|home|infisical-github-app-private-key|"
 
     # Infrastructure and Backup
     "RESTIC_REPOSITORY_PASSWORD|gen|both|restic-repository-password|openssl rand -base64 64 | tr -d '\n/+=' | cut -c1-64"
@@ -116,6 +126,7 @@ SECRETS=(
 process_secrets() {
     local missing_vars=()
     GENERATED_COUNT=0
+    GENERATED_VARS=()
 
     # First check age keys
     if [ -z "${MIDDLE_AGE_KEY:-}" ]; then missing_vars+=("MIDDLE_AGE_KEY"); fi
@@ -138,6 +149,7 @@ process_secrets() {
                 new_val=$(eval "$generator")
                 export "$var_name"="$new_val"
                 GENERATED_COUNT=$((GENERATED_COUNT + 1))
+                GENERATED_VARS+=("$var_name")
             else
                 log_info "Using provided $var_name"
             fi
@@ -254,17 +266,25 @@ main() {
     echo "  - machines/middle/secrets.yaml"
     echo "  - machines/home/secrets.yaml"
 
-    # Show generated values for reference (optional)
+    # Print only secrets generated this run in .env format for easy copy-paste
+    if [ "$GENERATED_COUNT" -gt 0 ]; then
+        echo
+        log_info "Newly generated secrets (add to .env to reuse next run):"
+        echo "---"
+        for var_name in "${GENERATED_VARS[@]}"; do
+            echo "$var_name=${!var_name}"
+        done
+        echo "---"
+    fi
+
+    # Show all secrets (optional)
     if [ "${SHOW_SECRETS:-false}" = "true" ]; then
         echo
-        log_warn "Generated secrets (SHOW_SECRETS=true):"
+        log_warn "All secrets (SHOW_SECRETS=true):"
         for secret in "${SECRETS[@]}"; do
             IFS='|' read -r var_name type target yaml_key generator <<<"$secret"
             echo "$var_name=${!var_name}"
         done
-    else
-        echo
-        log_info "Set SHOW_SECRETS=true to display generated secrets"
     fi
 }
 
