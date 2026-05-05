@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 
 # Secrets Generator
-# Generates and encrypts secrets for both middle and home machines
+# Generates and encrypts secrets for middle, home, and home-vm machines
 #
-# Required environment variables:
-# - MIDDLE_AGE_KEY: Age public key for middle server
-# - HOME_AGE_KEY: Age public key for home server
+# Requires .sops.yaml to be present in the repo root — keys are read from there.
+# No AGE_KEY env vars needed; sops auto-selects recipients based on output file path.
 
 set -euo pipefail
 
@@ -146,10 +145,6 @@ process_secrets() {
     GENERATED_COUNT=0
     GENERATED_VARS=()
 
-    # First check age keys
-    if [ -z "${MIDDLE_AGE_KEY:-}" ]; then missing_vars+=("MIDDLE_AGE_KEY"); fi
-    if [ -z "${HOME_AGE_KEY:-}" ]; then missing_vars+=("HOME_AGE_KEY"); fi
-
     for secret in "${SECRETS[@]}"; do
         IFS='|' read -r var_name type target yaml_key generator <<<"$secret"
 
@@ -177,10 +172,7 @@ process_secrets() {
     if [ ${#missing_vars[@]} -ne 0 ]; then
         log_error "Missing required environment variables: ${missing_vars[*]}"
         echo
-        log_info "Example usage:"
-        echo "  export MIDDLE_AGE_KEY=\"age1abc123...\""
-        echo "  export HOME_AGE_KEY=\"age1def456...\""
-        echo "  $0"
+        log_info "Set them in .env or export them before running this script."
         exit 1
     fi
 }
@@ -210,18 +202,25 @@ generate_machine_yaml() {
 }
 
 # Encrypt secrets for a machine
+# Recipients are determined automatically from .sops.yaml based on output_file path.
 encrypt_secrets() {
     local machine="$1"
-    local age_key="$2"
+    # home-vm shares the same secret values as home (it's a replica)
+    local source_machine="${2:-$machine}"
     local output_file="machines/$machine/secrets.yaml"
 
     log_info "Encrypting secrets for $machine..."
 
-    # Create machine directory if it doesn't exist
     mkdir -p "machines/$machine"
 
-    # Create and encrypt secrets
-    generate_machine_yaml "$machine" | sops --encrypt --input-type yaml --age "$age_key" /dev/stdin >"$output_file"
+    # sops matches the INPUT file path against .sops.yaml creation_rules.
+    # Pipe through process substitution isn't supported, so use a named pipe
+    # trick: generate plaintext, pipe to sops encrypt with config path override.
+    generate_machine_yaml "$source_machine" | \
+        sops --encrypt --input-type yaml \
+             --config "$(pwd)/.sops.yaml" \
+             --filename-override "$output_file" \
+             /dev/stdin >"$output_file"
 
     if [ $? -eq 0 ]; then
         log_info "✓ Created $output_file"
@@ -268,14 +267,18 @@ main() {
     done
     echo
 
-    # Encrypt for both machines
-    encrypt_secrets "middle" "$MIDDLE_AGE_KEY"
-    encrypt_secrets "home" "$HOME_AGE_KEY"
+    # Encrypt for all machines
+    # home-vm uses the same secret values as home (it's a replica), but encrypted
+    # with the VM host key (as defined in .sops.yaml creation_rules)
+    encrypt_secrets "middle"
+    encrypt_secrets "home"
+    encrypt_secrets "home-vm" "home"
 
     echo
     log_info "Verifying encrypted files..."
     verify_secrets "middle"
     verify_secrets "home"
+    verify_secrets "home-vm"
 
     echo
     if [ "$GENERATED_COUNT" -gt 0 ]; then
@@ -287,6 +290,7 @@ main() {
     log_info "Generated files:"
     echo "  - machines/middle/secrets.yaml"
     echo "  - machines/home/secrets.yaml"
+    echo "  - machines/home-vm/secrets.yaml"
 
     # Print only secrets generated this run in .env format for easy copy-paste
     if [ "$GENERATED_COUNT" -gt 0 ]; then
