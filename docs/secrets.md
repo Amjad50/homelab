@@ -20,6 +20,8 @@ Uses sops-nix with SSH host key encryption for secure secrets management. Secret
 - **minio-root-password**: MinIO admin password
 - **n8n-db-password**: n8n PostgreSQL password
 - **n8n-encryption-key**: n8n workflow encryption key
+- **vault-kanidm-client-secret**: Vault OIDC client secret from Kanidm
+- **vault-bootstrap-token**: Vault bootstrap token used by the automatic OIDC bootstrap sidecar
 
 ### Authentication Secrets (Middle Machine)
 - **oauth2-proxy-client-secret**: OAuth2 proxy client secret
@@ -40,10 +42,12 @@ MIDDLE_AGE_KEY=age1abc123...  # Get from: ssh user@middle "cat /etc/ssh/ssh_host
 HOME_AGE_KEY=age1def456...    # Get from: ssh user@home "cat /etc/ssh/ssh_host_ed25519_key.pub" | ssh-to-age
 RATHOLE_NOISE_PRIVATE=your-private-key
 RATHOLE_NOISE_PUBLIC=your-public-key
+VAULT_KANIDM_CLIENT_SECRET=your-kanidm-basic-secret
+VAULT_BOOTSTRAP_TOKEN=your-vault-bootstrap-token
 EOF
 
 # Generate and encrypt secrets
-./scripts/generate-rathole-secrets.sh
+./scripts/generate-secrets.sh
 ```
 
 ### 2. Deploy and Verify
@@ -178,14 +182,14 @@ sops machines/middle/secrets.yaml  # Edit token + private key
 sops machines/home/secrets.yaml    # Edit token + public key
 
 # Or regenerate with script (updates .env file)
-./scripts/generate-rathole-secrets.sh
+./scripts/generate-secrets.sh
 ```
 
 ### Rotate Secrets
 ```bash
 # Update .env and regenerate
 vim .env  # Update RATHOLE_NOISE_PRIVATE and RATHOLE_NOISE_PUBLIC
-./scripts/generate-rathole-secrets.sh
+./scripts/generate-secrets.sh
 
 # Deploy updates to both machines
 ./deploy.sh middle user@middle-server
