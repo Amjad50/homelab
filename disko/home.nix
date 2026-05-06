@@ -1,4 +1,4 @@
-{ device ? "/dev/vda", storageDevice ? "/dev/vdb" }:
+{ lib, device ? "/dev/vda", storageDevice ? null }:
 {
   disko.devices = {
     disk = {
@@ -96,6 +96,7 @@
         };
       };
 
+    } // lib.optionalAttrs (storageDevice != null) {
       storage = {
         device = storageDevice;
         type = "disk";

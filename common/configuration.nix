@@ -9,9 +9,6 @@
 
 {
   imports = [
-    # Hardware configuration (auto-generated on target system)
-    ../hardware-configuration.nix
-
     # Modular configurations
     ./modules/system.nix
     ./modules/btrfs.nix

@@ -11,6 +11,7 @@
   imports = [
     (modulesPath + "/profiles/qemu-guest.nix")
     (import ../disko/home.nix {
+      inherit lib;
       device = "/dev/vda";
       storageDevice = "/dev/vdb";
     })

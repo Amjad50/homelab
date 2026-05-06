@@ -37,6 +37,8 @@
         middle = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           modules = [
+            disko.nixosModules.disko
+            ./hardware/middle.nix
             ./common/configuration.nix
             ./machines/middle/configuration.nix
             sops-nix.nixosModules.sops
@@ -54,6 +56,8 @@
         home = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           modules = [
+            disko.nixosModules.disko
+            ./hardware/home.nix
             ./common/configuration.nix
             ./machines/home/configuration.nix
             sops-nix.nixosModules.sops
