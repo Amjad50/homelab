@@ -98,8 +98,10 @@ restore_db infisical   infisical-db   infisical-db     infisical  infisical
 log "All database restores complete."
 
 # ---------------------------------------------------------------------------
-# 6. Start all services
+# 6. Unlock and start all services
 # ---------------------------------------------------------------------------
+log "Unlocking compose services..."
+compose-manage unlock
 log "Starting all services..."
 compose-manage start
 

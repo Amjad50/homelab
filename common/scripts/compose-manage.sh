@@ -247,6 +247,19 @@ case "$1" in
       done
     fi
     ;;
+  unlock)
+    if [[ -f /etc/compose-unlocked ]]; then
+      echo -e "${GREEN}Already unlocked.${NC}"
+    else
+      touch /etc/compose-unlocked
+      systemctl start compose-unlocked.target
+      echo -e "${GREEN}Unlocked. Services will now start.${NC}"
+    fi
+    ;;
+  lock)
+    rm -f /etc/compose-unlocked
+    echo -e "${YELLOW}Locked. Services will not auto-start on next boot.${NC}"
+    ;;
   *)
     echo -e "${BLUE}Docker Compose Services Manager${NC}"
     echo ""
@@ -268,6 +281,8 @@ case "$1" in
     echo "  exec <service> <container> <cmd> - Execute command in container"
     echo "  ps [service]             - Show running containers"
     echo "  pull [--up] [services...]  - Pull images (add --up to bring up if running)"
+    echo "  unlock                   - Create unlock file so services start on boot"
+    echo "  lock                     - Remove unlock file (services won't auto-start)"
     echo ""
     echo -e "${YELLOW}Examples:${NC}"
     echo "  compose-manage list"
