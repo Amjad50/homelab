@@ -14,7 +14,7 @@ entryPoints:
     # Trust proxy from the middle server
     forwardedHeaders:
       trustedIPs:
-        - "172.18.0.0/16"
+        - "172.16.0.0/12"
   ping:
     address: ":8082"
 
@@ -36,7 +36,7 @@ log:
   level: INFO
   filePath: /data/logs/traefik.log
   format: json
-  
+
 accessLog:
   filePath: /data/logs/access.log
   format: json
@@ -48,7 +48,7 @@ accessLog:
     headers:
       defaultMode: drop # drop all headers per default
       names:
-          User-Agent: keep # log user agent strings
+        User-Agent: keep # log user agent strings
 
 # Ping for health checks
 ping:
