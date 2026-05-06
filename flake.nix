@@ -18,22 +18,6 @@
     let lib = nixpkgs.lib; in
     {
       nixosConfigurations = {
-        vm-testing = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          modules = [
-            ./common/configuration.nix
-            ./machines/vm-testing/configuration.nix
-            home-manager.nixosModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.users.amjad = import ./common/home.nix;
-              home-manager.sharedModules = [
-                nixvim.homeManagerModules.nixvim
-              ];
-            }
-          ];
-        };
         middle = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           modules = [
