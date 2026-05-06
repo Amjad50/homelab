@@ -4,10 +4,10 @@
 
 let
   composeRoot = "/opt/docker-services";
-  
+
   # List of services to manage
   services = config.services.compose-services.services;
-  
+
   # Create systemd service for a compose service
   createComposeService = serviceName: {
     name = "docker-compose-${serviceName}";
@@ -21,7 +21,6 @@ let
         WorkingDirectory = "${composeRoot}/${serviceName}";
         ExecStartPre = [
           "${pkgs.coreutils}/bin/test -f docker-compose.yml"
-          "${pkgs.docker-compose}/bin/docker-compose pull --ignore-pull-failures"
         ];
         ExecStart = "${pkgs.docker-compose}/bin/docker-compose up -d --remove-orphans";
         ExecStop = "${pkgs.docker-compose}/bin/docker-compose down --remove-orphans";
@@ -36,7 +35,7 @@ let
       wantedBy = [ "multi-user.target" ];
     };
   };
-  
+
 in
 {
   # Module options
@@ -47,15 +46,15 @@ in
       description = "List of Docker Compose services to manage";
     };
   };
-  
+
   # Create systemd services for all listed compose services
   config.systemd.services = lib.listToAttrs (map createComposeService services);
-  
+
   # Create the docker-services directory if it doesn't exist
   config.systemd.tmpfiles.rules = [
     "d ${composeRoot} 0755 dock docker - -"
   ];
-  
+
   # Allow docker group to manage docker-compose services via polkit
   config.security.polkit.enable = true;
   config.security.polkit.extraConfig = ''
@@ -72,7 +71,7 @@ in
   config.environment.systemPackages = with pkgs; [
     # Main management script from external file
     (writeShellScriptBin "compose-manage" (builtins.readFile ../scripts/compose-manage.sh))
-    
+
     # Quick status script
     (writeShellScriptBin "compose-status" ''
       #!/usr/bin/env bash
