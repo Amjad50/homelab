@@ -1,3 +1,20 @@
 .env
 secrets.yaml
 
+# VM disk images and runtime state
+machines/tests/disks/*.qcow2
+machines/tests/disks/*.iso
+machines/tests/disks/*.fd
+machines/tests/disks/installer-iso-result
+machines/tests/extra-files/
+
+# Private keys — never commit
+machines/tests/keys/*.secret
+machines/tests/keys/vm_ed25519_key
+
+# Nix build results
+result
+result-*
+
+# Stray disk images at repo root
+*.qcow2
