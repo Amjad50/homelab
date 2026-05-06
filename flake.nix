@@ -9,12 +9,13 @@
     nixvim.inputs.nixpkgs.follows = "nixpkgs";
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
-    lanzaboote.url = "github:nix-community/lanzaboote/v0.4.2";
-    lanzaboote.inputs.nixpkgs.follows = "nixpkgs";
+    disko.url = "github:nix-community/disko";
+    disko.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
-    { self, nixpkgs, home-manager, nixvim, sops-nix, lanzaboote }:
+    { self, nixpkgs, home-manager, nixvim, sops-nix, disko }:
+    let lib = nixpkgs.lib; in
     {
       nixosConfigurations = {
         vm-testing = nixpkgs.lib.nixosSystem {
@@ -56,7 +57,6 @@
             ./common/configuration.nix
             ./machines/home/configuration.nix
             sops-nix.nixosModules.sops
-            lanzaboote.nixosModules.lanzaboote
             home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
@@ -68,6 +68,49 @@
             }
           ];
         };
+        home-vm = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          modules = [
+            disko.nixosModules.disko
+            ./hardware/home-vm.nix
+            ./common/configuration.nix
+            ./machines/home-vm/configuration.nix
+            sops-nix.nixosModules.sops
+            home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.users.amjad = import ./common/home.nix;
+              home-manager.sharedModules = [
+                nixvim.homeManagerModules.nixvim
+              ];
+            }
+          ];
+        };
+      };
+      packages.x86_64-linux.installer-iso = (nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+          {
+            users.users.root.initialHashedPassword = lib.mkForce null;
+            users.users.root.initialPassword = "nixos";
+            users.users.root.openssh.authorizedKeys.keys = [
+              "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKMsaYI7HF5cnWT+y+C1CDMlQSETGyJPWWOx617sFhE+ amjad@amjad-fed"
+            ];
+            services.openssh.enable = true;
+            services.openssh.settings.PermitRootLogin = "yes";
+          }
+        ];
+      }).config.system.build.isoImage;
+
+      devShells.x86_64-linux.default = nixpkgs.legacyPackages.x86_64-linux.mkShell {
+        packages = with nixpkgs.legacyPackages.x86_64-linux; [
+          nixos-anywhere
+          OVMF
+          nix-serve
+          # qemu intentionally omitted — use system qemu-system-x86_64 (avoids SDL3 issues)
+        ];
       };
     };
 }
