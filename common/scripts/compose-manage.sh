@@ -59,21 +59,60 @@ case "$1" in
     fi
     ;;
   start)
-    if [ -n "$2" ]; then
+    if [ -n "${2:-}" ]; then
       echo -e "${BLUE}Starting${NC} $2..."
       systemctl start "docker-compose-$2"
     else
-      echo "Usage: compose-manage start <service-name>"
-      exit 1
+      echo -e "${BLUE}Starting all services in parallel...${NC}"
+      pids=()
+      names=()
+      for service in "$COMPOSE_ROOT"/*; do
+        if [ -d "$service" ] && [ -f "$service/docker-compose.yml" ]; then
+          name=$(basename "$service")
+          systemctl start "docker-compose-$name" 2>/dev/null &
+          pids+=($!)
+          names+=("$name")
+        fi
+      done
+      failed=0
+      for i in "${!pids[@]}"; do
+        if wait "${pids[$i]}" 2>/dev/null; then
+          echo -e "  ${GREEN}✓${NC} ${names[$i]}"
+        else
+          echo -e "  ${RED}!${NC} ${names[$i]} (failed)"
+          failed=$((failed + 1))
+        fi
+      done
+      echo -e "${GREEN}Done.${NC} $failed service(s) failed to start."
     fi
     ;;
   stop)
-    if [ -n "$2" ]; then
+    if [ -n "${2:-}" ]; then
       echo -e "${BLUE}Stopping${NC} $2..."
       systemctl stop "docker-compose-$2"
     else
-      echo "Usage: compose-manage stop <service-name>"
-      exit 1
+      # Stop all services in parallel
+      echo -e "${BLUE}Stopping all services in parallel...${NC}"
+      pids=()
+      names=()
+      for service in "$COMPOSE_ROOT"/*; do
+        if [ -d "$service" ] && [ -f "$service/docker-compose.yml" ]; then
+          name=$(basename "$service")
+          systemctl stop "docker-compose-$name" 2>/dev/null &
+          pids+=($!)
+          names+=("$name")
+        fi
+      done
+      failed=0
+      for i in "${!pids[@]}"; do
+        if wait "${pids[$i]}" 2>/dev/null; then
+          echo -e "  ${GREEN}✓${NC} ${names[$i]}"
+        else
+          echo -e "  ${YELLOW}!${NC} ${names[$i]} (already stopped or failed)"
+          failed=$((failed + 1))
+        fi
+      done
+      echo -e "${GREEN}Done.${NC} $failed service(s) were already stopped or failed."
     fi
     ;;
   restart)
@@ -100,6 +139,34 @@ case "$1" in
       systemctl disable "docker-compose-$2"
     else
       echo "Usage: compose-manage disable <service-name>"
+      exit 1
+    fi
+    ;;
+  start-container)
+    if [ -n "${2:-}" ] && [ -n "${3:-}" ]; then
+      if [ -d "$COMPOSE_ROOT/$2" ]; then
+        echo -e "${BLUE}Starting container${NC} $3 in $2..."
+        cd "$COMPOSE_ROOT/$2" && docker-compose up -d "$3"
+      else
+        echo -e "${RED}Error:${NC} Service '$2' not found in $COMPOSE_ROOT"
+        exit 1
+      fi
+    else
+      echo "Usage: compose-manage start-container <service-name> <container-name>"
+      exit 1
+    fi
+    ;;
+  stop-container)
+    if [ -n "${2:-}" ] && [ -n "${3:-}" ]; then
+      if [ -d "$COMPOSE_ROOT/$2" ]; then
+        echo -e "${BLUE}Stopping container${NC} $3 in $2..."
+        cd "$COMPOSE_ROOT/$2" && docker-compose stop "$3"
+      else
+        echo -e "${RED}Error:${NC} Service '$2' not found in $COMPOSE_ROOT"
+        exit 1
+      fi
+    else
+      echo "Usage: compose-manage stop-container <service-name> <container-name>"
       exit 1
     fi
     ;;
@@ -188,13 +255,15 @@ case "$1" in
     echo -e "${YELLOW}Service Management:${NC}"
     echo "  list                     - List all available services"
     echo "  status [service]         - Show status of service(s)"
-    echo "  start <service>          - Start a service"
-    echo "  stop <service>           - Stop a service"
+    echo "  start [service]          - Start a service, or all services in parallel if none specified"
+    echo "  stop [service]           - Stop a service, or all services in parallel if none specified"
     echo "  restart <service>        - Restart a service"
     echo "  enable <service>         - Enable auto-start on boot"
     echo "  disable <service>        - Disable auto-start on boot"
     echo ""
     echo -e "${YELLOW}Container Operations:${NC}"
+    echo "  start-container <service> <container> - Start a specific container within a service"
+    echo "  stop-container <service> <container>  - Stop a specific container within a service"
     echo "  logs <service> [container] - Follow logs"
     echo "  exec <service> <container> <cmd> - Execute command in container"
     echo "  ps [service]             - Show running containers"
