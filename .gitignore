@@ -8,9 +8,9 @@ machines/tests/disks/*.fd
 machines/tests/disks/installer-iso-result
 machines/tests/extra-files/
 
-# Private keys — never commit
-machines/tests/keys/*.secret
+# Keys — never commit
 machines/tests/keys/vm_ed25519_key
+machines/tests/keys/vm_ed25519_key.pub
 
 # Nix build results
 result

@@ -108,7 +108,6 @@
         packages = with nixpkgs.legacyPackages.x86_64-linux; [
           nixos-anywhere
           OVMF
-          nix-serve
           # qemu intentionally omitted — use system qemu-system-x86_64 (avoids SDL3 issues)
         ];
       };
