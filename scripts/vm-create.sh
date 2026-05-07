@@ -30,7 +30,7 @@ done
 
 echo "==> Ensuring keys exist..."
 "$SCRIPT_DIR/create-keys.sh"
-VM_CLIENT_PUBLIC_KEY="$(< "${VM_CLIENT_KEY}.pub")"
+VM_CLIENT_PUBLIC_KEY="$(< "${VM_CLIENT_KEY}.pub")"  # used for installer ISO
 
 echo "==> Creating VM disks..."
 mkdir -p "$VM_DIR"
@@ -49,11 +49,9 @@ VM_INSTALLER_AUTHORIZED_KEY="$VM_CLIENT_PUBLIC_KEY" \
 ISO_SRC=$(find -L "$VM_DIR/installer-iso-result" -name "*.iso" -type f | head -1 || true)
 [[ -n "$ISO_SRC" ]] || { echo "ERROR: ISO not found after build"; exit 1; }
 ISO_PATH="$VM_DIR/installer.iso"
-if [[ ! -f "$ISO_PATH" ]] || [[ "$ISO_SRC" -nt "$ISO_PATH" ]]; then
-  echo "    Copying ISO to $ISO_PATH ..."
-  cp "$ISO_SRC" "$ISO_PATH"
-  chmod 644 "$ISO_PATH"
-fi
+echo "    Copying ISO to $ISO_PATH ..."
+cp "$ISO_SRC" "$ISO_PATH"
+chmod 644 "$ISO_PATH"
 echo "    ISO: $ISO_PATH"
 
 OVMF_CODE=$(find /nix/store -maxdepth 3 -name "OVMF_CODE.fd" 2>/dev/null | head -1 || true)
@@ -116,13 +114,9 @@ echo "    VM SSH is up."
 echo "==> Injecting VM host key via extra-files..."
 EXTRA_FILES="$REPO_ROOT/machines/tests/extra-files"
 mkdir -p "$EXTRA_FILES/etc/ssh"
-mkdir -p "$EXTRA_FILES/etc/ssh/authorized_keys.d"
 cp "$VM_HOST_KEY" "$EXTRA_FILES/etc/ssh/ssh_host_ed25519_key"
 cp "${VM_HOST_KEY}.pub" "$EXTRA_FILES/etc/ssh/ssh_host_ed25519_key.pub"
 chmod 600 "$EXTRA_FILES/etc/ssh/ssh_host_ed25519_key"
-printf '%s\n' "$VM_CLIENT_PUBLIC_KEY" > "$EXTRA_FILES/etc/ssh/authorized_keys.d/root"
-printf '%s\n' "$VM_CLIENT_PUBLIC_KEY" > "$EXTRA_FILES/etc/ssh/authorized_keys.d/amjad"
-chmod 644 "$EXTRA_FILES/etc/ssh/authorized_keys.d/root" "$EXTRA_FILES/etc/ssh/authorized_keys.d/amjad"
 
 echo "==> Running nixos-anywhere to install home-vm config..."
 nixos-anywhere \
@@ -131,17 +125,16 @@ nixos-anywhere \
   --ssh-port "$SSH_PORT" \
   -i "$VM_CLIENT_KEY" \
   --ssh-option "StrictHostKeyChecking=no" \
+  --no-substitute-on-destination \
+  --ssh-store-setting "compress true" \
+  --disk-encryption-keys "/etc/ssh/ssh_host_ed25519_key $VM_HOST_KEY" \
   --extra-files "$EXTRA_FILES"
+
+# Cleanup the known_hosts entry for the installer VM (which had a different host key)
+ssh-keygen -R "[localhost]:2222"
 
 echo ""
 echo "==> nixos-anywhere complete. Restarting VM from installed disk..."
+
+# Restart without iso
 "$SCRIPT_DIR/vm-start.sh"
-echo ""
-echo "    Connect:"
-echo "      ssh -p $SSH_PORT -i $VM_CLIENT_KEY amjad@localhost"
-echo ""
-echo "    Run the full data restore (as root):"
-echo "      ssh -p $SSH_PORT -i $VM_CLIENT_KEY root@localhost 'bash /etc/homelab-scripts/vm-restore.sh'"
-echo ""
-echo "    Kill the VM when done:"
-echo "      ./scripts/vm-kill.sh"

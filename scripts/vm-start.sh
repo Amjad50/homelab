@@ -8,7 +8,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 VM_DIR="$REPO_ROOT/machines/tests/disks"
-VM_CLIENT_KEY="$REPO_ROOT/machines/tests/keys/vm_client_ed25519_key"
 OS_DISK="$VM_DIR/home-vm-os.qcow2"
 STORAGE_DISK="$VM_DIR/home-vm-storage.qcow2"
 OVMF_VARS="$VM_DIR/home-vm-ovmf-vars.fd"
@@ -16,7 +15,6 @@ SSH_PORT=2222
 
 [[ -f "$OS_DISK" ]]   || { echo "ERROR: OS disk not found: $OS_DISK — run vm-create.sh first"; exit 1; }
 [[ -f "$OVMF_VARS" ]] || { echo "ERROR: OVMF_VARS not found: $OVMF_VARS — run vm-create.sh first"; exit 1; }
-[[ -f "$VM_CLIENT_KEY" ]] || { echo "ERROR: VM client key not found: $VM_CLIENT_KEY — run create-keys.sh first"; exit 1; }
 
 OVMF_CODE=$(find /nix/store -maxdepth 3 -name "OVMF_CODE.fd" 2>/dev/null | head -1 || true)
 [[ -n "$OVMF_CODE" ]] || { echo "ERROR: OVMF_CODE.fd not found — run: nix develop"; exit 1; }
@@ -48,15 +46,10 @@ qemu-system-x86_64 \
 
 echo "==> Waiting for SSH (up to 2 minutes)..."
 for i in $(seq 1 24); do
-  if ssh -p "$SSH_PORT" -i "$VM_CLIENT_KEY" \
-       -o StrictHostKeyChecking=no \
-       -o ConnectTimeout=5 \
-       -o PasswordAuthentication=no \
-       -o BatchMode=yes \
-       amjad@localhost true 2>/dev/null; then
+  if nc -z localhost "$SSH_PORT" 2>/dev/null; then
     echo "==> SSH is up!"
     echo ""
-    echo "    Connect: ssh -p $SSH_PORT -i $VM_CLIENT_KEY amjad@localhost"
+    echo "    Connect: ssh -p $SSH_PORT amjad@localhost"
     echo "    Kill:    kill \$(cat /tmp/home-vm.pid)"
     exit 0
   fi
@@ -65,4 +58,4 @@ for i in $(seq 1 24); do
 done
 echo ""
 echo "WARNING: SSH not reachable after 2 minutes — VM may still be booting."
-echo "    Try: ssh -p $SSH_PORT -i $VM_CLIENT_KEY amjad@localhost"
+echo "    Try: ssh -p $SSH_PORT amjad@localhost"
