@@ -15,6 +15,10 @@
   # Temporary root password for VM debugging — NOT for production
   users.users.root.initialPassword = "nixos";
 
+  # VM-only SSH policy for post-install checks and restore.
+  # vm-create.sh injects the VM client key into /etc/ssh/authorized_keys.d.
+  services.openssh.settings.PermitRootLogin = lib.mkForce "yes";
+
   # Override sops to use VM-specific secrets file
   sops = {
     defaultSopsFile = lib.mkForce ./secrets.yaml;
