@@ -113,13 +113,13 @@ sections:
         statusCheck: true
         statusCheckUrl: http://blinko:1111
         id: 1_1704_blinko
-      - title: Memos
-        description: Memo Service
-        icon: hl-memos
-        url: https://memos.home.amsh.dev
-        statusCheck: true
-        statusCheckUrl: http://memos:5230/healthz
-        id: 2_1704_memos
+      # - title: Memos
+      #   description: Memo Service
+      #   icon: hl-memos
+      #   url: https://memos.home.amsh.dev
+      #   statusCheck: true
+      #   statusCheckUrl: http://memos:5230/healthz
+      #   id: 2_1704_memos
       - title: SolidTime
         description: Time Tracking
         icon: hl-solidtime
@@ -156,13 +156,13 @@ sections:
         statusCheck: true
         statusCheckUrl: http://stirling-pdf:8080/api/v1/info/status
         id: 8_1704_stirlingpdf
-      - title: FreshRSS
-        description: RSS Feed Reader
-        icon: hl-freshrss
-        url: https://rss.home.amsh.dev
-        statusCheck: true
-        statusCheckUrl: http://freshrss:80
-        id: 9_1704_freshrss
+      # - title: FreshRSS
+      #   description: RSS Feed Reader
+      #   icon: hl-freshrss
+      #   url: https://rss.home.amsh.dev
+      #   statusCheck: true
+      #   statusCheckUrl: http://freshrss:80
+      #   id: 9_1704_freshrss
       - title: Infisical
         description: Secrets Management
         icon: hl-infisical
@@ -178,13 +178,13 @@ sections:
       collapsed: false
       hideForGuests: false
     items:
-      - title: MinIO
-        description: Object Storage
-        icon: hl-minio
-        url: https://minio.home.amsh.dev
-        statusCheck: true
-        statusCheckUrl: http://minio:9000/minio/health/live
-        id: 0_1884_minio
+      # - title: MinIO
+      #   description: Object Storage
+      #   icon: hl-minio
+      #   url: https://minio.home.amsh.dev
+      #   statusCheck: true
+      #   statusCheckUrl: http://minio:9000/minio/health/live
+      #   id: 0_1884_minio
       - title: n8n
         description: Workflow Automation
         icon: hl-n8n
@@ -207,13 +207,13 @@ sections:
       collapsed: false
       hideForGuests: false
     items:
-      - title: WUD
-        description: What's Up Docker
-        icon: https://cdn.jsdelivr.net/gh/selfhst/icons/svg/wud.svg
-        url: https://wud.home.amsh.dev
-        statusCheck: true
-        statusCheckUrl: http://wud:3000/health
-        id: 0_1739_wud
+      # - title: WUD
+      #   description: What's Up Docker
+      #   icon: https://cdn.jsdelivr.net/gh/selfhst/icons/svg/wud.svg
+      #   url: https://wud.home.amsh.dev
+      #   statusCheck: true
+      #   statusCheckUrl: http://wud:3000/health
+      #   id: 0_1739_wud
       - title: Glances
         description: Glances Monitoring
         icon: hl-glances

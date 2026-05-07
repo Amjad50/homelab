@@ -6,10 +6,10 @@
     "traefik"
     "fireflyiii"
     "blinko"
-    "memos"
-    "minio"
+    # "memos" # deprecated
+    # "minio" # deprecated
     "n8n"
-    "wud"
+    # "wud"   # deprecated
     "solidtime"
     "media-stack"
     "dashy"
@@ -21,7 +21,7 @@
     "kavita"
     "audiobookshelf"
     "upsnap"
-    "freshrss"
+    # "freshrss" # deprecated
     "immich"
     "infisical"
   ];
