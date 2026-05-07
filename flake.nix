@@ -89,21 +89,31 @@
           ];
         };
       };
-      packages.x86_64-linux.installer-iso = (nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        modules = [
-          "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
-          {
-            users.users.root.initialHashedPassword = lib.mkForce null;
-            users.users.root.initialPassword = "nixos";
-            users.users.root.openssh.authorizedKeys.keys = [
-              "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKMsaYI7HF5cnWT+y+C1CDMlQSETGyJPWWOx617sFhE+ amjad@amjad-fed"
-            ];
-            services.openssh.enable = true;
-            services.openssh.settings.PermitRootLogin = "yes";
-          }
-        ];
-      }).config.system.build.isoImage;
+      packages.x86_64-linux.installer-iso =
+        let
+          installerAuthorizedKey = builtins.getEnv "VM_INSTALLER_AUTHORIZED_KEY";
+          checkedInstallerAuthorizedKey =
+            if installerAuthorizedKey == "" then
+              throw "Set VM_INSTALLER_AUTHORIZED_KEY and build installer-iso with --impure"
+            else
+              installerAuthorizedKey;
+        in
+        (nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          modules = [
+            "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+            {
+              isoImage.isoName = "home-vm-installer-${builtins.substring 0 8 (builtins.hashString "sha256" checkedInstallerAuthorizedKey)}.iso";
+              users.users.root.initialHashedPassword = lib.mkForce null;
+              users.users.root.initialPassword = "nixos";
+              users.users.root.openssh.authorizedKeys.keys = [
+                checkedInstallerAuthorizedKey
+              ];
+              services.openssh.enable = true;
+              services.openssh.settings.PermitRootLogin = "yes";
+            }
+          ];
+        }).config.system.build.isoImage;
 
       devShells.x86_64-linux.default = nixpkgs.legacyPackages.x86_64-linux.mkShell {
         packages = with nixpkgs.legacyPackages.x86_64-linux; [

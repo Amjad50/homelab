@@ -9,7 +9,8 @@ exec > >(tee /tmp/vm-create.log) 2>&1
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 VM_DIR="$REPO_ROOT/machines/tests/disks"
-VM_KEY="$REPO_ROOT/machines/tests/keys/vm_ed25519_key"
+VM_HOST_KEY="$REPO_ROOT/machines/tests/keys/vm_ed25519_key"
+VM_CLIENT_KEY="$REPO_ROOT/machines/tests/keys/vm_client_ed25519_key"
 OS_DISK="$VM_DIR/home-vm-os.qcow2"
 STORAGE_DISK="$VM_DIR/home-vm-storage.qcow2"
 
@@ -29,6 +30,7 @@ done
 
 echo "==> Ensuring keys exist..."
 "$SCRIPT_DIR/create-keys.sh"
+VM_CLIENT_PUBLIC_KEY="$(< "${VM_CLIENT_KEY}.pub")"
 
 echo "==> Creating VM disks..."
 mkdir -p "$VM_DIR"
@@ -42,7 +44,8 @@ if [[ ! -f "$STORAGE_DISK" ]]; then
 fi
 
 echo "==> Building custom NixOS installer ISO (with SSH key pre-authorized)..."
-nix build "$REPO_ROOT#installer-iso" --out-link "$VM_DIR/installer-iso-result" --log-format bar-with-logs
+VM_INSTALLER_AUTHORIZED_KEY="$VM_CLIENT_PUBLIC_KEY" \
+  nix build --impure "$REPO_ROOT#installer-iso" --out-link "$VM_DIR/installer-iso-result" --log-format bar-with-logs
 ISO_SRC=$(find -L "$VM_DIR/installer-iso-result" -name "*.iso" -type f | head -1 || true)
 [[ -n "$ISO_SRC" ]] || { echo "ERROR: ISO not found after build"; exit 1; }
 ISO_PATH="$VM_DIR/installer.iso"
@@ -82,7 +85,7 @@ qemu-system-x86_64 \
   -drive file="$OS_DISK",if=virtio,cache=writeback,discard=unmap \
   -drive file="$STORAGE_DISK",if=virtio,cache=writeback,discard=unmap \
   -cdrom "$ISO_PATH" \
-  -boot order=d \
+  -boot once=d,order=c \
   -netdev user,id=net0,hostfwd=tcp::${SSH_PORT}-:22 \
   -device virtio-net-pci,netdev=net0 \
   -vga virtio \
@@ -94,7 +97,7 @@ echo "==> Waiting for VM SSH to become available (up to 5 minutes)..."
 ssh-keygen -R "[localhost]:$SSH_PORT" 2>/dev/null || true
 CONNECTED=false
 for i in $(seq 1 60); do
-  if ssh -p "$SSH_PORT" -i "$VM_KEY" \
+  if ssh -p "$SSH_PORT" -i "$VM_CLIENT_KEY" \
        -o StrictHostKeyChecking=no \
        -o ConnectTimeout=5 \
        -o PasswordAuthentication=no \
@@ -113,29 +116,32 @@ echo "    VM SSH is up."
 echo "==> Injecting VM host key via extra-files..."
 EXTRA_FILES="$REPO_ROOT/machines/tests/extra-files"
 mkdir -p "$EXTRA_FILES/etc/ssh"
-cp "$VM_KEY" "$EXTRA_FILES/etc/ssh/ssh_host_ed25519_key"
-cp "${VM_KEY}.pub" "$EXTRA_FILES/etc/ssh/ssh_host_ed25519_key.pub"
+mkdir -p "$EXTRA_FILES/etc/ssh/authorized_keys.d"
+cp "$VM_HOST_KEY" "$EXTRA_FILES/etc/ssh/ssh_host_ed25519_key"
+cp "${VM_HOST_KEY}.pub" "$EXTRA_FILES/etc/ssh/ssh_host_ed25519_key.pub"
 chmod 600 "$EXTRA_FILES/etc/ssh/ssh_host_ed25519_key"
-
-SSH_OPTS="-p $SSH_PORT -i $VM_KEY -o StrictHostKeyChecking=no"
+printf '%s\n' "$VM_CLIENT_PUBLIC_KEY" > "$EXTRA_FILES/etc/ssh/authorized_keys.d/root"
+printf '%s\n' "$VM_CLIENT_PUBLIC_KEY" > "$EXTRA_FILES/etc/ssh/authorized_keys.d/amjad"
+chmod 644 "$EXTRA_FILES/etc/ssh/authorized_keys.d/root" "$EXTRA_FILES/etc/ssh/authorized_keys.d/amjad"
 
 echo "==> Running nixos-anywhere to install home-vm config..."
 nixos-anywhere \
   --flake "$REPO_ROOT#home-vm" \
   --target-host "root@localhost" \
   --ssh-port "$SSH_PORT" \
-  -i "$VM_KEY" \
+  -i "$VM_CLIENT_KEY" \
   --ssh-option "StrictHostKeyChecking=no" \
   --extra-files "$EXTRA_FILES"
 
 echo ""
-echo "==> nixos-anywhere complete! VM is rebooting into NixOS home-vm..."
+echo "==> nixos-anywhere complete. Restarting VM from installed disk..."
+"$SCRIPT_DIR/vm-start.sh"
 echo ""
-echo "    Wait ~30 seconds for reboot, then:"
-echo "      ssh -p $SSH_PORT -i $VM_KEY amjad@localhost"
+echo "    Connect:"
+echo "      ssh -p $SSH_PORT -i $VM_CLIENT_KEY amjad@localhost"
 echo ""
 echo "    Run the full data restore (as root):"
-echo "      ssh -p $SSH_PORT -i $VM_KEY root@localhost 'bash /etc/homelab-scripts/vm-restore.sh'"
+echo "      ssh -p $SSH_PORT -i $VM_CLIENT_KEY root@localhost 'bash /etc/homelab-scripts/vm-restore.sh'"
 echo ""
 echo "    Kill the VM when done:"
 echo "      ./scripts/vm-kill.sh"

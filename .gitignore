@@ -11,6 +11,8 @@ machines/tests/extra-files/
 # Keys — never commit
 machines/tests/keys/vm_ed25519_key
 machines/tests/keys/vm_ed25519_key.pub
+machines/tests/keys/vm_client_ed25519_key
+machines/tests/keys/vm_client_ed25519_key.pub
 
 # Nix build results
 result
