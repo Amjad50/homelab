@@ -144,7 +144,7 @@ sections:
         id: 5_1704_filebrowser
       - title: Linkwarden
         description: Personal Knowledge Management, bookmarks and archives
-        icon: hl-linkwarden
+        icon: sh-linkwarden
         url: https://linkwarden.home.amsh.dev
         statusCheck: true
         statusCheckUrl: http://linkwarden:3000
@@ -163,6 +163,13 @@ sections:
         statusCheck: true
         statusCheckUrl: http://freshrss:80
         id: 9_1704_freshrss
+      - title: Infisical
+        description: Secrets Management
+        icon: hl-infisical
+        url: https://infisical.home.amsh.dev
+        statusCheck: true
+        statusCheckUrl: http://infisical:8080/api/status
+        id: 10_1704_infisical
   - name: Storage & Automation
     displayData:
       sortBy: alphabetical
