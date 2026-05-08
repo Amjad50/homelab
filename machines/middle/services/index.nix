@@ -3,9 +3,6 @@
 {
   homelab.services = {
     traefik = {
-      compose.enable = true;
-      backup.enable = false;
-      restore.enable = false;
       secrets = {
         cloudflare-email           = { owner = "dock";    group = "docker";  mode = "0400"; };
         cloudflare-dns-api-token   = { owner = "dock";    group = "docker";  mode = "0400"; };
@@ -14,34 +11,19 @@
     };
 
     wg-easy = {
-      compose.enable = true;
-      backup.enable = false;
-      restore.enable = false;
     };
 
     dockge = {
-      compose.enable = true;
       tmpfiles = [
         "v /storage/dockge 0755 dock docker - -"
       ];
-      backup = {
-        enable = true;
-        paths = [
-          "/storage/dockge/data/db-config.json"
-          "/storage/dockge/data/dockge.db"
-        ];
-      };
-      restore = { enable = true; large = false; };
+      dependsOnBackups = [ config.homelab.backups.default ];
     };
 
     kanidm = {
-      compose.enable = true;
-      backup.enable = false;
-      restore.enable = false;
     };
 
     oauth2-proxy = {
-      compose.enable = true;
       secrets = {
         oauth2-proxy-client-secret = { owner = "nobody"; group = "nogroup"; mode = "0400"; };
         oauth2-proxy-cookie-secret = { owner = "dock";   group = "docker";  mode = "0400"; };
@@ -53,27 +35,30 @@
           OAUTH2_PROXY_COOKIE_SECRET=${config.sops.placeholder.oauth2-proxy-cookie-secret}
         '';
       };
-      backup.enable = false;
-      restore.enable = false;
     };
 
     adguard = {
-      compose.enable = true;
       tmpfiles = [
         "v /storage/adguard 0755 dock docker - -"
       ];
-      backup = {
-        enable = true;
-        paths = [ "/storage/adguard/conf" ];
-      };
-      restore = { enable = true; large = false; };
+      dependsOnBackups = [ config.homelab.backups.default ];
     };
 
     netdata = {
-      compose.enable = true;
-      backup.enable = false;
-      restore.enable = false;
     };
+  };
+
+  homelab.backups.default = {
+    autoStart = true;
+    schedule = "03:00";
+
+    paths = [
+      "/storage/dockge/data/db-config.json"
+      "/storage/dockge/data/dockge.db"
+      "/storage/adguard/conf"
+    ];
+
+    postgres = [];
   };
 
   # Non-registry items: rathole server, cloudflare creds, /storage root.

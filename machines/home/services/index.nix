@@ -4,74 +4,90 @@
 {
   homelab.services = {
     traefik = {
-      compose.enable = true;
       tmpfiles = [];
-      backup.enable = false;
-      restore.enable = false;
+    };
+
+    memos = {
+      enable = false;
+      tmpfiles = [ "v /mnt/storage/memos 0755 dock docker - -" ];
+      secrets.memos-telegram-bot-token = { owner = "dock"; group = "docker"; mode = "0400"; };
+      templates."memos-telegram.env" = {
+        owner = "dock"; group = "docker"; mode = "0400";
+        path = "/var/lib/dock/memos-telegram.env";
+        content = ''
+          BOT_TOKEN=${config.sops.placeholder.memos-telegram-bot-token}
+        '';
+      };
+    };
+
+    minio = {
+      enable = false;
+      tmpfiles = [ "v /mnt/storage/minio 0755 dock docker - -" ];
+      secrets.minio-root-password = { owner = "dock"; group = "docker"; mode = "0400"; };
+      templates."minio.env" = {
+        owner = "dock"; group = "docker"; mode = "0400";
+        path = "/var/lib/dock/minio.env";
+        content = ''
+          MINIO_ROOT_PASSWORD=${config.sops.placeholder.minio-root-password}
+        '';
+      };
+    };
+
+    wud = {
+      enable = false;
+      tmpfiles = [ "v /mnt/storage/wud 0755 dock docker - -" ];
+      secrets.wud-openid-client-secret = { owner = "dock"; group = "docker"; mode = "0400"; };
+    };
+
+    freshrss = {
+      enable = false;
+      tmpfiles = [ "v /mnt/storage/freshrss 0755 dock docker - -" ];
+      secrets = {
+        freshrss-kanidm-client-secret = { owner = "dock"; group = "docker"; mode = "0400"; };
+        freshrss-crypto-secret        = { owner = "dock"; group = "docker"; mode = "0400"; };
+      };
+      templates."freshrss.env" = {
+        owner = "dock"; group = "docker"; mode = "0400";
+        path = "/var/lib/dock/freshrss.env";
+        content = ''
+          OIDC_CLIENT_SECRET=${config.sops.placeholder.freshrss-kanidm-client-secret}
+          OIDC_CLIENT_CRYPTO_KEY=${config.sops.placeholder.freshrss-crypto-secret}
+        '';
+      };
     };
 
     dockge = {
-      compose.enable = true;
       tmpfiles = [
         "v /mnt/storage/dockge 0755 dock docker - -"
       ];
-      backup = {
-        enable = true;
-        paths = [
-          "/mnt/storage/dockge/data/db-config.json"
-          "/mnt/storage/dockge/data/dockge.db"
-        ];
-      };
-      restore = { enable = true; large = false; };
+      dependsOnBackups = [ config.homelab.backups.default ];
     };
 
     dashy = {
-      compose.enable = true;
-      backup.enable = false;
-      restore.enable = false;
     };
 
     filebrowser = {
-      compose.enable = true;
       tmpfiles = [
         "v /mnt/storage/filebrowser 0755 1000 1000 - -"
         "d /mnt/storage/filebrowser/config 0755 1000 1000 - -"
         "d /mnt/storage/filebrowser/database 0755 1000 1000 - -"
       ];
-      backup = {
-        enable = true;
-        paths = [ "/mnt/storage/filebrowser" ];
-      };
-      restore = { enable = true; large = false; };
+      dependsOnBackups = [ config.homelab.backups.default ];
     };
 
     syncthing = {
-      compose.enable = true;
       tmpfiles = [
         "v /mnt/storage/syncthing 0755 1000 1000 - -"
       ];
-      backup = {
-        enable = true;
-        paths = [
-          "/mnt/storage/syncthing/config"
-          "/mnt/storage/syncthing/data"
-        ];
-      };
-      restore = { enable = true; large = false; };
+      dependsOnBackups = [ config.homelab.backups.default ];
     };
 
     upsnap = {
-      compose.enable = true;
       tmpfiles = [ "v /mnt/storage/upsnap 0755 1000 1000 - -" ];
-      backup = {
-        enable = true;
-        paths = [ "/mnt/storage/upsnap" ];
-      };
-      restore = { enable = true; large = false; };
+      dependsOnBackups = [ config.homelab.backups.default ];
     };
 
     stirling-pdf = {
-      compose.enable = true;
       secrets.stirlingpdf-kanidm-client-secret = {
         owner = "dock"; group = "docker"; mode = "0400";
       };
@@ -82,24 +98,15 @@
           SECURITY_OAUTH2_CLIENTSECRET=${config.sops.placeholder.stirlingpdf-kanidm-client-secret}
         '';
       };
-      backup.enable = false;
-      restore.enable = false;
     };
 
     kavita = {
-      compose.enable = true;
-      backup.enable = false;
-      restore.enable = false;
     };
 
     audiobookshelf = {
-      compose.enable = true;
-      backup.enable = false;
-      restore.enable = false;
     };
 
     media-stack = {
-      compose.enable = true;
       tmpfiles = [
         "v /mnt/storage/media 0755 dock docker - -"
         "v /mnt/storage/media/movies 0755 1000 1000 - -"
@@ -112,39 +119,19 @@
         "v /mnt/storage/media/audiobooks 0755 1000 1000 - -"
         "v /mnt/storage/media/podcasts 0755 1000 1000 - -"
       ];
-      backup = {
-        enable = true;
-        paths = [
-          "/mnt/storage/media/configs"
-          "/mnt/storage/media/books"
-        ];
-      };
-      restore = { enable = true; large = false; };
+      dependsOnBackups = [ config.homelab.backups.default ];
     };
 
     fireflyiii = {
-      compose.enable = true;
       tmpfiles = [ "v /mnt/storage/firefly 0755 dock docker - -" ];
       secrets = {
         firefly-app-key     = { owner = "www-data"; group = "www-data"; mode = "0400"; };
         firefly-db-password = { owner = "www-data"; group = "www-data"; mode = "0400"; };
       };
-      backup = {
-        enable = true;
-        paths = [ "/mnt/storage/firefly/upload" ];
-        postgres = [{
-          composeService = "fireflyiii";
-          container      = "fireflyiii-db";
-          database       = "firefly";
-          user           = "firefly";
-          dumpName       = "fireflyiii.sql";
-        }];
-      };
-      restore = { enable = true; large = false; };
+      dependsOnBackups = [ config.homelab.backups.default ];
     };
 
     blinko = {
-      compose.enable = true;
       tmpfiles = [ "v /mnt/storage/blinko 0755 dock docker - -" ];
       secrets = {
         blinko-nextauth-secret = { owner = "dock"; group = "docker"; mode = "0400"; };
@@ -159,43 +146,19 @@
           NEXTAUTH_SECRET=${config.sops.placeholder.blinko-nextauth-secret}
         '';
       };
-      backup = {
-        enable = true;
-        paths = [ "/mnt/storage/blinko/data" ];
-        postgres = [{
-          composeService = "blinko";
-          container      = "blinko-db";
-          database       = "blinko";
-          user           = "blinko";
-          dumpName       = "blinko.sql";
-        }];
-      };
-      restore = { enable = true; large = false; };
+      dependsOnBackups = [ config.homelab.backups.default ];
     };
 
     n8n = {
-      compose.enable = true;
       tmpfiles = [ "v /mnt/storage/n8n 0755 dock docker - -" ];
       secrets = {
         n8n-db-password    = { owner = "dock"; group = "docker"; mode = "0400"; };
         n8n-encryption-key = { owner = "dock"; group = "docker"; mode = "0400"; };
       };
-      backup = {
-        enable = true;
-        paths = [ "/mnt/storage/n8n/data" ];
-        postgres = [{
-          composeService = "n8n";
-          container      = "n8n-db";
-          database       = "n8n";
-          user           = "n8n";
-          dumpName       = "n8n.sql";
-        }];
-      };
-      restore = { enable = true; large = false; };
+      dependsOnBackups = [ config.homelab.backups.default ];
     };
 
     solidtime = {
-      compose.enable = true;
       tmpfiles = [ "v /mnt/storage/solidtime 0755 dock docker - -" ];
       secrets = {
         solidtime-app-key              = { owner = "dock"; group = "docker"; mode = "0400"; };
@@ -219,22 +182,10 @@
           SUPER_ADMINS="${config.sops.placeholder.solidtime-super-admins}"
         '';
       };
-      backup = {
-        enable = true;
-        paths = [ "/mnt/storage/solidtime/app" ];
-        postgres = [{
-          composeService = "solidtime";
-          container      = "solidtime-db";
-          database       = "solidtime";
-          user           = "solidtime";
-          dumpName       = "solidtime.sql";
-        }];
-      };
-      restore = { enable = true; large = false; };
+      dependsOnBackups = [ config.homelab.backups.default ];
     };
 
     linkwarden = {
-      compose.enable = true;
       tmpfiles = [ "v /mnt/storage/linkwarden 0755 dock docker - -" ];
       secrets = {
         linkwarden-nextauth-secret      = { owner = "dock"; group = "docker"; mode = "0400"; };
@@ -253,51 +204,18 @@
           OPENAI_API_KEY=${config.sops.placeholder.openai-api-key}
         '';
       };
-      backup = {
-        enable = true;
-        paths = [];
-        postgres = [{
-          composeService = "linkwarden";
-          container      = "linkwarden-db";
-          database       = "linkwarden";
-          user           = "linkwarden";
-          dumpName       = "linkwarden.sql";
-        }];
-      };
-      restore = { enable = true; large = false; };
+      dependsOnBackups = [ config.homelab.backups.default ];
     };
 
     immich = {
-      compose.enable = true;
       tmpfiles = [ "v /mnt/storage/immich 0755 dock docker - -" ];
       secrets.immich-db-password = {
         owner = "dock"; group = "docker"; mode = "0400";
       };
-      backup = {
-        enable = true;
-        paths = [ "/mnt/storage/immich/upload/library" ];
-        postgres = [{
-          composeService = "immich";
-          container      = "immich_postgres";
-          database       = "immich";
-          user           = "postgres";
-          dumpName       = "immich_postgres.sql";
-        }];
-      };
-      restore = {
-        enable = true;
-        large = true;
-        postScript = ''
-          for dir in encoded-video library upload profile thumbs backups; do
-            mkdir -p "/mnt/storage/immich/upload/$dir"
-            touch "/mnt/storage/immich/upload/$dir/.immich"
-          done
-        '';
-      };
+      dependsOnBackups = [ config.homelab.backups.immich ];
     };
 
     infisical = {
-      compose.enable = true;
       tmpfiles = [
         "v /mnt/storage/infisical 0755 dock docker - -"
         "d /mnt/storage/infisical/database 0755 dock docker - -"
@@ -336,18 +254,54 @@
           }"
         '';
       };
-      backup = {
-        enable = true;
-        paths = [];
-        postgres = [{
-          composeService = "infisical";
-          container      = "infisical-db";
-          database       = "infisical";
-          user           = "infisical";
-          dumpName       = "infisical.sql";
-        }];
-      };
-      restore = { enable = true; large = false; };
+      dependsOnBackups = [ config.homelab.backups.default ];
+    };
+  };
+
+  homelab.backups = {
+    default = {
+      autoStart = true;
+
+      paths = [
+        "/mnt/storage/dockge/data/db-config.json"
+        "/mnt/storage/dockge/data/dockge.db"
+        "/mnt/storage/filebrowser"
+        "/mnt/storage/syncthing/config"
+        "/mnt/storage/syncthing/data"
+        "/mnt/storage/upsnap"
+        "/mnt/storage/media/configs"
+        "/mnt/storage/media/books"
+        "/mnt/storage/firefly/upload"
+        "/mnt/storage/blinko/data"
+        "/mnt/storage/n8n/data"
+        "/mnt/storage/solidtime/app"
+      ];
+
+      postgres = [
+        { stack = "fireflyiii"; composeService = "fireflyiii-db"; container = "fireflyiii-db"; database = "firefly";    user = "firefly";    }
+        { stack = "blinko";     composeService = "blinko-db";     container = "blinko-db";     database = "blinko";     user = "blinko";     }
+        { stack = "n8n";        composeService = "n8n-db";        container = "n8n-db";        database = "n8n";        user = "n8n";        }
+        { stack = "solidtime";  composeService = "solidtime-db";  container = "solidtime-db";  database = "solidtime";  user = "solidtime";  }
+        { stack = "linkwarden"; composeService = "linkwarden-db"; container = "linkwarden-db"; database = "linkwarden"; user = "linkwarden"; }
+        { stack = "infisical";  composeService = "infisical-db";  container = "infisical-db";  database = "infisical";  user = "infisical";  }
+      ];
+    };
+
+    immich = {
+      autoStart = false;
+
+      paths = [ "/mnt/storage/immich/upload/library" ];
+
+      postgres = [
+        { stack = "immich"; composeService = "database"; container = "immich_postgres"; database = "immich"; user = "postgres"; }
+      ];
+
+      postRestoreScript = ''
+        for dir in encoded-video library upload profile thumbs backups; do
+          mkdir -p "/mnt/storage/immich/upload/$dir"
+          touch "/mnt/storage/immich/upload/$dir/.immich"
+        done
+      '';
     };
   };
 
