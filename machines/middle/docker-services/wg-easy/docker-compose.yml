@@ -13,7 +13,6 @@ networks:
         - subnet: fdcc:ad94:bacf:61a3::/64
   traefik:
     external: true
-  
 
 services:
   wg-easy:
@@ -29,10 +28,10 @@ services:
       - PORT=51821
       - HOST=0.0.0.0
     volumes:
-      - etc_wireguard:/etc/wireguard
+      - /storage/wg-easy:/etc/wireguard
       - /lib/modules:/lib/modules:ro
     ports:
-      - "51820:51820/udp"  # WireGuard VPN port (keep exposed)
+      - "51820:51820/udp" # WireGuard VPN port (keep exposed)
     networks:
       - traefik
       - bridge-net
@@ -48,4 +47,4 @@ services:
       - net.ipv6.conf.all.forwarding=1
       - net.ipv6.conf.default.forwarding=1
     extra_hosts:
-    - "host.docker.internal:host-gateway"
+      - "host.docker.internal:host-gateway"

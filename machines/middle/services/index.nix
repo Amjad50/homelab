@@ -11,6 +11,15 @@
     };
 
     wg-easy = {
+      tmpfiles = [
+        "v /storage/wg-easy 0755 dock docker - -"
+      ];
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [
+          "/storage/wg-easy"
+        ];
+      };
     };
 
     dockge = {
