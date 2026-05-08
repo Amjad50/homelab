@@ -17,7 +17,7 @@ services:
     environment:
       TZ: "Asia/Kuala_Lumpur"
       UPSNAP_PING_PRIVILEGED: false
-      UPSNAP_SCAN_RANGE: "192.168.0.0/24"
+      UPSNAP_SCAN_RANGE: "192.168.100.0/24"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.upsnap.rule=Host(`upsnap.home.amsh.dev`)"
