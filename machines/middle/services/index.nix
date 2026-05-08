@@ -39,12 +39,15 @@
       backup = {
         group = config.homelab.backups.default;
         customBackupScript = ''
-          compose-manage exec -T kanidm kanidm /sbin/kanidmd database backup -c /data/server.toml /kanidm.backup.json.gz
-          docker cp "kanidm:/kanidm.backup.json.gz" "$SERVICE_ARTIFACT_DIR/kanidm.backup.json.gz"
+          compose-manage exec -T kanidm kanidm /sbin/kanidmd database backup -c /data/server.toml /data/backups/kanidm.backup.json.gz
+          docker cp "kanidm:/data/backups/kanidm.backup.json.gz" "$SERVICE_ARTIFACT_DIR/kanidm.backup.json.gz"
+          docker run --rm --volumes-from kanidm alpine rm /data/backups/kanidm.backup.json.gz
+          echo "Backup complete, artifact stored at $SERVICE_ARTIFACT_DIR/kanidm.backup.json.gz"
         '';
         customRestoreScript = ''
           test -f "$SERVICE_ARTIFACT_DIR/kanidm.backup.json"
           docker run --rm -i \
+            -v /opt/docker-services/kanidm/config/server.toml:/data/server.toml:ro \
             -v kanidm_kanidm_data:/data \
             -v "$SERVICE_ARTIFACT_DIR:/backup" \
             kanidm/server:latest \

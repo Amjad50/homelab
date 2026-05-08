@@ -151,9 +151,10 @@ in
           export BACKUP_ROOT=${lib.escapeShellArg artifactDir}
           export SERVICE_ARTIFACT_DIR=${lib.escapeShellArg "${artifactDir}/${hook.service}"}
           mkdir -p "$SERVICE_ARTIFACT_DIR"
-          ${pkgs.bash}/bin/bash <<'EOF'
+          ${pkgs.bash}/bin/bash -c '
+          set -e
           ${hook.script}
-          EOF
+          '
         '';
       in {
         repository      = repoUrl;

@@ -35,8 +35,9 @@ restore_postgres() {
   log "[${group}] Restoring ${count} postgres database(s)"
 
   local failed=0
-  for entry in $(echo "$pg_entries" | jq -r -c '.[]'); do
-    (
+  local -a entries=()
+  mapfile -t entries < <(echo "$pg_entries" | jq -c '.[]')
+  for entry in "${entries[@]}"; do
     local stack compose_svc database user dump_file
     stack=$(jq_field "$entry" stack)
     compose_svc=$(jq_field "$entry" composeService)
@@ -96,7 +97,6 @@ restore_postgres() {
     fi
 
     log_ok "[${group}] ${database} restored"
-    ) || failed=$((failed + 1))
   done
 
   if (( failed > 0 )); then
@@ -117,8 +117,9 @@ restore_custom() {
   log "[${group}] Running ${count} custom restore hook(s)"
 
   local failed=0
-  for entry in $(echo "$restore_entries" | jq -r -c '.[]'); do
-    (
+  local -a entries=()
+  mapfile -t entries < <(echo "$restore_entries" | jq -c '.[]')
+  for entry in "${entries[@]}"; do
     local service script artifact_dir
     service=$(jq_field "$entry" service)
     script=$(jq_field "$entry" script)
@@ -132,10 +133,10 @@ restore_custom() {
 
     local tmp
     tmp=$(mktemp)
-    trap 'rm -f "$tmp"' RETURN
     printf '%s\n' "$script" > "$tmp"
     local hook_rc=0
     bash "$tmp" 2>&1 | sed "s/^/  [${group}:${service}] /" || hook_rc=$?
+    rm -f -- "$tmp"
     if (( hook_rc != 0 )); then
       log_err "[${group}] custom restore failed for ${service} (exit ${hook_rc})"
       failed=$((failed + 1))
@@ -143,7 +144,6 @@ restore_custom() {
     fi
 
     log_ok "[${group}] custom restore succeeded for ${service}"
-    ) || failed=$((failed + 1))
   done
 
   if (( failed > 0 )); then
@@ -181,10 +181,10 @@ restore_group() {
     log "[${group}] Running postRestoreScript"
     local tmp
     tmp=$(mktemp)
-    trap 'rm -f "$tmp"' RETURN
     printf '%s\n' "$script" > "$tmp"
     local post_rc=0
     bash "$tmp" 2>&1 | sed "s/^/  [${group}] /" || post_rc=$?
+    rm -f -- "$tmp"
     if (( post_rc != 0 )); then
       log_err "[${group}] postRestoreScript failed (exit ${post_rc})"
       return 1
