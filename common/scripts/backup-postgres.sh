@@ -20,8 +20,10 @@ pg_json="${1:-$(cat)}"
 
 failed=0
 total=0
+entries=()
+mapfile -t entries < <(echo "$pg_json" | jq -c '.[]')
 
-while IFS= read -r entry; do
+for entry in "${entries[@]}"; do
   stack=$(jq_field "$entry" stack)
   compose_svc=$(jq_field "$entry" composeService)
   database=$(jq_field "$entry" database)
@@ -47,7 +49,7 @@ while IFS= read -r entry; do
   fi
 
   log_ok "[${GROUP_NAME}] Dumped ${database} → ${dump_file} ($(du -sh "$dump_file" | cut -f1))"
-done < <(echo "$pg_json" | jq -c '.[]')
+done
 
 if (( failed > 0 )); then
   log_err "[${GROUP_NAME}] ${failed}/${total} postgres dumps failed — aborting backup"
