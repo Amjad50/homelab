@@ -41,18 +41,18 @@ The system manages Docker Compose services in `/opt/docker-services/`. Each dire
 compose-manage list             # List all services with status
 
 # Service control
-compose-manage start nginx      # Start service
-compose-manage stop nginx       # Stop service
-compose-manage restart nginx    # Restart service
-compose-manage enable nginx     # Auto-start on boot
+compose-manage start traefik    # Start service
+compose-manage stop traefik     # Stop service
+compose-manage restart traefik  # Restart service
+compose-manage enable traefik   # Auto-start on boot
 
 # Monitoring
-compose-manage status nginx     # Service status
-compose-manage logs nginx       # Follow logs
-compose-manage ps nginx         # Show containers
+compose-manage status traefik   # Service status
+compose-manage logs traefik     # Follow logs
+compose-manage ps traefik       # Show containers
 
 # Container operations
-compose-manage exec nginx web bash  # Execute in container
+compose-manage exec traefik <container> bash  # Execute in container
 ```
 
 ## Service Patterns
@@ -114,6 +114,8 @@ Services use environment files from sops templates:
 - **Path**: `/var/lib/dock/servicename.env`
 - **Owner**: `dock:docker` (mode 0400)
 - **Generated**: From sops secrets via NixOS templates
+
+In this repo, most service secrets and templates are declared through `common/modules/service-registry.nix`, then merged into the machine config.
 
 ## Adding New Services
 

@@ -26,6 +26,7 @@ Progressive banning for SSH attacks:
 - Main user (`amjad`) in wheel group with sudo access
 - Passwordless sudo configured
 - Docker group membership for container management
+- Local pre-commit hook blocks staged `secrets.yaml` files from being committed
 
 ## Container Security
 

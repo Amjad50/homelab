@@ -28,7 +28,7 @@ These files serve as:
 ## How Hardware Configs Work
 
 1. **Fresh Installation**: 
-   - `install-nixos.sh` automatically generates hardware config with `nixos-generate-config`
+   - `scripts/install-nixos.sh` automatically generates hardware config with `nixos-generate-config`
    - File is created at `/etc/nixos/hardware-configuration.nix`
 
 2. **Deployment**:
@@ -45,10 +45,10 @@ These files serve as:
 ### For New Installations
 ```bash
 # On target system - generates hardware-configuration.nix automatically
-sudo ./install-nixos.sh /dev/sda
+sudo ./scripts/install-nixos.sh /dev/sda
 
 # Deploy your configuration (excludes hardware config)
-./deploy.sh server user@new-system
+./deploy.sh home user@new-system
 ```
 
 ### For Existing Systems
@@ -57,7 +57,7 @@ sudo ./install-nixos.sh /dev/sda
 sudo nixos-generate-config --force
 
 # Deploy configuration updates
-./deploy.sh server user@existing-system
+./deploy.sh home user@existing-system
 ```
 
 ## Adding New Hardware Profiles

@@ -7,8 +7,11 @@
 ## Usage
 
 ```bash
-./deploy.sh myserver amjad@server    # Remote deployment
-./deploy.sh myserver                 # Local deployment
+./deploy.sh home amjad@server        # Remote deployment
+./deploy.sh middle                   # Local deployment
+./deploy.sh home amjad@server --no-docker
+./deploy.sh home amjad@server --only-docker
+./deploy.sh home amjad@server --update
 ```
 
 ## Process
@@ -18,6 +21,8 @@
 3. **Change detection** - SHA256 checksums for docker-services
 4. **Configuration deployment** - NixOS rebuild
 5. **Service restarts** - Only changed docker services restart
+
+On remote hosts, the helper script runs `nixos-rebuild switch --fast` after copying `/etc/nixos/{flake.nix,common,machines}` into place.
 
 ## Features
 

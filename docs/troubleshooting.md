@@ -17,11 +17,13 @@ ssh-copy-id amjad@server
 nix flake check
 
 # Test build locally
-nixos-rebuild dry-build --flake .#myserver
+nixos-rebuild dry-build --flake .#home
 
 # Clear cache if needed
 sudo nix-collect-garbage -d
 ```
+
+If the build fails with an error about `machines/<machine>/secrets.yaml` not being tracked, regenerate the local encrypted file with `./scripts/generate-secrets.sh` or restore the local copy before rebuilding.
 
 ## System Issues
 
@@ -65,6 +67,18 @@ compose-manage logs service-name
 
 # Test manually
 docker-compose up
+```
+
+### Restore Issues
+```bash
+# Inspect restore metadata
+jq . /etc/homelab/services.json
+
+# List backup groups
+restore-backup list
+
+# Run a single restore group
+restore-backup group default
 ```
 
 ## Btrfs Issues

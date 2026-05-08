@@ -1,43 +1,43 @@
-# NixOS Server Configuration
+# NixOS Homelab
 
-Modular NixOS server configuration with Docker Compose services, Btrfs snapshots, and security features.
+Modular NixOS homelab configuration with Docker Compose services, Btrfs snapshots, sops-managed secrets, and per-machine backup groups.
 
 ## Quick Start
 
 ```bash
 # Deploy to server
-./deploy.sh myserver amjad@server
+./deploy.sh home amjad@server
 
 # Manage Docker Compose services
 compose-manage list
-compose-manage start nginx
+compose-manage start traefik
 ```
 
 ## Architecture
 
 ```
-nixos-config/
-├── flake.nix                 # Flake configuration with multiple machines
-├── common/                   # Shared configuration
-│   ├── configuration.nix    # Common base configuration  
-│   ├── modules/              # Shared modules
-│   │   ├── system.nix       # Core system settings
-│   │   ├── btrfs.nix        # Btrfs snapshots & scrubbing
-│   │   ├── services.nix     # SSH, networking, fail2ban
-│   │   ├── users.nix        # User accounts & SSH keys
-│   │   ├── docker.nix       # Docker configuration
-│   │   └── compose-services.nix # Docker Compose services
-│   └── scripts/             # Management scripts
-├── machines/                # Machine-specific configurations
-│   └── myserver/            # Individual machine config
-│       ├── configuration.nix # Machine-specific settings
-│       └── docker-services/ # Optional: machine-specific services
-├── hardware/                # Hardware configuration references
-│   ├── README.md            # Hardware configuration guide
-│   └── vm-testing.nix       # Example configurations
-├── docker-services/         # Global Docker Compose services
-├── docs/                    # Detailed documentation
-└── deploy.sh               # Multi-machine deployment script
+.
+├── flake.nix
+├── common/
+│   ├── configuration.nix
+│   ├── modules/
+│   │   ├── service-registry.nix
+│   │   ├── compose-services.nix
+│   │   ├── btrfs.nix
+│   │   ├── docker.nix
+│   │   ├── services.nix
+│   │   ├── system.nix
+│   │   └── users.nix
+│   └── scripts/
+├── machines/
+│   ├── home/
+│   ├── middle/
+│   ├── home-vm/
+│   └── middle-vm/
+├── hardware/
+├── docs/
+├── scripts/
+└── deploy.sh
 ```
 
 ## Features
@@ -47,6 +47,7 @@ nixos-config/
 - **Remote deployment** - Compressed transfers with change detection and automatic service restarts
 - **Btrfs subvolumes** - Optimized layout with automatic snapshots
 - **Docker Compose services** - Global and machine-specific service management with polkit integration
+- **Service registry** - Declarative compose services, secrets, templates, and backup groups
 - **Security hardening** - SSH keys, fail2ban, firewall configuration
 - **Declarative management** - Everything defined in Nix configuration
 
@@ -54,21 +55,21 @@ nixos-config/
 
 ### System Management
 ```bash
-./deploy.sh myserver amjad@server1     # Deploy myserver config to server1
-./deploy.sh server2 amjad@server2      # Deploy server2 config to server2
-./deploy.sh myserver                   # Deploy myserver locally (if on NixOS)
+./deploy.sh home amjad@server1         # Deploy home config to server1
+./deploy.sh middle amjad@server2       # Deploy middle config to server2
+./deploy.sh home                       # Deploy home locally (if on NixOS)
 ```
 
 ### Docker Compose Services
 ```bash
 compose-manage list           # List all services and status
-compose-manage start <service>    # Start a service
-compose-manage stop <service>     # Stop a service
-compose-manage restart <service>  # Restart a service
-compose-manage logs <service>     # Follow service logs
-compose-manage status [service]   # Show detailed status
-compose-manage enable <service>   # Auto-start on boot
-compose-manage disable <service>  # Disable auto-start
+compose-manage start <service>     # Start a service
+compose-manage stop <service>      # Stop a service
+compose-manage restart <service>   # Restart a service
+compose-manage logs <service>      # Follow service logs
+compose-manage status [service]    # Show detailed status
+compose-manage enable <service>    # Auto-start on boot
+compose-manage disable <service>   # Disable auto-start
 ```
 
 ### Container Operations
@@ -94,8 +95,8 @@ compose-status               # Quick service overview
 ### Adding Docker Compose Services
 
 **Global services (shared across machines):**
-1. Add to `docker-services/` directory
-2. Update `common/modules/compose-services.nix` services list
+1. Add to `machines/MACHINE/docker-services/` directory or shared service registry inputs
+2. Update the relevant machine config or `common/modules/service-registry.nix`
 3. Deploy to update all machines
 
 **Machine-specific services:**
@@ -110,6 +111,7 @@ compose-status               # Quick service overview
 - `common/modules/btrfs.nix` - Snapshots, scrubbing
 - `common/modules/docker.nix` - Docker daemon configuration
 - `common/modules/compose-services.nix` - Docker Compose services
+- `common/modules/service-registry.nix` - Secrets, templates, restore metadata, and backup groups
 
 ## 📚 Documentation
 
@@ -118,6 +120,9 @@ Detailed documentation is available in the `docs/` directory:
 - [Installation Guide](docs/installation.md) - Automated NixOS installation
 - [Deployment Guide](docs/deployment.md) - Remote deployment with change detection
 - [Configuration Guide](docs/configuration.md) - Detailed module configuration
+- [Homelab Mappings](docs/homelab.md) - `homelab.services`, `homelab.backups`, and secret file layout
+- [Secrets Management](docs/secrets.md) - sops-nix and machine-specific secret files
+- [Backup System](docs/backup.md) - Restic backup groups and restore workflow
 - [Docker Management](docs/docker.md) - Docker Compose service management
 - [Btrfs & Snapshots](docs/btrfs.md) - Storage and backup configuration
 - [Security](docs/security.md) - Security features and best practices

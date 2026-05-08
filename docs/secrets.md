@@ -1,85 +1,24 @@
 # Secrets Management
 
-## Overview
+This repository uses `sops-nix` and SSH host keys to decrypt secrets on the target machine. The encrypted files are kept as machine-specific `secrets.yaml` files under `machines/<machine>/`, and those paths are ignored by Git.
 
-Uses sops-nix with SSH host key encryption for secure secrets management. Secrets are encrypted in git, automatically decrypted on target machines using existing SSH infrastructure.
+## How It Works
 
-## Current Secrets
+- `.sops.yaml` defines which age recipients may decrypt each machine file.
+- `machines/home/secrets.yaml`, `machines/middle/secrets.yaml`, `machines/home-vm/secrets.yaml`, and `machines/middle-vm/secrets.yaml` are the machine-specific encrypted payloads.
+- `scripts/generate-secrets.sh` can generate or re-encrypt those files from environment variables.
+- `scripts/install-pre-commit-hook.sh` installs a local hook that refuses commits if a `secrets.yaml` file is staged.
 
-### Rathole Secrets (Tunnel)
-- **rathole-token**: Authentication token (shared between server/client)
-- **rathole-noise-private**: Noise transport private key (middle server only)
-- **rathole-noise-public**: Noise transport public key (both machines)
+## Current Pattern
 
-### Application Secrets (Home Machine)
-- **firefly-app-key**: Firefly III application encryption key
-- **firefly-db-password**: Firefly III database password
-- **blinko-nextauth-secret**: Blinko NextAuth session secret
-- **blinko-db-password**: Blinko PostgreSQL password
-- **memos-telegram-bot-token**: Memos Telegram bot API token
-- **minio-root-password**: MinIO admin password
-- **n8n-db-password**: n8n PostgreSQL password
-- **n8n-encryption-key**: n8n workflow encryption key
-- **infisical-db-password**: Infisical PostgreSQL password (generated)
-- **infisical-auth-secret**: Infisical JWT signing key (generated, `openssl rand -base64 32`)
-- **infisical-encryption-key**: Infisical platform encryption key (generated, `openssl rand -hex 16`)
-- **infisical-github-oauth-client-id**: GitHub OAuth App Client ID (SSO login + GitHub connection)
-- **infisical-github-oauth-client-secret**: GitHub OAuth App Client Secret (SSO login + GitHub connection)
+Most services consume secrets through NixOS templates:
 
-### Authentication Secrets (Middle Machine)
-- **oauth2-proxy-client-secret**: OAuth2 proxy client secret
-- **oauth2-proxy-cookie-secret**: OAuth2 proxy cookie signing secret
-
-### Secret Distribution
-- **Middle server**: Rathole server keys + OAuth2 secrets
-- **Home server**: Rathole client keys + application secrets
-
-## Setup
-
-### 1. Automated Script
-
-```bash
-# Create .env file with required variables
-cat > .env << EOF
-MIDDLE_AGE_KEY=age1abc123...  # Get from: ssh user@middle "cat /etc/ssh/ssh_host_ed25519_key.pub" | ssh-to-age
-HOME_AGE_KEY=age1def456...    # Get from: ssh user@home "cat /etc/ssh/ssh_host_ed25519_key.pub" | ssh-to-age
-RATHOLE_NOISE_PRIVATE=your-private-key
-RATHOLE_NOISE_PUBLIC=your-public-key
-EOF
-
-# Generate and encrypt secrets
-./scripts/generate-secrets.sh
-```
-
-### 2. Deploy and Verify
-
-```bash
-# Deploy configurations
-./deploy.sh middle user@middle-server
-./deploy.sh home user@home-server
-
-# Check rathole services
-systemctl status rathole-server  # middle
-systemctl status rathole-client  # home
-
-# Test connectivity
-curl https://app.home.amsh.dev
-```
-
-## Configuration Patterns
-
-### Environment File Template (Most Common)
 ```nix
 sops = {
-  defaultSopsFile = ./secrets.yaml;
+  defaultSopsFile = ../secrets.yaml;
   age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-  secrets = {
-    myapp-db-password = { owner = "dock"; group = "docker"; mode = "0400"; };
-    myapp-api-key = { owner = "dock"; group = "docker"; mode = "0400"; };
-  };
 };
 
-# Environment file template for Docker services
 sops.templates."myapp.env" = {
   owner = "dock";
   group = "docker";
@@ -92,107 +31,37 @@ sops.templates."myapp.env" = {
 };
 ```
 
-### Configuration File Template (Advanced)
-```nix
-# For services requiring TOML/YAML config files
-sops.templates."rathole-server.toml" = {
-  owner = "rathole";
-  group = "rathole"; 
-  mode = "0400";
-  path = "/var/lib/rathole/rathole-server.toml";
-  restartUnits = [ "rathole-server.service" ];
-  content = ''
-    [server]
-    default_token = "${config.sops.placeholder.rathole-token}"
-    [server.transport.noise]
-    local_private_key = "${config.sops.placeholder.rathole-noise-private}"
-  '';
-};
-```
+The current repo uses this pattern for:
 
-### Service User Ownership
-- **dock:docker** - Docker service environment files
-- **www-data:www-data** - Web service configs (Firefly III)
-- **rathole:rathole** - Tunnel service configs
-- **nobody:nogroup** - System service secrets
+- Docker environment files under `/var/lib/dock/`
+- Tunnel config files such as `rathole-client.toml`
+- Backup credentials such as `restic-repository-password`
 
-## Adding New Secrets
+## Adding A Secret
 
-### 1. Add to secrets.yaml
+1. Add the secret name to `.sops.yaml` if it needs a new recipient rule.
+2. Add the secret entry to the appropriate machine config with `sops.secrets.<name>`.
+3. Reference it through `config.sops.placeholder.<name>` in a template or service config.
+4. Generate or update the encrypted file with `scripts/generate-secrets.sh` or `sops <path>`.
+
+Example:
 
 ```bash
+./scripts/generate-secrets.sh
+```
+
+## Editing And Verifying
+
+```bash
+sops machines/home/secrets.yaml
 sops machines/middle/secrets.yaml
-# Add: new-secret: "value"
-```
-
-### 2. Add to NixOS config
-
-```nix
-sops = {
-  age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-  secrets = {
-    rathole-token = { /* existing */ };
-    ...
-    new-secret = {
-      owner = "service-user";
-      group = "service-group";
-      mode = "0400";
-    };
-  };
-};
-```
-
-### 3. Use in Docker services
-
-```nix
-# Most common: Environment file
-sops.templates."myservice.env" = {
-  owner = "dock";
-  group = "docker";
-  path = "/var/lib/dock/myservice.env";
-  content = ''SECRET=${config.sops.placeholder.new-secret}'';
-};
-```
-
-```yaml
-# docker-compose.yml
-services:
-  myservice:
-    env_file:
-      - path: /var/lib/dock/myservice.env
-        required: true
-```
-
-## Daily Operations
-
-### View Secrets
-```bash
-# View decrypted secrets (requires age key locally)
-sops --decrypt machines/middle/secrets.yaml
 sops --decrypt machines/home/secrets.yaml
-
-# View encrypted files
-cat machines/middle/secrets.yaml
-cat machines/home/secrets.yaml
 ```
 
-### Edit Secrets
-```bash
-# Edit existing secrets manually
-sops machines/middle/secrets.yaml  # Edit token + private key
-sops machines/home/secrets.yaml    # Edit token + public key
+If you are working on the VM configs, keep in mind that `machines/home-vm/configuration.nix` and `machines/middle-vm/configuration.nix` each point at their own local `secrets.yaml` file.
 
-# Or regenerate with script (updates .env file)
-./scripts/generate-secrets.sh
-```
+## Notes
 
-### Rotate Secrets
-```bash
-# Update .env and regenerate
-vim .env  # Update RATHOLE_NOISE_PRIVATE and RATHOLE_NOISE_PUBLIC
-./scripts/generate-secrets.sh
-
-# Deploy updates to both machines
-./deploy.sh middle user@middle-server
-./deploy.sh home user@home-server
-```
+- Do not commit `secrets.yaml` files.
+- If you stage one by mistake, the local pre-commit hook will stop the commit.
+- The repo intentionally keeps the generated encrypted files local so they can be recreated, rotated, or re-encrypted without storing them in Git history.

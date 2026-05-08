@@ -8,6 +8,8 @@ The configuration uses a **common + machine-specific** approach:
 - **`machines/`** - Machine-specific overrides and additions
 - **`flake.nix`** - Defines all machine configurations
 
+The current machine-specific schema is documented in [`docs/homelab.md`](homelab.md). In short, the machine configs define `homelab.services`, `homelab.backups`, and `homelab.machineName`, and the service registry module turns those mappings into NixOS services, secrets, templates, and restore metadata.
+
 ## Common Module Structure
 
 Located in `common/modules/`:
@@ -18,6 +20,7 @@ Located in `common/modules/`:
 - `btrfs.nix` - Snapper snapshots, automatic scrubbing
 - `docker.nix` - Docker daemon with overlay2 storage
 - `compose-services.nix` - Docker Compose services management
+- `service-registry.nix` - Declarative compose services, secrets, templates, and backup groups
 
 ## Machine-Specific Configuration
 
@@ -25,16 +28,16 @@ Each machine has its own directory in `machines/MACHINE_NAME/`:
 
 - `configuration.nix` - Machine-specific settings and overrides
 - `docker-services/` - Machine-specific Docker services
-- `secrets.yaml` - Machine-specific encrypted secrets
+- `secrets.yaml` - Machine-specific encrypted secrets generated locally and ignored by Git
 
 ### Home Machine (`machines/home/`)
-Services: traefik, fireflyiii, blinko, memos, minio, n8n
+Services: traefik, fireflyiii, blinko, memos, minio, n8n, immich, linkwarden, solidtime, infisical, and others
 - Internal traefik (port 8080 only)
 - Rathole client configuration
-- Application-specific users (www-data for web services)
+- Service registry-driven backups and restore metadata
 
 ### Middle Machine (`machines/middle/`)
-Services: traefik, wg-easy, kanidm, oauth2-proxy
+Services: traefik, wg-easy, kanidm, oauth2-proxy, adguard
 - Public traefik (ports 80/443)
 - Rathole server configuration
 - OAuth2 proxy integration
@@ -76,6 +79,8 @@ sops.templates."service.env" = {
 };
 ```
 
+For secrets that belong to a backup group or a service registry entry, see `common/modules/service-registry.nix` and the machine-specific `services/index.nix` files.
+
 ## Customization
 
 ### Global Changes (All Machines)
@@ -96,7 +101,7 @@ Edit files in `machines/MACHINE/` and redeploy specific machine:
 ### Deployment Commands
 ```bash
 # Deploy specific machine
-./deploy.sh myserver user@server1
+./deploy.sh home user@server1
 
 # Deploy different machine
-./deploy.sh server2 user@server2
+./deploy.sh middle user@server2

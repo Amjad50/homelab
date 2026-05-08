@@ -2,7 +2,7 @@
 
 ## Installation Script
 
-The `install-nixos.sh` script provides automated NixOS installation with optimized Btrfs layout and SSH configuration.
+The `scripts/install-nixos.sh` script provides automated NixOS installation with optimized Btrfs layout and SSH configuration.
 
 ## Prerequisites
 
@@ -16,8 +16,8 @@ The `install-nixos.sh` script provides automated NixOS installation with optimiz
 ### Basic Installation
 ```bash
 # Download or copy script to NixOS ISO
-chmod +x install-nixos.sh
-sudo ./install-nixos.sh /dev/sda
+chmod +x scripts/install-nixos.sh
+sudo ./scripts/install-nixos.sh /dev/sda
 ```
 
 ### Custom Configuration
@@ -80,10 +80,10 @@ ssh amjad@<server-ip>
 ### 3. Deploy Configuration
 ```bash
 # From your development machine
-./deploy.sh myserver amjad@<server-ip>
+./deploy.sh home amjad@<server-ip>
 
 # For additional machines, specify the machine name
-./deploy.sh server2 amjad@<server-ip>
+./deploy.sh middle amjad@<server-ip>
 ```
 
 ## Security Features
@@ -98,7 +98,7 @@ ssh amjad@<server-ip>
 
 ### Different Disk
 ```bash
-sudo ./install-nixos.sh /dev/nvme0n1
+sudo ./scripts/install-nixos.sh /dev/nvme0n1
 ```
 
 ### Custom Configuration
@@ -142,8 +142,8 @@ The script can be modified for:
 After successful installation:
 
 1. **Test SSH connectivity**
-2. **Deploy your configuration** with `./deploy.sh user@server myserver`
-3. **Add machine to flake.nix** if using different machine name
+2. **Deploy your configuration** with `./deploy.sh home user@server`
+3. **Add machine to flake.nix** if using a different machine name
 4. **Set up Docker services** as needed
 5. **Configure machine-specific settings**
 6. **Set up monitoring and backups**
