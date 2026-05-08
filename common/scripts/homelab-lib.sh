@@ -68,6 +68,10 @@ group_postgres() {
   jq -c --arg g "$1" '.backups[$g].postgres // []' "$META"
 }
 
+group_custom_restores() {
+  jq -c --arg g "$1" '.backups[$g].customRestores // []' "$META"
+}
+
 # --- Validation ---
 
 require_service() {

@@ -105,6 +105,53 @@ restore_postgres() {
   fi
 }
 
+restore_custom() {
+  local group=$1
+  local restore_entries
+  restore_entries=$(group_custom_restores "$group")
+
+  local count
+  count=$(echo "$restore_entries" | jq 'length')
+  (( count > 0 )) || return 0
+
+  log "[${group}] Running ${count} custom restore hook(s)"
+
+  local failed=0
+  for entry in $(echo "$restore_entries" | jq -r -c '.[]'); do
+    (
+    local service script artifact_dir
+    service=$(jq_field "$entry" service)
+    script=$(jq_field "$entry" script)
+    artifact_dir="/tmp/homelab-artifacts/${group}/${service}"
+
+    log "[${group}] Restoring ${service} from ${artifact_dir}"
+    export GROUP_NAME="$group"
+    export SERVICE_NAME="$service"
+    export BACKUP_ROOT="/tmp/homelab-artifacts/${group}"
+    export SERVICE_ARTIFACT_DIR="$artifact_dir"
+
+    local tmp
+    tmp=$(mktemp)
+    trap 'rm -f "$tmp"' RETURN
+    printf '%s\n' "$script" > "$tmp"
+    local hook_rc=0
+    bash "$tmp" 2>&1 | sed "s/^/  [${group}:${service}] /" || hook_rc=$?
+    if (( hook_rc != 0 )); then
+      log_err "[${group}] custom restore failed for ${service} (exit ${hook_rc})"
+      failed=$((failed + 1))
+      continue
+    fi
+
+    log_ok "[${group}] custom restore succeeded for ${service}"
+    ) || failed=$((failed + 1))
+  done
+
+  if (( failed > 0 )); then
+    log_err "[${group}] ${failed}/${count} custom restore hook(s) failed"
+    return 1
+  fi
+}
+
 # --- Group restore ---
 
 restore_group() {
@@ -125,6 +172,7 @@ restore_group() {
     return 1
   fi
 
+  restore_custom "$group" || return 1
   restore_postgres "$group" || return 1
 
   local script

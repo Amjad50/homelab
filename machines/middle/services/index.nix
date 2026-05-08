@@ -36,6 +36,21 @@
     };
 
     kanidm = {
+      backup = {
+        group = config.homelab.backups.default;
+        customBackupScript = ''
+          compose-manage exec -T kanidm kanidm /sbin/kanidmd database backup -c /data/server.toml /kanidm.backup.json.gz
+          docker cp "kanidm:/kanidm.backup.json.gz" "$SERVICE_ARTIFACT_DIR/kanidm.backup.json.gz"
+        '';
+        customRestoreScript = ''
+          test -f "$SERVICE_ARTIFACT_DIR/kanidm.backup.json"
+          docker run --rm -i \
+            -v kanidm_kanidm_data:/data \
+            -v "$SERVICE_ARTIFACT_DIR:/backup" \
+            kanidm/server:latest \
+            /sbin/kanidmd database restore -c /data/server.toml /backup/kanidm.backup.json.gz
+        '';
+      };
     };
 
     oauth2-proxy = {

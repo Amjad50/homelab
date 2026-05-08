@@ -62,9 +62,11 @@ let
       templates = lib.mkOption { type = lib.types.attrsOf templateType; default = {}; };
 
       backup = {
-        group    = lib.mkOption { type = lib.types.nullOr (lib.types.attrsOf lib.types.anything); default = null; description = "The backup group this service belongs to."; };
-        paths    = lib.mkOption { type = lib.types.listOf lib.types.str; default = []; description = "Filesystem paths to include in the backup."; };
-        postgres = lib.mkOption { type = lib.types.listOf postgresType;  default = []; description = "Postgres databases to dump before backup."; };
+        group               = lib.mkOption { type = lib.types.nullOr (lib.types.attrsOf lib.types.anything); default = null; description = "The backup group this service belongs to."; };
+        paths               = lib.mkOption { type = lib.types.listOf lib.types.str; default = []; description = "Filesystem paths to include in the backup."; };
+        postgres            = lib.mkOption { type = lib.types.listOf postgresType;  default = []; description = "Postgres databases to dump before backup."; };
+        customBackupScript  = lib.mkOption { type = lib.types.lines; default = ""; description = "Host shell script run before backup while services are still up."; };
+        customRestoreScript = lib.mkOption { type = lib.types.lines; default = ""; description = "Host shell script run after restic restore while services in the group are still stopped."; };
       };
     };
   });
@@ -108,6 +110,14 @@ in
             stack = svcName;
           }) svc.backup.postgres
         ) dependentServices);
+        customBackups = lib.filter (x: x.script != "") (lib.mapAttrsToList (svcName: svc: {
+          service = svcName;
+          script = svc.backup.customBackupScript;
+        }) dependentServices);
+        customRestores = lib.filter (x: x.script != "") (lib.mapAttrsToList (svcName: svc: {
+          service = svcName;
+          script = svc.backup.customRestoreScript;
+        }) dependentServices);
         serviceNames = lib.attrNames dependentServices;
       }
     ) backupGroups;
@@ -120,10 +130,31 @@ in
 
     mkResticBackup = groupName: group:
       let
-        meta    = groupMeta.${groupName};
-        dumpDir = "/tmp/db-dumps/${groupName}";
-        hasPg   = meta.postgres != [];
-        paths   = meta.paths ++ lib.optional hasPg dumpDir;
+        meta        = groupMeta.${groupName};
+        dumpDir     = "/tmp/db-dumps/${groupName}";
+        artifactDir = "/tmp/homelab-artifacts/${groupName}";
+        hasPg       = meta.postgres != [];
+        hasCustom   = meta.customBackups != [];
+        paths       = meta.paths
+          ++ lib.optional hasPg dumpDir
+          ++ lib.optional hasCustom artifactDir;
+        cleanupTargets = lib.concatStringsSep " " (
+          lib.optional hasPg (lib.escapeShellArg dumpDir)
+          ++ lib.optional hasCustom (lib.escapeShellArg artifactDir)
+        );
+        hookPath = "${lib.makeBinPath (with pkgs; [
+          bash coreutils docker docker-compose jq gnugrep gnused findutils util-linux sqlite
+        ])}:/run/current-system/sw/bin:$PATH";
+        mkCustomBackupCommand = hook: ''
+          export GROUP_NAME=${lib.escapeShellArg groupName}
+          export SERVICE_NAME=${lib.escapeShellArg hook.service}
+          export BACKUP_ROOT=${lib.escapeShellArg artifactDir}
+          export SERVICE_ARTIFACT_DIR=${lib.escapeShellArg "${artifactDir}/${hook.service}"}
+          mkdir -p "$SERVICE_ARTIFACT_DIR"
+          ${pkgs.bash}/bin/bash <<'EOF'
+          ${hook.script}
+          EOF
+        '';
       in {
         repository      = repoUrl;
         passwordFile    = config.sops.secrets.restic-repository-password.path;
@@ -144,17 +175,22 @@ in
           "--keep-monthly=12"
         ];
 
-        backupPrepareCommand = lib.optionalString hasPg ''
-          export PATH="${lib.makeBinPath (with pkgs; [ coreutils docker jq bash ])}:$PATH"
-          export DUMP_DIR=${lib.escapeShellArg dumpDir}
-          export GROUP_NAME=${lib.escapeShellArg groupName}
-          ${pkgs.bash}/bin/bash ${../scripts/backup-postgres.sh} \
-            ${lib.escapeShellArg (builtins.toJSON meta.postgres)}
-        '';
+        backupPrepareCommand =
+          lib.optionalString (hasPg || hasCustom) ''
+            export PATH="${hookPath}"
+          ''
+          + lib.optionalString hasPg ''
+            export DUMP_DIR=${lib.escapeShellArg dumpDir}
+            export GROUP_NAME=${lib.escapeShellArg groupName}
+            ${pkgs.bash}/bin/bash ${../scripts/backup-postgres.sh} \
+              ${lib.escapeShellArg (builtins.toJSON meta.postgres)}
+          ''
+          + lib.optionalString hasCustom (lib.concatMapStringsSep "\n" mkCustomBackupCommand meta.customBackups);
 
-        backupCleanupCommand = lib.optionalString hasPg ''
-          rm -rf ${lib.escapeShellArg dumpDir}
-        '';
+        backupCleanupCommand =
+          lib.optionalString (hasPg || hasCustom) ''
+            rm -rf ${cleanupTargets}
+          '';
 
         # Suppress auto-timer; restic-locked-<group> owns scheduling.
         timerConfig = null;
@@ -290,6 +326,7 @@ in
           composeServices = groupMeta.${groupName}.serviceNames;
           postgres = groupMeta.${groupName}.postgres;
           paths = groupMeta.${groupName}.paths;
+          customRestores = groupMeta.${groupName}.customRestores;
         }) backupGroups;
       };
 
