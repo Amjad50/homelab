@@ -82,6 +82,12 @@ in
     });
   '';
 
+  # Install shared library
+  config.environment.etc."homelab/lib.sh" = {
+    source = ../scripts/homelab-lib.sh;
+    mode = "0444";
+  };
+
   # Install management scripts
   config.environment.systemPackages = with pkgs; [
     # Main management script from external file

@@ -142,7 +142,7 @@ in
           export PATH="${lib.makeBinPath (with pkgs; [ coreutils docker jq bash ])}:$PATH"
           export DUMP_DIR=${lib.escapeShellArg dumpDir}
           export GROUP_NAME=${lib.escapeShellArg groupName}
-          ${pkgs.bash}/bin/bash ${../scripts/homelab-backup-postgres.sh} \
+          ${pkgs.bash}/bin/bash ${../scripts/backup-postgres.sh} \
             ${lib.escapeShellArg (builtins.toJSON (map (pg: { inherit (pg) stack composeService container database user; }) group.postgres))}
         '';
 
@@ -190,9 +190,9 @@ in
       export HOMELAB_RESTIC_S3_ENV=${lib.escapeShellArg config.sops.templates."restic-s3.env".path}
     '';
 
-    hlRestoreScript = pkgs.writeShellScript "homelab-restore-impl" ''
+    hlRestoreScript = pkgs.writeShellScript "restore-backup-impl" ''
       ${hlRestoreEnv}
-      ${builtins.readFile ../scripts/homelab-restore.sh}
+      ${builtins.readFile ../scripts/restore-backup.sh}
     '';
 
     # Auto-restore unit: runs on boot if sentinel is absent.
@@ -281,7 +281,7 @@ in
       };
 
     environment.systemPackages = [
-      (pkgs.writeShellScriptBin "homelab-restore" ''
+      (pkgs.writeShellScriptBin "restore-backup" ''
         exec ${hlRestoreScript} "$@"
       '')
     ];
