@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+blocked_files=$(
+  git diff --cached --name-only --diff-filter=ACMR \
+    | grep -E '(^|/)secrets\.yaml$' || true
+)
+
+if [[ -n "$blocked_files" ]]; then
+  cat >&2 <<'EOF'
+Refusing commit: staged encrypted secrets file(s) detected.
+
+These files must stay out of Git:
+  - `secrets.yaml`
+
+If you need to change a secret, keep the encrypted file untracked or manage it
+outside this repository, then point Nix at that external path.
+EOF
+  printf '%s\n' "$blocked_files" | sed 's/^/  - /' >&2
+  exit 1
+fi
