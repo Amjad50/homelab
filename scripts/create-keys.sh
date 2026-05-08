@@ -64,21 +64,21 @@ ssh_to_age() {
   return 1
 }
 
-expected_home_vm_recipient="$(
-  awk '$2 == "&home_vm" { print $3 }' "$SOPS_CONFIG"
+expected_vm_recipient="$(
+  awk '$2 == "&vm" { print $3 }' "$SOPS_CONFIG"
 )"
 
-if [[ -z "$expected_home_vm_recipient" ]]; then
-  echo "ERROR: Could not find the .sops.yaml home_vm age recipient." >&2
+if [[ -z "$expected_vm_recipient" ]]; then
+  echo "ERROR: Could not find the .sops.yaml vm age recipient." >&2
   exit 1
 fi
 
-replace_home_vm_recipient() {
+replace_vm_recipient() {
   local new_recipient="$1"
   local tmp
   tmp="$(mktemp)"
   awk -v new_recipient="$new_recipient" '
-    /^[[:space:]]*-[[:space:]]*&home_vm[[:space:]]+/ {
+    /^[[:space:]]*-[[:space:]]*&vm[[:space:]]+/ {
       sub(/age1[0-9a-z]+/, new_recipient)
     }
     { print }
@@ -98,17 +98,17 @@ if [[ "$ROTATE" == true ]]; then
   echo "==> Rotating VM SSH host/decryption key..."
   ssh-keygen -t ed25519 -N "" -C "home-vm-host" -f "$VM_HOST_KEY"
 
-  if ! new_home_vm_recipient="$(ssh_to_age < "${VM_HOST_KEY}.pub")"; then
+  if ! new_vm_recipient="$(ssh_to_age < "${VM_HOST_KEY}.pub")"; then
     echo "ERROR: Could not convert ${VM_HOST_KEY}.pub to an age recipient with ssh-to-age." >&2
     echo "Install ssh-to-age or make nixpkgs#ssh-to-age available, then rerun this script." >&2
     exit 1
   fi
 
-  replace_home_vm_recipient "$new_home_vm_recipient"
-  expected_home_vm_recipient="$new_home_vm_recipient"
+  replace_vm_recipient "$new_vm_recipient"
+  expected_vm_recipient="$new_vm_recipient"
 
-  echo "==> Updated .sops.yaml home_vm recipient:"
-  echo "    $new_home_vm_recipient"
+  echo "==> Updated .sops.yaml vm recipient:"
+  echo "    $new_vm_recipient"
 
   if command -v sops >/dev/null 2>&1; then
     echo "==> Rekeying machines/home-vm/secrets.yaml..."
@@ -139,8 +139,8 @@ if [[ ! -f "$VM_HOST_KEY" ]]; then
   cat >&2 <<EOF
 ERROR: Missing VM host/decryption key: $VM_HOST_KEY
 
-This key must already match the .sops.yaml home_vm recipient:
-  $expected_home_vm_recipient
+This key must already match the .sops.yaml vm recipient:
+  $expected_vm_recipient
 
 Do not generate a random replacement; machines/home-vm/secrets.yaml will not decrypt.
 Restore the matching VM host key to $VM_HOST_KEY, or intentionally update
@@ -154,24 +154,24 @@ if [[ ! -f "${VM_HOST_KEY}.pub" ]]; then
   ssh-keygen -y -f "$VM_HOST_KEY" > "${VM_HOST_KEY}.pub"
 fi
 
-if ! actual_home_vm_recipient="$(ssh_to_age < "${VM_HOST_KEY}.pub")"; then
+if ! actual_vm_recipient="$(ssh_to_age < "${VM_HOST_KEY}.pub")"; then
   echo "ERROR: Could not convert ${VM_HOST_KEY}.pub to an age recipient with ssh-to-age." >&2
   echo "Install ssh-to-age or make nixpkgs#ssh-to-age available, then rerun this script." >&2
   exit 1
 fi
-if [[ "$actual_home_vm_recipient" != "$expected_home_vm_recipient" ]]; then
+if [[ "$actual_vm_recipient" != "$expected_vm_recipient" ]]; then
   cat >&2 <<EOF
-ERROR: VM host key does not match .sops.yaml home_vm recipient.
+ERROR: VM host key does not match .sops.yaml vm recipient.
 
-Expected: $expected_home_vm_recipient
-Actual:   $actual_home_vm_recipient
+Expected: $expected_vm_recipient
+Actual:   $actual_vm_recipient
 
 Replace $VM_HOST_KEY with the host key matching .sops.yaml, or intentionally
 update .sops.yaml and re-encrypt machines/home-vm/secrets.yaml.
 EOF
   exit 1
 fi
-echo "==> VM SSH host key matches .sops.yaml home_vm recipient"
+echo "==> VM SSH host key matches .sops.yaml vm recipient"
 
 if [[ ! -f "$VM_CLIENT_KEY" ]]; then
   echo "==> Generating VM SSH client key..."

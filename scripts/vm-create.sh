@@ -1,20 +1,30 @@
 #!/usr/bin/env bash
 # scripts/vm-create.sh
 # Creates a QEMU VM and deploys the home-vm NixOS config via nixos-anywhere.
-# Run from the repo root: ./scripts/vm-create.sh
+# Run from the repo root: ./scripts/vm-create.sh [home|middle]
 # Prerequisites: nix shell (provides nixos-anywhere, OVMF)
 set -euo pipefail
-exec > >(tee /tmp/vm-create.log) 2>&1
+
+TARGET="${1:-home}"
+if [[ "$TARGET" != "home" && "$TARGET" != "middle" ]]; then
+  echo "Usage: $0 [home|middle]"
+  exit 1
+fi
+
+exec > >(tee /tmp/vm-create-${TARGET}.log) 2>&1
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 VM_DIR="$REPO_ROOT/machines/tests/disks"
 VM_HOST_KEY="$REPO_ROOT/machines/tests/keys/vm_ed25519_key"
 VM_CLIENT_KEY="$REPO_ROOT/machines/tests/keys/vm_client_ed25519_key"
-OS_DISK="$VM_DIR/home-vm-os.qcow2"
-STORAGE_DISK="$VM_DIR/home-vm-storage.qcow2"
+OS_DISK="$VM_DIR/${TARGET}-vm-os.qcow2"
+STORAGE_DISK="$VM_DIR/${TARGET}-vm-storage.qcow2"
 
 SSH_PORT=2222
+if [[ "$TARGET" == "middle" ]]; then
+  SSH_PORT=2223
+fi
 
 # Prevent GUI SSH password popups (ksshaskpass etc)
 unset SSH_ASKPASS
@@ -59,7 +69,7 @@ OVMF_VARS_SRC=$(find /nix/store -maxdepth 3 -name "OVMF_VARS.fd" 2>/dev/null | h
 [[ -n "$OVMF_CODE" ]] || { echo "ERROR: OVMF_CODE.fd not found. Run: nix develop"; exit 1; }
 [[ -n "$OVMF_VARS_SRC" ]] || { echo "ERROR: OVMF_VARS.fd not found. Run: nix develop"; exit 1; }
 
-OVMF_VARS="$VM_DIR/home-vm-ovmf-vars.fd"
+OVMF_VARS="$VM_DIR/${TARGET}-vm-ovmf-vars.fd"
 [[ -f "$OVMF_VARS" ]] || { cp "$OVMF_VARS_SRC" "$OVMF_VARS"; chmod 644 "$OVMF_VARS"; }
 echo "    Using OVMF_CODE: $OVMF_CODE"
 echo "    Using OVMF_VARS: $OVMF_VARS"
@@ -67,13 +77,13 @@ echo "    Using OVMF_VARS: $OVMF_VARS"
 echo "==> Booting VM from ISO for nixos-anywhere installation..."
 echo "    SSH will be forwarded on localhost:$SSH_PORT"
 
-if [[ -f /tmp/home-vm.pid ]]; then
-  kill "$(cat /tmp/home-vm.pid)" 2>/dev/null || true
-  rm -f /tmp/home-vm.pid
+if [[ -f /tmp/${TARGET}-vm.pid ]]; then
+  kill "$(cat /tmp/${TARGET}-vm.pid)" 2>/dev/null || true
+  rm -f /tmp/${TARGET}-vm.pid
 fi
 
 qemu-system-x86_64 \
-  -name home-vm \
+  -name ${TARGET}-vm \
   -machine type=q35,accel=kvm \
   -cpu host \
   -m 8192 \
@@ -89,7 +99,7 @@ qemu-system-x86_64 \
   -vga virtio \
   -display none \
   -daemonize \
-  -pidfile /tmp/home-vm.pid
+  -pidfile /tmp/${TARGET}-vm.pid
 
 echo "==> Waiting for VM SSH to become available (up to 5 minutes)..."
 ssh-keygen -R "[localhost]:$SSH_PORT" 2>/dev/null || true
@@ -118,9 +128,9 @@ cp "$VM_HOST_KEY" "$EXTRA_FILES/etc/ssh/ssh_host_ed25519_key"
 cp "${VM_HOST_KEY}.pub" "$EXTRA_FILES/etc/ssh/ssh_host_ed25519_key.pub"
 chmod 600 "$EXTRA_FILES/etc/ssh/ssh_host_ed25519_key"
 
-echo "==> Running nixos-anywhere to install home-vm config..."
+echo "==> Running nixos-anywhere to install ${TARGET}-vm config..."
 nixos-anywhere \
-  --flake "$REPO_ROOT#home-vm" \
+  --flake "$REPO_ROOT#${TARGET}-vm" \
   --target-host "root@localhost" \
   --ssh-port "$SSH_PORT" \
   -i "$VM_CLIENT_KEY" \
@@ -131,10 +141,10 @@ nixos-anywhere \
   --extra-files "$EXTRA_FILES"
 
 # Cleanup the known_hosts entry for the installer VM (which had a different host key)
-ssh-keygen -R "[localhost]:2222"
+ssh-keygen -R "[localhost]:$SSH_PORT"
 
 echo ""
 echo "==> nixos-anywhere complete. Restarting VM from installed disk..."
 
 # Restart without iso
-"$SCRIPT_DIR/vm-start.sh"
+"$SCRIPT_DIR/vm-start.sh" "$TARGET"

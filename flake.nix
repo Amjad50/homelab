@@ -88,6 +88,25 @@
             }
           ];
         };
+        middle-vm = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          modules = [
+            disko.nixosModules.disko
+            ./hardware/middle-vm.nix
+            ./common/configuration.nix
+            ./machines/middle-vm/configuration.nix
+            sops-nix.nixosModules.sops
+            home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.users.amjad = import ./common/home.nix;
+              home-manager.sharedModules = [
+                nixvim.homeManagerModules.nixvim
+              ];
+            }
+          ];
+        };
       };
       packages.x86_64-linux.installer-iso =
         let

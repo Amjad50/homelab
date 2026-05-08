@@ -268,17 +268,19 @@ main() {
     echo
 
     # Encrypt for all machines
-    # home-vm uses the same secret values as home (it's a replica), but encrypted
-    # with the VM host key (as defined in .sops.yaml creation_rules)
+    # VMs use the same secret values as their physical counterparts (they are replicas),
+    # but encrypted with the VM host key (as defined in .sops.yaml creation_rules)
     encrypt_secrets "middle"
     encrypt_secrets "home"
     encrypt_secrets "home-vm" "home"
+    encrypt_secrets "middle-vm" "middle"
 
     echo
     log_info "Verifying encrypted files..."
     verify_secrets "middle"
     verify_secrets "home"
     verify_secrets "home-vm"
+    verify_secrets "middle-vm"
 
     echo
     if [ "$GENERATED_COUNT" -gt 0 ]; then
@@ -291,6 +293,7 @@ main() {
     echo "  - machines/middle/secrets.yaml"
     echo "  - machines/home/secrets.yaml"
     echo "  - machines/home-vm/secrets.yaml"
+    echo "  - machines/middle-vm/secrets.yaml"
 
     # Print only secrets generated this run in .env format for easy copy-paste
     if [ "$GENERATED_COUNT" -gt 0 ]; then
