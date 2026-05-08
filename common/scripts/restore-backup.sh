@@ -15,7 +15,6 @@ done
 
 export RESTIC_REPOSITORY="$HOMELAB_REPO"
 export RESTIC_PASSWORD_FILE="$HOMELAB_RESTIC_PASSWORD_FILE"
-export RESTIC_PROGRESS_FPS=0.5  # show progress on restore
 set -a
 # shellcheck disable=SC1090
 . "$HOMELAB_RESTIC_S3_ENV"

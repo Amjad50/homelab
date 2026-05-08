@@ -108,6 +108,7 @@
     content = ''
       AWS_ACCESS_KEY_ID=${config.sops.placeholder.backup-aws-access-key-id}
       AWS_SECRET_ACCESS_KEY=${config.sops.placeholder.backup-aws-secret-access-key}
+      RESTIC_PROGRESS_FPS=0.1
     '';
   };
 
