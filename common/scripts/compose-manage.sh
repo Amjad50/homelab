@@ -150,21 +150,6 @@ cmd_pull() {
   fi
 }
 
-cmd_unlock() {
-  if [[ -f /etc/compose-unlocked ]]; then
-    success "Already unlocked."
-  else
-    touch /etc/compose-unlocked
-    systemctl start compose-unlocked.target
-    success "Unlocked. Services will now start."
-  fi
-}
-
-cmd_lock() {
-  rm -f /etc/compose-unlocked
-  warn "Locked. Services will not auto-start on next boot."
-}
-
 cmd_help() {
   info "Docker Compose Services Manager"
   echo ""
@@ -186,10 +171,6 @@ cmd_help() {
   echo "  exec <svc> <ctr> <cmd...>   - Execute command in container"
   echo "  ps [service]                - Show running containers"
   echo "  pull [--up] [services...]   - Pull images (--up to restart if running)"
-  echo ""
-  warn "Boot Control:"
-  echo "  unlock                   - Create unlock file so services start on boot"
-  echo "  lock                     - Remove unlock file (services won't auto-start)"
 }
 
 # --- Main ---

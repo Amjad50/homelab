@@ -8,15 +8,13 @@ let
   # List of services to manage
   services = config.services.compose-services.services;
 
-  unlockFile = "/etc/compose-unlocked";
-
   # Create systemd service for a compose service
   createComposeService = serviceName: {
     name = "docker-compose-${serviceName}";
     value = {
       description = "Docker Compose: ${serviceName}";
-      after = [ "docker.service" "network.target" "compose-unlocked.target" ];
-      requires = [ "docker.service" "compose-unlocked.target" ];
+      after = [ "docker.service" "network.target" ];
+      requires = [ "docker.service" ];
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
@@ -47,19 +45,6 @@ in
       default = [];
       description = "List of Docker Compose services to manage";
     };
-  };
-
-  # Target that becomes active once the unlock file exists
-  config.systemd.targets.compose-unlocked = {
-    description = "Docker Compose services unlocked";
-    unitConfig.ConditionPathExists = unlockFile;
-  };
-
-  # Path unit that activates the target when the file appears
-  config.systemd.paths.compose-unlocked = {
-    description = "Watch for compose unlock file";
-    pathConfig.PathExists = unlockFile;
-    wantedBy = [ "multi-user.target" ];
   };
 
   # Create systemd services for all listed compose services
