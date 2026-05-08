@@ -16,23 +16,30 @@ Each backup group becomes:
 - one `restic-locked-<group>.service` wrapper for serialization
 - one `restic-locked-<group>.timer`
 - one restore sentinel at `/var/lib/homelab/restored/<group>`
-- one `restore-backup` CLI entry point
+- one `homelab-backup` CLI entry point
 
 The current `home` machine uses two groups:
 
 - `default` for normal services
 - `immich` for the large media restore path, with `autoStart = false`
 
-## Restore Workflow
+## CLI
 
 ```bash
-restore-backup list
-restore-backup group default
-restore-backup group immich
-restore-backup all
+homelab-backup list
+homelab-backup restore default
+homelab-backup backup default
+homelab-backup restore immich
 ```
 
-`restore-backup` does the following for each group:
+`homelab-backup` supports:
+
+- `list` to show restore state, live backup/restore service state, and the latest snapshot metadata
+- `restore <group>` to stop the group, restore files and databases, run hooks, and restart services
+- `backup <group>` to trigger the serialized `restic-locked-<group>.service`
+- `all` to restore every group sequentially
+
+`restore` does the following for each group:
 
 1. Stops compose services in the group.
 2. Runs `restic restore latest` with the group and machine tags.
@@ -59,15 +66,18 @@ The registry also injects the shared restic repository credentials:
 ## Operational Notes
 
 - `restic-locked-<group>` owns scheduling for the group.
-- `restore-backup` is the runtime CLI name. Older references to `homelab-restore` are outdated.
+- `homelab-backup` is the runtime CLI name.
 - Old snapshots remain in the repository. New backups use the `backup-v2` tag set.
 
 ## Troubleshooting
 
 ```bash
 systemctl status restic-locked-default.timer
+systemctl status restic-locked-default.service
+journalctl -u restic-locked-default -n 50
 journalctl -u restic-backups-default -n 50
 journalctl -u homelab-restore-default -n 50
+homelab-backup list
 ```
 
 If a restore fails, check:
@@ -79,6 +89,6 @@ If a restore fails, check:
 ## Relevant Files
 
 - [`common/modules/service-registry.nix`](../common/modules/service-registry.nix)
-- [`common/scripts/restore-backup.sh`](../common/scripts/restore-backup.sh)
+- [`common/scripts/homelab-backup.sh`](../common/scripts/homelab-backup.sh)
 - [`common/scripts/backup-postgres.sh`](../common/scripts/backup-postgres.sh)
 - [`common/scripts/homelab-lib.sh`](../common/scripts/homelab-lib.sh)

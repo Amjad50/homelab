@@ -113,6 +113,38 @@ print_status_line() {
   esac
 }
 
+systemd_unit_active_state() {
+  systemctl show -p ActiveState --value "$1" 2>/dev/null || echo unknown
+}
+
+systemd_unit_sub_state() {
+  systemctl show -p SubState --value "$1" 2>/dev/null || echo unknown
+}
+
+systemd_unit_runtime_state() {
+  local active sub
+  active=$(systemd_unit_active_state "$1")
+  sub=$(systemd_unit_sub_state "$1")
+
+  case "$active/$sub" in
+    activating/*)
+      echo running
+      ;;
+    active/exited|inactive/*)
+      echo idle
+      ;;
+    failed/*)
+      echo failed
+      ;;
+    unknown/unknown)
+      echo unknown
+      ;;
+    *)
+      echo "${active}${sub:+/$sub}"
+      ;;
+  esac
+}
+
 do_systemctl() {
   local action=$1 name=$2
   systemctl "$action" "$(unit_name "$name")"

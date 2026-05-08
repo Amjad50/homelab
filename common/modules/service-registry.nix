@@ -223,8 +223,8 @@ in
       };
     };
 
-    # Shared env + PATH setup for homelab-restore invocations (both systemd and CLI).
-    hlRestoreEnv = ''
+    # Shared env + PATH setup for homelab-backup invocations (both systemd and CLI).
+    hlBackupEnv = ''
       export PATH="${lib.makeBinPath (with pkgs; [ coreutils restic util-linux jq gnused docker systemd bash ])}:/run/current-system/sw/bin:$PATH"
       export HOMELAB_MACHINE=${lib.escapeShellArg machine}
       export HOMELAB_LOCK=${lib.escapeShellArg lockFile}
@@ -233,13 +233,13 @@ in
       export HOMELAB_RESTIC_S3_ENV=${lib.escapeShellArg config.sops.templates."restic-s3.env".path}
     '';
 
-    hlRestoreScript = pkgs.writeShellScript "restore-backup-impl" ''
-      ${hlRestoreEnv}
-      ${builtins.readFile ../scripts/restore-backup.sh}
+    hlBackupScript = pkgs.writeShellScript "homelab-backup-impl" ''
+      ${hlBackupEnv}
+      ${builtins.readFile ../scripts/homelab-backup.sh}
     '';
 
     # Auto-restore unit: runs on boot if sentinel is absent.
-    # Calls the shared homelab-restore script so postgres + postScript are handled.
+    # Calls the shared homelab-backup script so postgres + postScript are handled.
     mkAutoRestoreService = groupName: group: {
       name  = "homelab-restore-${groupName}";
       value = {
@@ -253,7 +253,7 @@ in
           RemainAfterExit = true;
         };
         script = ''
-          exec ${hlRestoreScript} group ${lib.escapeShellArg groupName}
+          exec ${hlBackupScript} restore ${lib.escapeShellArg groupName}
         '';
       };
     };
@@ -332,8 +332,8 @@ in
       };
 
     environment.systemPackages = [
-      (pkgs.writeShellScriptBin "restore-backup" ''
-        exec ${hlRestoreScript} "$@"
+      (pkgs.writeShellScriptBin "homelab-backup" ''
+        exec ${hlBackupScript} "$@"
       '')
     ];
   };

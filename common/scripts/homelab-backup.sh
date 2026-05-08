@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# restore-backup — backup group restore CLI
+# homelab-backup — backup group restore/backup CLI
 # Reads /etc/homelab/services.json for group metadata.
 # Injected env vars: HOMELAB_MACHINE, HOMELAB_LOCK, HOMELAB_REPO,
 #   HOMELAB_RESTIC_PASSWORD_FILE, HOMELAB_RESTIC_S3_ENV
@@ -198,12 +198,30 @@ restore_group() {
   compose-manage start-group "$group"
 }
 
+backup_group() {
+  local group=$1
+  local unit="restic-locked-${group}.service"
+  local job="restic-backups-${group}.service"
+
+  log "[${group}] Starting backup via ${unit}"
+  local backup_rc=0
+  systemctl start --wait "$unit" 2>&1 | sed "s/^/  [${group}] /" || backup_rc=$?
+  if (( backup_rc != 0 )); then
+    log_err "[${group}] backup failed via ${unit} (exit ${backup_rc})"
+    journalctl -u "$job" --no-pager -n 50 -o cat 2>/dev/null | sed "s/^/  [${group}] /" || true
+    return 1
+  fi
+
+  log_ok "[${group}] backup complete via ${unit}"
+  journalctl -u "$job" --no-pager -n 50 -o cat 2>/dev/null | sed "s/^/  [${group}] /" || true
+}
+
 # --- Commands ---
 
 cmd_list() {
   echo "Backup groups on machine '${HOMELAB_MACHINE}':"
   while read -r group; do
-    local sentinel restored snap_json snap_time snap_id last autostart pg_count
+    local sentinel restored snap_json snap_time snap_id last autostart pg_count backup_state restore_state
     sentinel=$(group_sentinel "$group")
     restored="no"
     [[ -f $sentinel ]] && restored="yes ($(stat -c %y "$sentinel" | cut -d. -f1))"
@@ -218,15 +236,27 @@ cmd_list() {
     autostart="autoStart"
     group_autostart "$group" || autostart="manual"
     pg_count=$(group_postgres "$group" | jq 'length')
-    printf "  %-20s restored=%-35s last=%s [%s] [%d postgres]\n" \
-      "$group" "$restored" "$last" "$autostart" "$pg_count"
+    backup_state=$(systemd_unit_runtime_state "restic-locked-${group}.service")
+    if group_autostart "$group"; then
+      restore_state=$(systemd_unit_runtime_state "homelab-restore-${group}.service")
+    else
+      restore_state="n/a"
+    fi
+    printf "  %-20s restored=%-35s backup=%-8s restore=%-8s last=%s [%s] [%d postgres]\n" \
+      "$group" "$restored" "$backup_state" "$restore_state" "$last" "$autostart" "$pg_count"
   done < <(group_names)
 }
 
-cmd_group() {
-  require_arg "${1:-}" "restore-backup group <name>"
+cmd_restore() {
+  require_arg "${1:-}" "homelab-backup restore <name>"
   require_group "$1"
   restore_group "$1"
+}
+
+cmd_backup() {
+  require_arg "${1:-}" "homelab-backup backup <name>"
+  require_group "$1"
+  backup_group "$1"
 }
 
 cmd_all() {
@@ -256,17 +286,19 @@ cmd_all() {
 
 case "${1:-}" in
   list)        cmd_list ;;
-  group)       shift; cmd_group "$@" ;;
+  restore)     shift; cmd_restore "$@" ;;
+  group)       shift; cmd_restore "$@" ;;
+  backup)      shift; cmd_backup "$@" ;;
   all)         cmd_all ;;
   ""|--help|-h)
     cat <<EOF
-restore-backup — backup group restore CLI
+homelab-backup — backup group restore/backup CLI
 
 Usage:
-  restore-backup list
-      Show all backup groups, last backup time, and restore status.
+  homelab-backup list
+      Show all backup groups, last backup time, and live service state.
 
-  restore-backup group <name>
+  homelab-backup restore <name>
       Full restore of a single backup group:
         1. Stop all compose services in the group
         2. restic restore (files + SQL dumps)
@@ -275,7 +307,10 @@ Usage:
         5. Write sentinel file
         6. Start all group services
 
-  restore-backup all
+  homelab-backup backup <name>
+      Trigger the locked restic backup service for one backup group.
+
+  homelab-backup all
       Restore every backup group sequentially.
 EOF
     ;;

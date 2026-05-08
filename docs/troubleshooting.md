@@ -75,10 +75,13 @@ docker-compose up
 jq . /etc/homelab/services.json
 
 # List backup groups
-restore-backup list
+homelab-backup list
 
 # Run a single restore group
-restore-backup group default
+homelab-backup restore default
+
+# Trigger the backup job for a single group
+homelab-backup backup default
 ```
 
 ## Btrfs Issues
