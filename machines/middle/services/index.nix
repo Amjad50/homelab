@@ -17,7 +17,13 @@
       tmpfiles = [
         "v /storage/dockge 0755 dock docker - -"
       ];
-      dependsOnBackups = [ config.homelab.backups.default ];
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [
+          "/storage/dockge/data/db-config.json"
+          "/storage/dockge/data/dockge.db"
+        ];
+      };
     };
 
     kanidm = {
@@ -41,7 +47,10 @@
       tmpfiles = [
         "v /storage/adguard 0755 dock docker - -"
       ];
-      dependsOnBackups = [ config.homelab.backups.default ];
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [ "/storage/adguard/conf" ];
+      };
     };
 
     netdata = {
@@ -51,14 +60,6 @@
   homelab.backups.default = {
     autoStart = true;
     schedule = "03:00";
-
-    paths = [
-      "/storage/dockge/data/db-config.json"
-      "/storage/dockge/data/dockge.db"
-      "/storage/adguard/conf"
-    ];
-
-    postgres = [];
   };
 
   # Non-registry items: rathole server, cloudflare creds, /storage root.

@@ -15,6 +15,7 @@ done
 
 export RESTIC_REPOSITORY="$HOMELAB_REPO"
 export RESTIC_PASSWORD_FILE="$HOMELAB_RESTIC_PASSWORD_FILE"
+export RESTIC_PROGRESS_FPS=0.5  # show progress on restore
 set -a
 # shellcheck disable=SC1090
 . "$HOMELAB_RESTIC_S3_ENV"
@@ -34,11 +35,11 @@ restore_postgres() {
   log "[${group}] Restoring ${count} postgres database(s)"
 
   local failed=0
-  while IFS= read -r entry; do
-    local stack compose_svc container database user dump_file
+  for entry in $(echo "$pg_entries" | jq -r -c '.[]'); do
+    (
+    local stack compose_svc database user dump_file
     stack=$(jq_field "$entry" stack)
     compose_svc=$(jq_field "$entry" composeService)
-    container=$(jq_field "$entry" container)
     database=$(jq_field "$entry" database)
     user=$(jq_field "$entry" user)
     dump_file="/tmp/db-dumps/${group}/${database}.sql"
@@ -56,12 +57,12 @@ restore_postgres() {
       continue
     fi
 
-    log "[${group}] Waiting for postgres in ${container}..."
+    log "[${group}] Waiting for postgres in ${stack}/${compose_svc}..."
     local retries=30
-    until docker exec "$container" pg_isready -U "$user" -d postgres -q 2>/dev/null; do
+    until compose-manage exec -T "$stack" "$compose_svc" pg_isready -U "$user" -q 2>/dev/null; do
       retries=$((retries - 1))
       if (( retries <= 0 )); then
-        log_err "[${group}] Timed out waiting for ${container} — skipping ${database}"
+        log_err "[${group}] Timed out waiting for ${stack}/${compose_svc} — skipping ${database}"
         failed=$((failed + 1))
         break
       fi
@@ -69,16 +70,16 @@ restore_postgres() {
     done
     (( retries > 0 )) || continue
 
-    log "[${group}] Restoring ${database} in ${container}"
+    log "[${group}] Restoring ${database} in ${stack}/${compose_svc}"
 
     # Terminate existing connections before dropping
-    docker exec "$container" psql -U "$user" postgres -q -c "
+    compose-manage exec -T "$stack" "$compose_svc" psql -U "$user" postgres -q -c "
       SELECT pg_terminate_backend(pid)
       FROM pg_stat_activity
       WHERE datname = '${database}' AND pid <> pg_backend_pid();
     " >/dev/null 2>&1 || true
 
-    if ! docker exec "$container" psql -U "$user" postgres -q \
+    if ! compose-manage exec -T "$stack" "$compose_svc" psql -U "$user" postgres -q \
       -c "DROP DATABASE IF EXISTS \"${database}\";" \
       -c "CREATE DATABASE \"${database}\" OWNER \"${user}\";"; then
       log_err "[${group}] Failed to recreate database ${database}"
@@ -87,7 +88,7 @@ restore_postgres() {
     fi
 
     local pg_rc=0
-    docker exec -i "$container" psql -U "$user" -d "$database" -q < "$dump_file" || pg_rc=$?
+    compose-manage exec -T "$stack" "$compose_svc" psql -U "$user" -d "$database" -q < "$dump_file" || pg_rc=$?
     if (( pg_rc != 0 )); then
       log_err "[${group}] psql import failed for ${database} (exit ${pg_rc})"
       failed=$((failed + 1))
@@ -95,7 +96,8 @@ restore_postgres() {
     fi
 
     log_ok "[${group}] ${database} restored"
-  done < <(echo "$pg_entries" | jq -c '.[]')
+    ) || failed=$((failed + 1))
+  done
 
   if (( failed > 0 )); then
     log_err "[${group}] ${failed}/${count} postgres restore(s) failed"

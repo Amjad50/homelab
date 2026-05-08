@@ -18,6 +18,10 @@
           BOT_TOKEN=${config.sops.placeholder.memos-telegram-bot-token}
         '';
       };
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [ "/mnt/storage/memos" ];
+      };
     };
 
     minio = {
@@ -31,12 +35,20 @@
           MINIO_ROOT_PASSWORD=${config.sops.placeholder.minio-root-password}
         '';
       };
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [ "/mnt/storage/minio" ];
+      };
     };
 
     wud = {
       enable = false;
       tmpfiles = [ "v /mnt/storage/wud 0755 dock docker - -" ];
       secrets.wud-openid-client-secret = { owner = "dock"; group = "docker"; mode = "0400"; };
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [ "/mnt/storage/wud" ];
+      };
     };
 
     freshrss = {
@@ -60,7 +72,13 @@
       tmpfiles = [
         "v /mnt/storage/dockge 0755 dock docker - -"
       ];
-      dependsOnBackups = [ config.homelab.backups.default ];
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [
+          "/mnt/storage/dockge/data/db-config.json"
+          "/mnt/storage/dockge/data/dockge.db"
+        ];
+      };
     };
 
     dashy = {
@@ -72,19 +90,31 @@
         "d /mnt/storage/filebrowser/config 0755 1000 1000 - -"
         "d /mnt/storage/filebrowser/database 0755 1000 1000 - -"
       ];
-      dependsOnBackups = [ config.homelab.backups.default ];
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [ "/mnt/storage/filebrowser" ];
+      };
     };
 
     syncthing = {
       tmpfiles = [
         "v /mnt/storage/syncthing 0755 1000 1000 - -"
       ];
-      dependsOnBackups = [ config.homelab.backups.default ];
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [
+          "/mnt/storage/syncthing/config"
+          "/mnt/storage/syncthing/data"
+        ];
+      };
     };
 
     upsnap = {
       tmpfiles = [ "v /mnt/storage/upsnap 0755 1000 1000 - -" ];
-      dependsOnBackups = [ config.homelab.backups.default ];
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [ "/mnt/storage/upsnap" ];
+      };
     };
 
     stirling-pdf = {
@@ -100,12 +130,6 @@
       };
     };
 
-    kavita = {
-    };
-
-    audiobookshelf = {
-    };
-
     media-stack = {
       tmpfiles = [
         "v /mnt/storage/media 0755 dock docker - -"
@@ -113,13 +137,41 @@
         "v /mnt/storage/media/tv 0755 1000 1000 - -"
         "v /mnt/storage/media/configs 0755 dock docker - -"
         "v /mnt/storage/media/downloads 0755 1000 1000 - -"
+      ];
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [
+          "/mnt/storage/media/configs"  # include stuff for kavita and audiobookshelf as well
+        ];
+      };
+    };
+
+    kavita = {
+      tmpfiles = [
         "v /mnt/storage/media/books 0755 1000 1000 - -"
         "v /mnt/storage/media/comics 0755 1000 1000 - -"
         "v /mnt/storage/media/manga 0755 1000 1000 - -"
+      ];
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [
+          "/mnt/storage/media/books"
+        ];
+      };
+    };
+
+    audiobookshelf = {
+      tmpfiles = [
         "v /mnt/storage/media/audiobooks 0755 1000 1000 - -"
         "v /mnt/storage/media/podcasts 0755 1000 1000 - -"
       ];
-      dependsOnBackups = [ config.homelab.backups.default ];
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [
+          "/mnt/storage/media/audiobooks"
+          "/mnt/storage/media/podcasts"
+        ];
+      };
     };
 
     fireflyiii = {
@@ -128,7 +180,15 @@
         firefly-app-key     = { owner = "www-data"; group = "www-data"; mode = "0400"; };
         firefly-db-password = { owner = "www-data"; group = "www-data"; mode = "0400"; };
       };
-      dependsOnBackups = [ config.homelab.backups.default ];
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [ "/mnt/storage/firefly/upload" ];
+        postgres = [{
+          composeService = "fireflyiii-db";
+          database = "firefly";
+          user = "firefly";
+        }];
+      };
     };
 
     blinko = {
@@ -146,7 +206,15 @@
           NEXTAUTH_SECRET=${config.sops.placeholder.blinko-nextauth-secret}
         '';
       };
-      dependsOnBackups = [ config.homelab.backups.default ];
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [ "/mnt/storage/blinko/data" ];
+        postgres = [{
+          composeService = "blinko-db";
+          database = "blinko";
+          user = "blinko";
+        }];
+      };
     };
 
     n8n = {
@@ -155,7 +223,15 @@
         n8n-db-password    = { owner = "dock"; group = "docker"; mode = "0400"; };
         n8n-encryption-key = { owner = "dock"; group = "docker"; mode = "0400"; };
       };
-      dependsOnBackups = [ config.homelab.backups.default ];
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [ "/mnt/storage/n8n/data" ];
+        postgres = [{
+          composeService = "n8n-db";
+          database = "n8n";
+          user = "n8n";
+        }];
+      };
     };
 
     solidtime = {
@@ -182,7 +258,15 @@
           SUPER_ADMINS="${config.sops.placeholder.solidtime-super-admins}"
         '';
       };
-      dependsOnBackups = [ config.homelab.backups.default ];
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [ "/mnt/storage/solidtime/app" ];
+        postgres = [{
+          composeService = "solidtime-db";
+          database = "solidtime";
+          user = "solidtime";
+        }];
+      };
     };
 
     linkwarden = {
@@ -204,7 +288,14 @@
           OPENAI_API_KEY=${config.sops.placeholder.openai-api-key}
         '';
       };
-      dependsOnBackups = [ config.homelab.backups.default ];
+      backup = {
+        group = config.homelab.backups.default;
+        postgres = [{
+          composeService = "linkwarden-db";
+          database = "linkwarden";
+          user = "linkwarden";
+        }];
+      };
     };
 
     immich = {
@@ -212,7 +303,15 @@
       secrets.immich-db-password = {
         owner = "dock"; group = "docker"; mode = "0400";
       };
-      dependsOnBackups = [ config.homelab.backups.immich ];
+      backup = {
+        group = config.homelab.backups.immich;
+        paths = [ "/mnt/storage/immich/upload/library" ];
+        postgres = [{
+          composeService = "database";
+          database = "immich";
+          user = "postgres";
+        }];
+      };
     };
 
     infisical = {
@@ -254,47 +353,24 @@
           }"
         '';
       };
-      dependsOnBackups = [ config.homelab.backups.default ];
+      backup = {
+        group = config.homelab.backups.default;
+        postgres = [{
+          composeService = "infisical-db";
+          database = "infisical";
+          user = "infisical";
+        }];
+      };
     };
   };
 
   homelab.backups = {
     default = {
       autoStart = true;
-
-      paths = [
-        "/mnt/storage/dockge/data/db-config.json"
-        "/mnt/storage/dockge/data/dockge.db"
-        "/mnt/storage/filebrowser"
-        "/mnt/storage/syncthing/config"
-        "/mnt/storage/syncthing/data"
-        "/mnt/storage/upsnap"
-        "/mnt/storage/media/configs"
-        "/mnt/storage/media/books"
-        "/mnt/storage/firefly/upload"
-        "/mnt/storage/blinko/data"
-        "/mnt/storage/n8n/data"
-        "/mnt/storage/solidtime/app"
-      ];
-
-      postgres = [
-        { stack = "fireflyiii"; composeService = "fireflyiii-db"; container = "fireflyiii-db"; database = "firefly";    user = "firefly";    }
-        { stack = "blinko";     composeService = "blinko-db";     container = "blinko-db";     database = "blinko";     user = "blinko";     }
-        { stack = "n8n";        composeService = "n8n-db";        container = "n8n-db";        database = "n8n";        user = "n8n";        }
-        { stack = "solidtime";  composeService = "solidtime-db";  container = "solidtime-db";  database = "solidtime";  user = "solidtime";  }
-        { stack = "linkwarden"; composeService = "linkwarden-db"; container = "linkwarden-db"; database = "linkwarden"; user = "linkwarden"; }
-        { stack = "infisical";  composeService = "infisical-db";  container = "infisical-db";  database = "infisical";  user = "infisical";  }
-      ];
     };
 
     immich = {
       autoStart = false;
-
-      paths = [ "/mnt/storage/immich/upload/library" ];
-
-      postgres = [
-        { stack = "immich"; composeService = "database"; container = "immich_postgres"; database = "immich"; user = "postgres"; }
-      ];
 
       postRestoreScript = ''
         for dir in encoded-video library upload profile thumbs backups; do

@@ -7,20 +7,15 @@ let
 
   postgresType = lib.types.submodule {
     options = {
-      stack          = lib.mkOption { type = lib.types.str; description = "Compose stack name (directory under /opt/docker-services)."; };
-      composeService = lib.mkOption { type = lib.types.str; description = "Compose service name inside the stack (for docker-compose up/stop)."; };
-      container      = lib.mkOption { type = lib.types.str; description = "Actual Docker container name (for docker exec)."; };
-      database       = lib.mkOption { type = lib.types.str; description = "Postgres database name."; };
-      user           = lib.mkOption { type = lib.types.str; description = "Postgres user."; };
+      composeService = lib.mkOption { type = lib.types.str; default = ""; description = "Compose service name inside the stack."; };
+      database       = lib.mkOption { type = lib.types.str; default = ""; description = "Postgres database name."; };
+      user           = lib.mkOption { type = lib.types.str; default = ""; description = "Postgres user."; };
     };
   };
 
   backupType = lib.types.submodule ({ name, ... }: {
     options = {
       enable = lib.mkOption { type = lib.types.bool; default = true; };
-
-      paths    = lib.mkOption { type = lib.types.listOf lib.types.str; default = []; description = "Filesystem paths to include in this backup group."; };
-      postgres = lib.mkOption { type = lib.types.listOf postgresType;  default = []; description = "Postgres databases to dump before backup."; };
 
       schedule          = lib.mkOption { type = lib.types.str; default = "02:00"; description = "OnCalendar value for the backup timer."; };
       postRestoreScript = lib.mkOption { type = lib.types.str; default = ""; description = "Shell commands to run after a successful restore of this group."; };
@@ -58,7 +53,7 @@ let
     };
   };
 
-  serviceType = lib.types.submodule ({ name, ... }: {
+  serviceType = lib.types.submodule ({ name, config, ... }: {
     options = {
       enable = lib.mkOption { type = lib.types.bool; default = true; };
 
@@ -66,10 +61,10 @@ let
       secrets   = lib.mkOption { type = lib.types.attrsOf secretType;   default = {}; };
       templates = lib.mkOption { type = lib.types.attrsOf templateType; default = {}; };
 
-      dependsOnBackups = lib.mkOption {
-        type    = lib.types.listOf (lib.types.attrsOf lib.types.anything);
-        default = [];
-        description = "List of homelab.backups.<group> attrsets this service depends on. Adds ConditionPathExists= for each group's sentinel.";
+      backup = {
+        group    = lib.mkOption { type = lib.types.nullOr (lib.types.attrsOf lib.types.anything); default = null; description = "The backup group this service belongs to."; };
+        paths    = lib.mkOption { type = lib.types.listOf lib.types.str; default = []; description = "Filesystem paths to include in the backup."; };
+        postgres = lib.mkOption { type = lib.types.listOf postgresType;  default = []; description = "Postgres databases to dump before backup."; };
       };
     };
   });
@@ -99,12 +94,22 @@ in
 
     backupGroups = lib.filterAttrs (_: b: b.enable) cfg.backups;
 
-    # For each backup group, the list of enabled service names that depend on it.
-    # Derived automatically — no need to declare composeServices manually.
-    groupServices = lib.mapAttrs (groupName: _:
-      lib.attrNames (lib.filterAttrs (_: svc:
-        lib.any (b: b.sentinel == cfg.backups.${groupName}.sentinel) svc.dependsOnBackups
-      ) enabled)
+    # For each backup group, collect paths and postgres configs from services that depend on it.
+    groupMeta = lib.mapAttrs (groupName: group:
+      let
+        dependentServices = lib.filterAttrs (_: svc:
+          svc.backup.group != null && svc.backup.group.sentinel == group.sentinel
+        ) enabled;
+      in {
+        paths = lib.unique (lib.concatLists (lib.mapAttrsToList (_: svc: svc.backup.paths) dependentServices));
+        postgres = lib.concatLists (lib.mapAttrsToList (svcName: svc:
+          map (pg: {
+            inherit (pg) composeService database user;
+            stack = svcName;
+          }) svc.backup.postgres
+        ) dependentServices);
+        serviceNames = lib.attrNames dependentServices;
+      }
     ) backupGroups;
 
     machine  = cfg.machineName;
@@ -115,9 +120,10 @@ in
 
     mkResticBackup = groupName: group:
       let
+        meta    = groupMeta.${groupName};
         dumpDir = "/tmp/db-dumps/${groupName}";
-        hasPg   = group.postgres != [];
-        paths   = group.paths ++ lib.optional hasPg dumpDir;
+        hasPg   = meta.postgres != [];
+        paths   = meta.paths ++ lib.optional hasPg dumpDir;
       in {
         repository      = repoUrl;
         passwordFile    = config.sops.secrets.restic-repository-password.path;
@@ -143,7 +149,7 @@ in
           export DUMP_DIR=${lib.escapeShellArg dumpDir}
           export GROUP_NAME=${lib.escapeShellArg groupName}
           ${pkgs.bash}/bin/bash ${../scripts/backup-postgres.sh} \
-            ${lib.escapeShellArg (builtins.toJSON (map (pg: { inherit (pg) stack composeService container database user; }) group.postgres))}
+            ${lib.escapeShellArg (builtins.toJSON meta.postgres)}
         '';
 
         backupCleanupCommand = lib.optionalString hasPg ''
@@ -182,7 +188,7 @@ in
 
     # Shared env + PATH setup for homelab-restore invocations (both systemd and CLI).
     hlRestoreEnv = ''
-      export PATH="${lib.makeBinPath (with pkgs; [ coreutils restic util-linux jq gnused docker systemd bash ])}:$PATH"
+      export PATH="${lib.makeBinPath (with pkgs; [ coreutils restic util-linux jq gnused docker systemd bash ])}:/run/current-system/sw/bin:$PATH"
       export HOMELAB_MACHINE=${lib.escapeShellArg machine}
       export HOMELAB_LOCK=${lib.escapeShellArg lockFile}
       export HOMELAB_REPO=${lib.escapeShellArg repoUrl}
@@ -222,6 +228,11 @@ in
       in "homelab-restore-${groupName}.service";
 
   in {
+    assertions = lib.mapAttrsToList (svcName: svc: {
+      assertion = (svc.backup.paths == [] && svc.backup.postgres == []) || svc.backup.group != null;
+      message   = "Service '${svcName}' has backup paths or postgres defined but no backup.group assigned.";
+    }) enabled;
+
     services.compose-services.services = lib.attrNames enabled;
 
     systemd.tmpfiles.rules =
@@ -254,17 +265,18 @@ in
       # Per-service sentinel conditions + ordering after restore units
       ++ lib.mapAttrsToList (svcName: svc:
         let
-          sentinels    = map (b: b.sentinel) svc.dependsOnBackups;
-          restoreUnits = map autoRestoreUnit (lib.filter (b: b.autoStart) svc.dependsOnBackups);
-        in lib.optionalAttrs (sentinels != []) {
+          group        = svc.backup.group;
+          sentinel     = group.sentinel;
+          restoreUnit  = if group.autoStart then autoRestoreUnit group else null;
+        in {
           "docker-compose-${svcName}" = {
-            unitConfig.ConditionPathExists = sentinels;
-          } // lib.optionalAttrs (restoreUnits != []) {
-            wants = restoreUnits;
-            after = restoreUnits;
+            unitConfig.ConditionPathExists = [ sentinel ];
+          } // lib.optionalAttrs (restoreUnit != null) {
+            wants = [ restoreUnit ];
+            after = [ restoreUnit ];
           };
         }
-      ) (lib.filterAttrs (_: s: s.dependsOnBackups != []) enabled));
+      ) (lib.filterAttrs (_: s: s.backup.group != null) enabled));
 
     systemd.timers = lib.listToAttrs
       (lib.mapAttrsToList mkLockedTimer backupGroups);
@@ -275,8 +287,9 @@ in
         services    = lib.attrNames enabled;
         backups     = lib.mapAttrs (groupName: b: {
           inherit (b) sentinel schedule autoStart postRestoreScript;
-          composeServices = groupServices.${groupName};
-          postgres = map (pg: { inherit (pg) stack composeService container database user; }) b.postgres;
+          composeServices = groupMeta.${groupName}.serviceNames;
+          postgres = groupMeta.${groupName}.postgres;
+          paths = groupMeta.${groupName}.paths;
         }) backupGroups;
       };
 

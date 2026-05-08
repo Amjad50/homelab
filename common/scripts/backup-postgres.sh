@@ -22,28 +22,23 @@ failed=0
 total=0
 
 while IFS= read -r entry; do
-  container=$(jq_field "$entry" container)
+  stack=$(jq_field "$entry" stack)
+  compose_svc=$(jq_field "$entry" composeService)
   database=$(jq_field "$entry" database)
   user=$(jq_field "$entry" user)
   dump_file="${DUMP_DIR}/${database}.sql"
 
   total=$((total + 1))
-  log "[${GROUP_NAME}] Dumping ${database} from ${container}..."
+  log "[${GROUP_NAME}] Dumping ${database} from ${stack}/${compose_svc}..."
 
-  if ! docker inspect "$container" >/dev/null 2>&1; then
-    log_err "[${GROUP_NAME}] Container ${container} not found — skipping dump of ${database}"
-    failed=$((failed + 1))
-    continue
-  fi
-
-  if ! docker exec "$container" pg_isready -U "$user" -d "$database" -q 2>/dev/null; then
-    log_err "[${GROUP_NAME}] Postgres not ready in ${container} — skipping dump of ${database}"
+  if ! compose-manage exec -T "$stack" "$compose_svc" pg_isready -U "$user" -q 2>/dev/null; then
+    log_err "[${GROUP_NAME}] Postgres not ready in ${stack}/${compose_svc} — skipping dump of ${database}"
     failed=$((failed + 1))
     continue
   fi
 
   dump_rc=0
-  docker exec "$container" pg_dump -U "$user" "$database" > "$dump_file" || dump_rc=$?
+  compose-manage exec -T "$stack" "$compose_svc" pg_dump -U "$user" "$database" > "$dump_file" || dump_rc=$?
   if (( dump_rc != 0 )); then
     log_err "[${GROUP_NAME}] pg_dump failed for ${database} (exit ${dump_rc})"
     rm -f "$dump_file"

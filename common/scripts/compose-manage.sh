@@ -104,11 +104,15 @@ cmd_logs() {
 }
 
 cmd_exec() {
-  require_arg "${1:-}" "compose-manage exec <service> <container> <cmd...>"
-  require_arg "${2:-}" "compose-manage exec <service> <container> <cmd...>"
-  require_service "$1"
+  local t_flag=""
+  if [[ "${1:-}" == "-T" ]]; then
+    t_flag="-T"
+    shift
+  fi
+  require_arg "${1:-}" "compose-manage exec [-T] <service> <container> <cmd...>"
+  require_arg "${2:-}" "compose-manage exec [-T] <service> <container> <cmd...>"
   local svc=$1 ctr=$2; shift 2
-  cd "$COMPOSE_ROOT/$svc" && docker-compose exec "$ctr" "$@"
+  cd "$COMPOSE_ROOT/$svc" && docker-compose exec $t_flag "$ctr" "$@"
 }
 
 cmd_ps() {
