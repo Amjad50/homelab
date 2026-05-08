@@ -11,22 +11,53 @@ NC='\033[0m' # No Color
 
 case "$1" in
   list)
-    echo -e "${BLUE}Available services in $COMPOSE_ROOT:${NC}"
+    META=/etc/homelab/services.json
+    declare -A REGISTERED=()
+    if [ -f "$META" ] && command -v jq >/dev/null 2>&1; then
+      while IFS=$'\t' read -r name large; do
+        REGISTERED["$name"]="$large"
+      done < <(jq -r '.services | to_entries[] | "\(.key)\t\(.value.large)"' "$META")
+    fi
+
+    echo -e "${BLUE}Registered services:${NC}"
+    if [ ${#REGISTERED[@]} -gt 0 ]; then
+      for name in $(printf '%s\n' "${!REGISTERED[@]}" | sort); do
+        status=$(systemctl is-active "docker-compose-$name" 2>/dev/null || echo "not-configured")
+        large_tag=""
+        [ "${REGISTERED[$name]}" = "true" ] && large_tag="  ${YELLOW}[large]${NC}"
+        case $status in
+          active)   echo -e "  ${GREEN}✓${NC} $name (running)$large_tag" ;;
+          inactive) echo -e "  ${RED}✗${NC} $name (stopped)$large_tag" ;;
+          failed)   echo -e "  ${RED}!${NC} $name (failed)$large_tag" ;;
+          *)        echo -e "  ${YELLOW}?${NC} $name (not configured)$large_tag" ;;
+        esac
+      done
+    else
+      echo "  (no /etc/homelab/services.json — registry not deployed)"
+    fi
+
+    echo ""
+    echo -e "${BLUE}Unregistered (present on disk, not in registry):${NC}"
+    found_unregistered=0
     if [ -d "$COMPOSE_ROOT" ]; then
       for service in "$COMPOSE_ROOT"/*; do
         if [ -d "$service" ] && [ -f "$service/docker-compose.yml" ]; then
           name=$(basename "$service")
-          status=$(systemctl is-active "docker-compose-$name" 2>/dev/null || echo "not-configured")
-          case $status in
-            active) echo -e "  ${GREEN}✓${NC} $name (running)" ;;
-            inactive) echo -e "  ${RED}✗${NC} $name (stopped)" ;;
-            failed) echo -e "  ${RED}!${NC} $name (failed)" ;;
-            *) echo -e "  ${YELLOW}?${NC} $name (not configured)" ;;
-          esac
+          if [ -z "${REGISTERED[$name]+x}" ]; then
+            status=$(systemctl is-active "docker-compose-$name" 2>/dev/null || echo "not-configured")
+            case $status in
+              active)   echo -e "  ${GREEN}✓${NC} $name (running)" ;;
+              inactive) echo -e "  ${RED}✗${NC} $name (stopped)" ;;
+              failed)   echo -e "  ${RED}!${NC} $name (failed)" ;;
+              *)        echo -e "  ${YELLOW}?${NC} $name (not configured)" ;;
+            esac
+            found_unregistered=$((found_unregistered + 1))
+          fi
         fi
       done
-    else
-      echo "  Directory $COMPOSE_ROOT does not exist"
+    fi
+    if [ "$found_unregistered" -eq 0 ]; then
+      echo "  (none)"
     fi
     ;;
   status)

@@ -1,9 +1,10 @@
 { ... }:
 {
   imports = [
-    ./services.nix
-    ./backup.nix
+    ./services/index.nix
     ./networking.nix
     ./swap.nix
   ];
+
+  homelab.machineName = "home";
 }

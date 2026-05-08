@@ -16,6 +16,7 @@
     ./modules/users.nix
     ./modules/docker.nix
     ./modules/compose-services.nix
+    ./modules/service-registry.nix
   ];
 
   # This file primarily serves as an entry point

@@ -1,14 +1,14 @@
 { config, lib, pkgs, ... }:
 {
   imports = [
-    ../home/services.nix
-    ../home/backup.nix
+    ../home/services/index.nix
     ./networking.nix
     # omit ../home/swap.nix — zram not needed in VM
     # omit ../home/secure-boot.nix — lanzaboote not used for VM
   ];
 
   networking.hostName = "home-vm";
+  homelab.machineName = "home-vm";
 
   nix.settings.trusted-users = [ "root" "@wheel" ];
 
@@ -22,13 +22,6 @@
   sops = {
     defaultSopsFile = lib.mkForce ./secrets.yaml;
     age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-  };
-
-  # Install restore script into VM
-  environment.etc."homelab-scripts/vm-restore.sh" = {
-    source = pkgs.writeShellScript "vm-restore"
-      (builtins.readFile ../../scripts/vm-restore.sh);
-    mode = "0755";
   };
 
   environment.systemPackages = with pkgs; [ restic ];
