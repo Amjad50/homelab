@@ -89,6 +89,11 @@ in
       default = {};
       description = "Backup group registry. Each entry is one restic job + sentinel.";
     };
+    backupJobs.enable = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Whether to generate restic backup jobs, locked backup services, and backup timers.";
+    };
   };
 
   config = let
@@ -291,11 +296,12 @@ in
       ) {} (lib.attrValues enabled);
 
     services.restic.backups =
-      lib.mapAttrs mkResticBackup backupGroups;
+      lib.mkIf cfg.backupJobs.enable (lib.mapAttrs mkResticBackup backupGroups);
 
     systemd.services = lib.mkMerge (
       # Flock wrapper services for backup jobs
-      [ (lib.listToAttrs (lib.mapAttrsToList mkLockedService backupGroups)) ]
+      lib.optional cfg.backupJobs.enable
+        (lib.listToAttrs (lib.mapAttrsToList mkLockedService backupGroups))
       # Auto-restore services (only for restoreAutoStart = true groups)
       ++ [ (lib.listToAttrs (lib.mapAttrsToList mkAutoRestoreService
               (lib.filterAttrs (_: b: b.restoreAutoStart) backupGroups))) ]
@@ -315,8 +321,8 @@ in
         }
       ) (lib.filterAttrs (_: s: s.backup.group != null) enabled));
 
-    systemd.timers = lib.listToAttrs
-      (lib.mapAttrsToList mkLockedTimer backupGroups);
+    systemd.timers =
+      lib.mkIf cfg.backupJobs.enable (lib.listToAttrs (lib.mapAttrsToList mkLockedTimer backupGroups));
 
     environment.etc."homelab/services.json".text =
       builtins.toJSON {

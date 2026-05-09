@@ -7,6 +7,7 @@ This repository organizes machine-specific behavior through a small set of `home
 - `homelab.services` is the per-machine service registry.
 - `homelab.backups` is the per-machine backup-group registry.
 - `homelab.machineName` is the machine identifier used in restic tags, lock files, and restore metadata.
+- `homelab.backupJobs.enable` controls whether restic backup jobs and timers are generated.
 
 These values are set in the machine configs and consumed by `common/modules/service-registry.nix`.
 
@@ -96,6 +97,8 @@ At evaluation time, the registry generates:
 - `sops.templates`
 - `services.restic.backups.<group>`
 - restore metadata in `/etc/homelab/services.json`
+
+VM configs can keep `homelab.machineName = "home"` or `"middle"` so restores read from the production namespace, while setting `homelab.backupJobs.enable = false` to avoid writing new backups from the VM.
 
 At runtime, the restore CLI is:
 

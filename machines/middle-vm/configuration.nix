@@ -9,7 +9,8 @@
   # Add ports relevant for middle machine if any, or keep it minimal
   networking.firewall.allowedTCPPorts = [ 80 443 ];
 
-  homelab.machineName = "middle-vm";
+  homelab.machineName = "middle";
+  homelab.backupJobs.enable = false;
 
   nix.settings.trusted-users = [ "root" "@wheel" ];
 

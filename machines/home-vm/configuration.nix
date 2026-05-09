@@ -8,7 +8,8 @@
   ];
 
   networking.hostName = "home-vm";
-  homelab.machineName = "home-vm";
+  homelab.machineName = "home";
+  homelab.backupJobs.enable = false;
 
   nix.settings.trusted-users = [ "root" "@wheel" ];
 

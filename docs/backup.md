@@ -67,6 +67,7 @@ The registry also injects the shared restic repository credentials:
 
 - `restic-locked-<group>` owns scheduling for the group.
 - `homelab-backup` is the runtime CLI name.
+- `homelab.backupJobs.enable = false` disables generated restic backup jobs, locked backup services, and backup timers while keeping restore metadata.
 - Old snapshots remain in the repository. New backups use the `backup-v2` tag set.
 
 ## Troubleshooting
