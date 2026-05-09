@@ -20,10 +20,10 @@ let
       schedule          = lib.mkOption { type = lib.types.str; default = "02:00"; description = "OnCalendar value for the backup timer."; };
       postRestoreScript = lib.mkOption { type = lib.types.str; default = ""; description = "Shell commands to run after a successful restore of this group."; };
 
-      autoStart = lib.mkOption {
+      restoreAutoStart = lib.mkOption {
         type = lib.types.bool;
         default = true;
-        description = "If false, the backup timer for this group is not enabled automatically (manual trigger only).";
+        description = "If false, do not create the boot-time auto-restore unit for this group.";
       };
 
       sentinel = lib.mkOption {
@@ -214,7 +214,7 @@ in
     mkLockedTimer = groupName: group: {
       name  = "restic-locked-${groupName}";
       value = {
-        wantedBy  = lib.optionals group.autoStart [ "timers.target" ];
+        wantedBy  = [ "timers.target" ];
         timerConfig = {
           OnCalendar         = group.schedule;
           RandomizedDelaySec = "1h";
@@ -296,15 +296,15 @@ in
     systemd.services = lib.mkMerge (
       # Flock wrapper services for backup jobs
       [ (lib.listToAttrs (lib.mapAttrsToList mkLockedService backupGroups)) ]
-      # Auto-restore services (only for autoStart = true groups)
+      # Auto-restore services (only for restoreAutoStart = true groups)
       ++ [ (lib.listToAttrs (lib.mapAttrsToList mkAutoRestoreService
-              (lib.filterAttrs (_: b: b.autoStart) backupGroups))) ]
+              (lib.filterAttrs (_: b: b.restoreAutoStart) backupGroups))) ]
       # Per-service sentinel conditions + ordering after restore units
       ++ lib.mapAttrsToList (svcName: svc:
         let
           group        = svc.backup.group;
           sentinel     = group.sentinel;
-          restoreUnit  = if group.autoStart then autoRestoreUnit group else null;
+          restoreUnit  = if group.restoreAutoStart then autoRestoreUnit group else null;
         in {
           "docker-compose-${svcName}" = {
             unitConfig.ConditionPathExists = [ sentinel ];
@@ -323,7 +323,7 @@ in
         machineName = cfg.machineName;
         services    = lib.attrNames enabled;
         backups     = lib.mapAttrs (groupName: b: {
-          inherit (b) sentinel schedule autoStart postRestoreScript;
+          inherit (b) sentinel schedule restoreAutoStart postRestoreScript;
           composeServices = groupMeta.${groupName}.serviceNames;
           postgres = groupMeta.${groupName}.postgres;
           paths = groupMeta.${groupName}.paths;

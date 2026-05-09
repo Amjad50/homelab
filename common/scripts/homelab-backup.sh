@@ -221,7 +221,7 @@ backup_group() {
 cmd_list() {
   echo "Backup groups on machine '${HOMELAB_MACHINE}':"
   while read -r group; do
-    local sentinel restored snap_json snap_time snap_id last autostart pg_count backup_state restore_state
+    local sentinel restored snap_json snap_time snap_id last restore_autostart pg_count backup_state restore_state
     sentinel=$(group_sentinel "$group")
     restored="no"
     [[ -f $sentinel ]] && restored="yes ($(stat -c %y "$sentinel" | cut -d. -f1))"
@@ -233,17 +233,17 @@ cmd_list() {
     snap_id=$(jq_field "$snap_json" 'short_id // ""' 2>/dev/null || true)
     last="${snap_time}${snap_id:+ (${snap_id})}"
 
-    autostart="autoStart"
-    group_autostart "$group" || autostart="manual"
+    restore_autostart="restoreAutoStart"
+    group_restore_autostart "$group" || restore_autostart="manual-restore"
     pg_count=$(group_postgres "$group" | jq 'length')
     backup_state=$(systemd_unit_runtime_state "restic-locked-${group}.service")
-    if group_autostart "$group"; then
+    if group_restore_autostart "$group"; then
       restore_state=$(systemd_unit_runtime_state "homelab-restore-${group}.service")
     else
       restore_state="n/a"
     fi
     printf "  %-20s restored=%-35s backup=%-8s restore=%-8s last=%s [%s] [%d postgres]\n" \
-      "$group" "$restored" "$backup_state" "$restore_state" "$last" "$autostart" "$pg_count"
+      "$group" "$restored" "$backup_state" "$restore_state" "$last" "$restore_autostart" "$pg_count"
   done < <(group_names)
 }
 

@@ -85,7 +85,7 @@
   };
 
   homelab.backups.default = {
-    autoStart = true;
+    restoreAutoStart = true;
     schedule = "03:00";
   };
 

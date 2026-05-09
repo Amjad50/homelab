@@ -52,19 +52,19 @@ Each machine defines `homelab.backups.<group>` entries in the same registry file
 
 Typical fields:
 
-- `autoStart` to control whether the restore sentinel is expected on boot
 - `schedule` to set the restic timer calendar
+- `restoreAutoStart` to control whether the boot-time auto-restore unit is created
 - `postRestoreScript` for group-level restore cleanup or setup
 
 Example:
 
 ```nix
 homelab.backups.default = {
-  autoStart = true;
+  restoreAutoStart = true;
 };
 
 homelab.backups.immich = {
-  autoStart = false;
+  restoreAutoStart = false;
   postRestoreScript = ''
     mkdir -p /mnt/storage/immich/upload
   '';

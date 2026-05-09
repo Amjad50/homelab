@@ -366,11 +366,11 @@
 
   homelab.backups = {
     default = {
-      autoStart = true;
+      restoreAutoStart = true;
     };
 
     immich = {
-      autoStart = false;
+      restoreAutoStart = false;
 
       postRestoreScript = ''
         for dir in encoded-video library upload profile thumbs backups; do

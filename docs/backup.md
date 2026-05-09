@@ -21,7 +21,7 @@ Each backup group becomes:
 The current `home` machine uses two groups:
 
 - `default` for normal services
-- `immich` for the large media restore path, with `autoStart = false`
+- `immich` for the large media restore path, with `restoreAutoStart = false`
 
 ## CLI
 

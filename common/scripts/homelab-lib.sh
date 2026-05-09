@@ -60,8 +60,8 @@ group_postscript() {
   jq -r --arg g "$1" '.backups[$g].postRestoreScript // ""' "$META"
 }
 
-group_autostart() {
-  jq -e --arg g "$1" '.backups[$g].autoStart == true' "$META" >/dev/null
+group_restore_autostart() {
+  jq -e --arg g "$1" '.backups[$g].restoreAutoStart == true' "$META" >/dev/null
 }
 
 group_postgres() {
