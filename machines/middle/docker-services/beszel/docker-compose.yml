@@ -1,0 +1,67 @@
+networks:
+  traefik:
+    external: true
+
+secrets:
+  beszel-hub-public-key:
+    file: /run/secrets/beszel-hub-public-key
+  beszel-middle-agent-token:
+    file: /run/secrets/beszel-middle-agent-token
+
+services:
+  beszel:
+    container_name: beszel
+    image: henrygd/beszel:latest
+    restart: unless-stopped
+    networks:
+      - traefik
+    environment:
+      TZ: "Asia/Kuala_Lumpur"
+      APP_URL: "https://beszel.home.amsh.dev"
+      CHECK_UPDATES: false
+      CONTAINER_DETAILS: false
+      DISABLE_PASSWORD_AUTH: true
+      USER_CREATION: true
+    volumes:
+      - /storage/beszel/data:/beszel_data
+      - /var/run/beszel:/beszel_socket
+    ports:
+      - "127.0.0.1:8090:8090"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.beszel.rule=Host(`beszel.home.amsh.dev`)"
+      - "traefik.http.routers.beszel.middlewares=default-chain@file"
+      - "traefik.http.services.beszel.loadbalancer.server.port=8090"
+    healthcheck:
+      test: ["CMD", "/beszel", "health", "--url", "http://localhost:8090"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  beszel-agent:
+    container_name: beszel-agent
+    image: henrygd/beszel-agent:latest
+    restart: unless-stopped
+    network_mode: host
+    secrets:
+      - beszel-hub-public-key
+      - beszel-middle-agent-token
+    environment:
+      TZ: "Asia/Kuala_Lumpur"
+      LISTEN: /beszel_socket/beszel.sock
+      DATA_DIR: /var/lib/beszel-agent
+      HUB_URL: http://localhost:8090
+      TOKEN_FILE: /run/secrets/beszel-middle-agent-token
+      KEY_FILE: /run/secrets/beszel-hub-public-key
+      SYSTEM_NAME: middle
+      DISABLE_SSH: true
+      FILESYSTEM: /
+      SERVICE_PATTERNS: "beszel*,docker*,traefik*,cloudflared*,restic*,rathole*"
+      EXCLUDE_CONTAINERS: "beszel-agent"
+    volumes:
+      - /storage/beszel-agent:/var/lib/beszel-agent
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket:ro
+      - /var/run/systemd/private:/var/run/systemd/private:ro
+      - /var/run/beszel:/beszel_socket

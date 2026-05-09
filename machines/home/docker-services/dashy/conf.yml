@@ -228,14 +228,13 @@ sections:
         statusCheck: true
         statusCheckUrl: http://host.docker.internal:8090/api/health
         id: 2_1739_upsnap
-      - title: Netdata middle
-        description: Real-time System Monitoring
-        icon: hl-netdata
-        url: https://netdata-middle.home.amsh.dev
+      - title: Beszel
+        description: Server Monitoring
+        icon: hl-beszel
+        url: https://beszel.home.amsh.dev
         statusCheck: true
-        statusCheckUrl: https://netdata-middle.home.amsh.dev/api/v1/info
-        statusCheckAcceptCodes: "401"
-        id: 3_1739_netdata
+        statusCheckUrl: https://beszel.home.amsh.dev/api/health
+        id: 3_1739_beszel
       - title: Uptime Kuma
         description: External Uptime Monitoring
         icon: hl-uptime-kuma

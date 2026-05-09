@@ -81,6 +81,17 @@
       };
     };
 
+    beszel-agent = {
+      tmpfiles = [
+        "v /mnt/storage/beszel-agent 0755 dock docker - -"
+        "d /mnt/storage/.beszel 0755 dock docker - -"
+      ];
+      secrets = {
+        beszel-hub-public-key = { owner = "dock"; group = "docker"; mode = "0400"; };
+        beszel-home-agent-token = { owner = "dock"; group = "docker"; mode = "0400"; };
+      };
+    };
+
     dashy = {
     };
 

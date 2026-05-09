@@ -35,6 +35,24 @@
       };
     };
 
+    beszel = {
+      tmpfiles = [
+        "v /storage/beszel 0755 dock docker - -"
+        "d /storage/beszel/data 0755 dock docker - -"
+        "v /storage/beszel-agent 0755 dock docker - -"
+        # for socket
+        "d /var/run/beszel 0755 dock docker - -"
+      ];
+      secrets = {
+        beszel-hub-public-key = { owner = "dock"; group = "docker"; mode = "0400"; };
+        beszel-middle-agent-token = { owner = "dock"; group = "docker"; mode = "0400"; };
+      };
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [ "/storage/beszel/data" ];
+      };
+    };
+
     kanidm = {
       backup = {
         group = config.homelab.backups.default;
@@ -78,9 +96,6 @@
         group = config.homelab.backups.default;
         paths = [ "/storage/adguard/conf" ];
       };
-    };
-
-    netdata = {
     };
   };
 

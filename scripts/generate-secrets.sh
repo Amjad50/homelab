@@ -137,6 +137,11 @@ SECRETS=(
     "CLOUDFLARE_EMAIL|req|middle|cloudflare-email|"
     "CLOUDFLARE_DNS_API_TOKEN|req|middle|cloudflare-dns-api-token|"
     "CLOUDFLARE_ZONE_API_TOKEN|req|middle|cloudflare-zone-api-token|"
+
+    # Beszel monitoring
+    "BESZEL_HUB_PUBLIC_KEY|req|both|beszel-hub-public-key|"
+    "BESZEL_HOME_AGENT_TOKEN|req|home|beszel-home-agent-token|"
+    "BESZEL_MIDDLE_AGENT_TOKEN|req|middle|beszel-middle-agent-token|"
 )
 
 # Process secrets: check required and generate missing
