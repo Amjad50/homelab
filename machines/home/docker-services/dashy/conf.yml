@@ -91,6 +91,13 @@ sections:
         statusCheck: true
         statusCheckUrl: http://immich-server:2283/api/server/ping
         id: 9_1348_immich
+      - title: Calibre Web
+        description: Calibre Web Automated for library management
+        icon: hl-calibre-web
+        url: https://calibre.home.amsh.dev
+        statusCheck: true
+        statusCheckUrl: http://calibre-web-automated:8083
+        id: 10_1348_calibre
   - name: Personal Services
     displayData:
       sortBy: alphabetical

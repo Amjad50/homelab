@@ -1,0 +1,26 @@
+networks:
+  traefik:
+    external: true
+
+services:
+  calibre-web-automated:
+    image: crocodilestick/calibre-web-automated:latest
+    container_name: calibre-web-automated
+    restart: unless-stopped
+    networks:
+      - traefik
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Kuala_Lumpur
+      - NETWORK_SHARE_MODE=false
+    volumes:
+      - /mnt/storage/media/configs/calibre-web-automated:/config
+      - /mnt/storage/media/calibre-ingest:/cwa-book-ingest
+      - /mnt/storage/media/calibre-library:/calibre-library
+      - /etc/localtime:/etc/localtime:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.calibre-web-automated.rule=Host(`calibre.home.amsh.dev`)"
+      - "traefik.http.services.calibre-web-automated.loadbalancer.server.port=8083"
+      - "traefik.http.routers.calibre-web-automated.middlewares=default-chain@file"
