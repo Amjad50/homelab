@@ -179,10 +179,14 @@ services:
       - PGID=1000
       - TZ=Asia/Kuala_Lumpur
       - WEBUI_PORT=8080
+    env_file:
+      - path: /var/lib/dock/ntfy-client.env
+        required: false
     volumes:
       - /mnt/storage/media/configs/qbittorrent:/config
       - /mnt/storage/media/downloads:/downloads
       - /etc/localtime:/etc/localtime:ro
+      - /etc/homelab-scripts/homelab-notify.sh:/usr/local/bin/homelab-notify:ro
     ports:
       - "6881:6881"
       - "6881:6881/udp"

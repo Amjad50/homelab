@@ -17,6 +17,7 @@
     ./modules/docker.nix
     ./modules/compose-services.nix
     ./modules/service-registry.nix
+    ./modules/notifications.nix
   ];
 
   # This file primarily serves as an entry point

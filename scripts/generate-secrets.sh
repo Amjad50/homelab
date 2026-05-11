@@ -144,6 +144,7 @@ SECRETS=(
     "BESZEL_MIDDLE_AGENT_TOKEN|req|middle|beszel-middle-agent-token|"
 
     # Ntfy
+    "NTFY_TOKEN|req|both|ntfy-token|"
     "NTFY_FIRST_PROVISIONED_USERS|req|middle|ntfy-first-provisioned-users|"
 )
 
