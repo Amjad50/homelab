@@ -28,6 +28,7 @@ services:
       DISK_USAGE_CACHE: 10m
       SERVICE_PATTERNS: "beszel*,docker*,restic*,rathole*,compose-*,homelab-*"
       EXCLUDE_CONTAINERS: "beszel-agent"
+      SENSORS: "coretemp_*"
     volumes:
       - /mnt/storage/beszel-agent:/var/lib/beszel-agent
       - /var/run/docker.sock:/var/run/docker.sock:ro
