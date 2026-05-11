@@ -97,6 +97,29 @@
         paths = [ "/storage/adguard/conf" ];
       };
     };
+
+    ntfy = {
+      tmpfiles = [
+        "v /storage/ntfy 0755 dock docker - -"
+        "d /storage/ntfy/cache 0755 dock docker - -"
+        "d /storage/ntfy/attachments 0755 dock docker - -"
+        "d /storage/ntfy/data 0755 dock docker - -"
+      ];
+      secrets = {
+        ntfy-first-provisioned-users = { owner = "dock"; group = "docker"; mode = "0400"; };
+      };
+      templates."ntfy.env" = {
+        owner = "dock"; group = "docker"; mode = "0400";
+        path = "/var/lib/dock/ntfy.env";
+        content = ''
+          NTFY_AUTH_USERS=${config.sops.placeholder.ntfy-first-provisioned-users}
+        '';
+      };
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [ "/storage/ntfy" ];
+      };
+    };
   };
 
   homelab.backups.default = {

@@ -142,6 +142,9 @@ SECRETS=(
     "BESZEL_HUB_PUBLIC_KEY|req|both|beszel-hub-public-key|"
     "BESZEL_HOME_AGENT_TOKEN|req|home|beszel-home-agent-token|"
     "BESZEL_MIDDLE_AGENT_TOKEN|req|middle|beszel-middle-agent-token|"
+
+    # Ntfy
+    "NTFY_FIRST_PROVISIONED_USERS|req|middle|ntfy-first-provisioned-users|"
 )
 
 # Process secrets: check required and generate missing

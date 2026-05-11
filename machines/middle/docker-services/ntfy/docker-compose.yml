@@ -1,0 +1,40 @@
+networks:
+  traefik:
+    external: true
+
+services:
+  ntfy:
+    image: binwiederhier/ntfy:latest
+    container_name: ntfy
+    restart: unless-stopped
+    networks:
+      - traefik
+    volumes:
+      - /storage/ntfy/cache:/var/cache/ntfy
+      - /storage/ntfy/attachments:/var/cache/ntfy/attachments
+      - /storage/ntfy/data:/var/lib/ntfy
+      - /etc/localtime:/etc/localtime:ro
+    command: serve
+    env_file:
+      - path: /var/lib/dock/ntfy.env
+        required: true
+    environment:
+      TZ: Asia/Kuala_Lumpur
+      NTFY_BASE_URL: "https://ntfy.home.amsh.dev"
+      NTFY_BEHIND_PROXY: "true"
+      NTFY_AUTH_FILE: "/var/lib/ntfy/auth.db"
+      NTFY_AUTH_DEFAULT_ACCESS: "deny-all"
+      NTFY_ENABLE_LOGIN: "true"
+      NTFY_REQUIRE_LOGIN: "true"
+      NTFY_ATTACHMENT_CACHE_DIR: "/var/cache/ntfy/attachments"
+      NTFY_CACHE_FILE: "/var/cache/ntfy/cache.db"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ntfy.rule=Host(`ntfy.home.amsh.dev`)"
+      - "traefik.http.routers.ntfy.middlewares=default-chain@file"
+      - "traefik.http.services.ntfy.loadbalancer.server.port=80"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
