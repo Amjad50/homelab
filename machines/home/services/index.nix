@@ -382,6 +382,113 @@
         }];
       };
     };
+
+    opencloud = {
+      tmpfiles = [
+        "v /mnt/storage/opencloud 0755 1000 1000 - -"
+        "d /mnt/storage/opencloud/config 0755 1000 1000 - -"
+        "d /mnt/storage/opencloud/data 0755 1000 1000 - -"
+      ];
+      secrets.opencloud-onlyoffice-token = {
+        owner = "dock"; group = "docker"; mode = "0400";
+      };
+      templates."opencloud-onlyoffice-local.json" = {
+        owner = "dock"; group = "docker"; mode = "0400";
+        path = "/var/lib/dock/opencloud/onlyoffice-local.json";
+        restartUnits = [ "docker-compose-opencloud.service" ];
+        content = builtins.toJSON {
+          services = {
+            CoAuthoring = {
+              sql = {
+                type = "postgres";
+                dbHost = "localhost";
+                dbPort = "5432";
+                dbName = "onlyoffice";
+                dbUser = "onlyoffice";
+                dbPass = "onlyoffice";
+              };
+              ipfilter = {
+                rules = [
+                  {
+                    address = "collaboration";
+                    allowed = true;
+                  }
+                  {
+                    address = "*";
+                    allowed = false;
+                  }
+                ];
+                useforrequest = false;
+                errorcode = 403;
+              };
+              token = {
+                enable = {
+                  request = {
+                    inbox = true;
+                    outbox = true;
+                  };
+                  browser = true;
+                };
+                inbox = {
+                  header = "Authorization";
+                };
+                outbox = {
+                  header = "Authorization";
+                };
+              };
+              secret = {
+                inbox = {
+                  string = config.sops.placeholder.opencloud-onlyoffice-token;
+                };
+                outbox = {
+                  string = config.sops.placeholder.opencloud-onlyoffice-token;
+                };
+                session = {
+                  string = config.sops.placeholder.opencloud-onlyoffice-token;
+                };
+              };
+            };
+          };
+          rabbitmq = {
+            url = "amqp://guest:guest@localhost";
+          };
+          FileConverter = {
+            converter = {
+              inputLimits = [
+                {
+                  type = "docx;dotx;docm;dotm";
+                  zip = {
+                    uncompressed = "1GB";
+                    template = "*.xml";
+                  };
+                }
+                {
+                  type = "xlsx;xltx;xlsm;xltm";
+                  zip = {
+                    uncompressed = "1GB";
+                    template = "*.xml";
+                  };
+                }
+                {
+                  type = "pptx;ppsx;potx;pptm;ppsm;potm";
+                  zip = {
+                    uncompressed = "1GB";
+                    template = "*.xml";
+                  };
+                }
+              ];
+            };
+          };
+        };
+      };
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [
+          "/mnt/storage/opencloud/config"
+          "/mnt/storage/opencloud/data"
+        ];
+      };
+    };
   };
 
   homelab.backups = {

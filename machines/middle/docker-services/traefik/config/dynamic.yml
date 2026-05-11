@@ -77,7 +77,7 @@ http:
     # Services which have their own authentication
     # and may need to bypass OAuth2
     home-public-sso:
-      rule: "Host(`blinko.home.amsh.dev`) || Host(`memos.home.amsh.dev`) || Host(`minio.home.amsh.dev`) || Host(`jellyfin.home.amsh.dev`) || Host(`linkwarden.home.amsh.dev`) || Host(`pdf.home.amsh.dev`) || Host(`books.home.amsh.dev`) || Host(`audiobooks.home.amsh.dev`) || Host(`upsnap.home.amsh.dev`) || Host(`rss.home.amsh.dev`) || Host(`immich.home.amsh.dev`) || Host(`n8n.home.amsh.dev`) || Host(`infisical.home.amsh.dev`) || Host(`beszel.home.amsh.dev`)"
+      rule: "Host(`blinko.home.amsh.dev`) || Host(`memos.home.amsh.dev`) || Host(`minio.home.amsh.dev`) || Host(`jellyfin.home.amsh.dev`) || Host(`linkwarden.home.amsh.dev`) || Host(`pdf.home.amsh.dev`) || Host(`books.home.amsh.dev`) || Host(`audiobooks.home.amsh.dev`) || Host(`upsnap.home.amsh.dev`) || Host(`rss.home.amsh.dev`) || Host(`immich.home.amsh.dev`) || Host(`n8n.home.amsh.dev`) || Host(`infisical.home.amsh.dev`) || Host(`beszel.home.amsh.dev`) || Host(`opencloud.home.amsh.dev`) || Host(`onlyoffice.home.amsh.dev`)"
       service: "home-tunnel"
       entryPoints:
         - websecure
@@ -113,6 +113,8 @@ http:
               - "it-tools.home.amsh.dev"
               - "vert.home.amsh.dev"
               - "cyberchef.home.amsh.dev"
+              - "opencloud.home.amsh.dev"
+              - "onlyoffice.home.amsh.dev"
       middlewares:
         - oauth2-auth@docker
       priority: 1

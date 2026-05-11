@@ -170,6 +170,11 @@ sections:
         statusCheck: true
         statusCheckUrl: http://infisical:8080/api/status
         id: 10_1704_infisical
+      - title: OpenCloud
+        description: Document and file collaboration
+        icon: https://cdn.jsdelivr.net/gh/selfhst/icons/svg/opencloud.svg
+        url: https://opencloud.home.amsh.dev
+        id: 11_1704_opencloud
   - name: Utilities
     displayData:
       sortBy: alphabetical

@@ -129,6 +129,7 @@ SECRETS=(
     "INFISICAL_GITHUB_APP_SLUG|req|home|infisical-github-app-slug|"
     "INFISICAL_GITHUB_APP_ID|req|home|infisical-github-app-id|"
     "INFISICAL_GITHUB_APP_PRIVATE_KEY|req|home|infisical-github-app-private-key|"
+    "OPENCLOUD_ONLYOFFICE_TOKEN|gen|home|opencloud-onlyoffice-token|openssl rand -hex 32"
 
     # Infrastructure and Backup
     "RESTIC_REPOSITORY_PASSWORD|gen|both|restic-repository-password|openssl rand -base64 64 | tr -d '\n/+=' | cut -c1-64"
