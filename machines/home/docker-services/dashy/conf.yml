@@ -170,6 +170,35 @@ sections:
         statusCheck: true
         statusCheckUrl: http://infisical:8080/api/status
         id: 10_1704_infisical
+  - name: Utilities
+    displayData:
+      sortBy: alphabetical
+      rows: 1
+      cols: 1
+      collapsed: false
+      hideForGuests: false
+    items:
+      - title: VERT
+        description: Privacy translation tools
+        icon: sh-vert
+        url: https://vert.home.amsh.dev
+        statusCheck: true
+        statusCheckUrl: http://vert:80
+        id: 0_1810_vert
+      - title: it-tools
+        description: Developer utilities
+        icon: hl-it-tools
+        url: https://it-tools.home.amsh.dev
+        statusCheck: true
+        statusCheckUrl: http://it-tools:80
+        id: 1_1810_ittools
+      - title: CyberChef
+        description: Data transformation and analysis
+        icon: hl-cyberchef
+        url: https://cyberchef.home.amsh.dev
+        statusCheck: true
+        statusCheckUrl: http://cyberchef:8080
+        id: 2_1810_cyberchef
   - name: Storage & Automation
     displayData:
       sortBy: alphabetical
@@ -249,6 +278,13 @@ sections:
         statusCheck: true
         statusCheckUrl: http://dockge:5001
         id: 5_1739_dockge
+      - title: ntfy
+        description: Notifications
+        icon: hl-ntfy
+        url: https://ntfy.home.amsh.dev
+        statusCheck: true
+        statusCheckUrl: https://ntfy.home.amsh.dev
+        id: 6_1739_ntfy
   - name: Networks and access
     displayData:
       sortBy: default

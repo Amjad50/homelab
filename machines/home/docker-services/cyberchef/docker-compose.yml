@@ -1,0 +1,19 @@
+networks:
+  traefik:
+    external: true
+
+services:
+  cyberchef:
+    image: ghcr.io/gchq/cyberchef:latest
+    container_name: cyberchef
+    restart: unless-stopped
+    networks:
+      - traefik
+    environment:
+      TZ: "Asia/Kuala_Lumpur"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cyberchef.rule=Host(`cyberchef.home.amsh.dev`)"
+      - "traefik.http.routers.cyberchef.service=cyberchef"
+      - "traefik.http.routers.cyberchef.middlewares=default-chain@file"
+      - "traefik.http.services.cyberchef.loadbalancer.server.port=8080"

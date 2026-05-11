@@ -95,6 +95,15 @@
     dashy = {
     };
 
+    vert = {
+    };
+
+    it-tools = {
+    };
+
+    cyberchef = {
+    };
+
     filebrowser = {
       tmpfiles = [
         "v /mnt/storage/filebrowser 0755 1000 1000 - -"

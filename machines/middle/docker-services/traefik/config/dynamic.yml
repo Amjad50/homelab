@@ -110,6 +110,9 @@ http:
               - "glances.home.amsh.dev"
               - "filebrowser.home.amsh.dev"
               - "sync.home.amsh.dev"
+              - "it-tools.home.amsh.dev"
+              - "vert.home.amsh.dev"
+              - "cyberchef.home.amsh.dev"
       middlewares:
         - oauth2-auth@docker
       priority: 1

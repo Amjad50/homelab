@@ -1,0 +1,19 @@
+networks:
+  traefik:
+    external: true
+
+services:
+  it-tools:
+    image: corentinth/it-tools:latest
+    container_name: it-tools
+    restart: unless-stopped
+    networks:
+      - traefik
+    environment:
+      TZ: "Asia/Kuala_Lumpur"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.it-tools.rule=Host(`it-tools.home.amsh.dev`)"
+      - "traefik.http.routers.it-tools.service=it-tools"
+      - "traefik.http.routers.it-tools.middlewares=default-chain@file"
+      - "traefik.http.services.it-tools.loadbalancer.server.port=80"

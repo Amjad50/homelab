@@ -1,0 +1,29 @@
+networks:
+  traefik:
+    external: true
+
+services:
+  vert:
+    image: local/vert:privacy
+    container_name: vert
+    restart: unless-stopped
+    build:
+      context: https://github.com/VERT-sh/VERT.git#main
+      args:
+        PUB_HOSTNAME: "vert.home.amsh.dev"
+        PUB_ENV: "production"
+        PUB_DISABLE_ALL_EXTERNAL_REQUESTS: "true"
+        PUB_PLAUSIBLE_URL: ""
+        PUB_VERTD_URL: ""
+        PUB_DONATION_URL: ""
+        PUB_STRIPE_KEY: ""
+    networks:
+      - traefik
+    environment:
+      TZ: "Asia/Kuala_Lumpur"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.vert.rule=Host(`vert.home.amsh.dev`)"
+      - "traefik.http.routers.vert.service=vert"
+      - "traefik.http.routers.vert.middlewares=default-chain@file"
+      - "traefik.http.services.vert.loadbalancer.server.port=80"
