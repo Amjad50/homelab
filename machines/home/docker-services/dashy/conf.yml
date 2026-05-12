@@ -98,6 +98,13 @@ sections:
         statusCheck: true
         statusCheckUrl: http://calibre-web-automated:8083
         id: 10_1348_calibre
+      - title: Shelfmark
+        description: Book and audiobook request tool
+        icon: sh-shelfmark
+        url: https://shelfmark.home.amsh.dev
+        statusCheck: true
+        statusCheckUrl: http://shelfmark:8084/api/health
+        id: 11_1348_shelfmark
   - name: Personal Services
     displayData:
       sortBy: alphabetical

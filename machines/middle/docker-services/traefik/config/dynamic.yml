@@ -115,6 +115,7 @@ http:
               - "cyberchef.home.amsh.dev"
               - "opencloud.home.amsh.dev"
               - "onlyoffice.home.amsh.dev"
+              - "shelfmark.home.amsh.dev"
       middlewares:
         - oauth2-auth@docker
       priority: 1

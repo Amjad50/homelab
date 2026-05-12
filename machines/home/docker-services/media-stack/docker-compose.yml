@@ -119,6 +119,82 @@ services:
       timeout: 10s
       retries: 3
 
+  # Shelfmark - Book and audiobook search/request tool
+  shelfmark:
+    image: ghcr.io/calibrain/shelfmark:latest
+    container_name: shelfmark
+    restart: unless-stopped
+    networks:
+      - traefik
+      - media
+    env_file:
+      # Optional host-local secrets:
+      # PROWLARR_API_KEY, QBITTORRENT_USERNAME, QBITTORRENT_PASSWORD
+      - path: /var/lib/dock/shelfmark.env
+        required: false
+    environment:
+      # Bootstrap
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Kuala_Lumpur
+      - FLASK_PORT=8084
+      - FLASK_HOST=0.0.0.0
+      - CONFIG_DIR=/config
+      - TMP_DIR=/tmp/shelfmark
+      - DOCKERMODE=true
+
+      # Library links
+      - SEARCH_PAGE_TITLE=Shelfmark
+      - CALIBRE_WEB_URL=https://calibre.home.amsh.dev
+      - AUDIOBOOK_LIBRARY_URL=https://audiobooks.home.amsh.dev
+
+      # Destinations
+      - BOOKS_OUTPUT_MODE=folder
+      - INGEST_DIR=/books
+      - FILE_ORGANIZATION=rename
+      - TEMPLATE_RENAME={Author} - {Title} ({Year})
+      - DESTINATION_AUDIOBOOK=/audiobooks
+      - FILE_ORGANIZATION_AUDIOBOOK=organize
+      - TEMPLATE_AUDIOBOOK_ORGANIZE={Author}/{Title}/{Title}
+      - QBITTORRENT_DOWNLOAD_DIR=/downloads
+      - HARDLINK_TORRENTS_AUDIOBOOK=false
+
+      # Existing media-stack integrations
+      - PROWLARR_ENABLED=true
+      - PROWLARR_URL=http://prowlarr:9696
+      - PROWLARR_TORRENT_CLIENT=qbittorrent
+      - PROWLARR_TORRENT_ACTION=keep
+      - QBITTORRENT_URL=http://qbittorrent:8080
+      - QBITTORRENT_CATEGORY=books
+      - QBITTORRENT_CATEGORY_AUDIOBOOK=audiobooks
+      - USE_CF_BYPASS=true
+      - USING_EXTERNAL_BYPASSER=true
+      - EXT_BYPASSER_URL=http://flaresolverr:8191
+      - EXT_BYPASSER_PATH=/v1
+      - EXT_BYPASSER_TIMEOUT=60000
+
+      # Local networking
+      - CERTIFICATE_VALIDATION=disabled_local
+      - CUSTOM_DNS=system
+      - USE_DOH=false
+      - NO_PROXY=localhost,127.0.0.1,prowlarr,qbittorrent,flaresolverr,calibre-web-automated,audiobookshelf
+    volumes:
+      - /mnt/storage/media/configs/shelfmark:/config
+      - /mnt/storage/media/calibre-ingest:/books
+      - /mnt/storage/media/audiobooks:/audiobooks
+      - /mnt/storage/media/downloads:/downloads
+      - /etc/localtime:/etc/localtime:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.shelfmark.rule=Host(`shelfmark.home.amsh.dev`)"
+      - "traefik.http.services.shelfmark.loadbalancer.server.port=8084"
+      - "traefik.http.routers.shelfmark.middlewares=default-chain@file"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8084/api/health"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
   # FlareSolverr - Bypass Cloudflare Protection
   flaresolverr:
     # DockerHub mirror flaresolverr/flaresolverr:latest

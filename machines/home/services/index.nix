@@ -157,6 +157,7 @@
         "v /mnt/storage/media/tv 0755 1000 1000 - -"
         "v /mnt/storage/media/configs 0755 dock docker - -"
         "v /mnt/storage/media/downloads 0755 1000 1000 - -"
+        "d /mnt/storage/media/configs/shelfmark 0755 1000 1000 - -"
       ];
       backup = {
         group = config.homelab.backups.default;
@@ -198,13 +199,12 @@
       tmpfiles = [
         "v /mnt/storage/media/calibre-ingest 0755 1000 1000 - -"
         "v /mnt/storage/media/calibre-library 0755 1000 1000 - -"
-        "v /mnt/storage/media/configs/calibre-web-automated 0755 1000 1000 - -"
+        "d   /mnt/storage/media/configs/calibre-web-automated 0755 1000 1000 - -"
       ];
       backup = {
         group = config.homelab.backups.default;
         paths = [
           "/mnt/storage/media/calibre-library"
-          "/mnt/storage/media/configs/calibre-web-automated"
         ];
       };
     };
