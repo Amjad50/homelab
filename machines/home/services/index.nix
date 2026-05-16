@@ -323,6 +323,42 @@
       };
     };
 
+    norish = {
+      tmpfiles = [
+        "v /mnt/storage/norish 0755 dock docker - -"
+        "d /mnt/storage/norish/postgres 0755 dock docker - -"
+        "d /mnt/storage/norish/redis 0755 dock docker - -"
+        "d /mnt/storage/norish/uploads 0755 1000 1000 - -"
+      ];
+      secrets = {
+        norish-db-password            = { owner = "dock"; group = "docker"; mode = "0400"; };
+        norish-master-key             = { owner = "dock"; group = "docker"; mode = "0400"; };
+        norish-kanidm-client-secret   = { owner = "dock"; group = "docker"; mode = "0400"; };
+      };
+      # Env file: secrets only. DATABASE_URL/REDIS_URL embed the db password
+      # so they live here too. All other public config lives in compose.
+      templates."norish.env" = {
+        owner = "dock"; group = "docker"; mode = "0400";
+        path = "/var/lib/dock/norish.env";
+        content = ''
+          MASTER_KEY=${config.sops.placeholder.norish-master-key}
+          POSTGRES_PASSWORD=${config.sops.placeholder.norish-db-password}
+          DATABASE_PASSWORD=${config.sops.placeholder.norish-db-password}
+          OIDC_CLIENT_SECRET=${config.sops.placeholder.norish-kanidm-client-secret}
+          AI_API_KEY=${config.sops.placeholder.openai-api-key}
+        '';
+      };
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [ "/mnt/storage/norish/uploads" ];
+        postgres = [{
+          composeService = "norish-db";
+          database = "norish";
+          user = "norish";
+        }];
+      };
+    };
+
     immich = {
       tmpfiles = [ "v /mnt/storage/immich 0755 dock docker - -" ];
       secrets.immich-db-password = {

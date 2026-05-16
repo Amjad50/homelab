@@ -1,0 +1,133 @@
+networks:
+  traefik:
+    external: true
+  norish:
+    internal: true
+
+services:
+  norish-db:
+    image: postgres:17-alpine
+    container_name: norish-db
+    restart: unless-stopped
+    networks:
+      - norish
+    env_file:
+      - path: /var/lib/dock/norish.env
+        required: true
+    environment:
+      POSTGRES_USER: norish
+      POSTGRES_DB: norish
+      # POSTGRES_PASSWORD: from env file
+      TZ: "Asia/Kuala_Lumpur"
+    volumes:
+      - /mnt/storage/norish/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U norish -d norish"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  norish-redis:
+    image: redis:8-alpine
+    container_name: norish-redis
+    restart: unless-stopped
+    networks:
+      - norish
+    volumes:
+      - /mnt/storage/norish/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  norish-chrome:
+    image: zenika/alpine-chrome:latest
+    container_name: norish-chrome
+    restart: unless-stopped
+    networks:
+      - norish
+    shm_size: "256m"
+    command:
+      - "--no-sandbox"
+      - "--disable-gpu"
+      - "--disable-dev-shm-usage"
+      - "--disable-features=dbus"
+      - "--remote-debugging-address=0.0.0.0"
+      - "--remote-debugging-port=3000"
+      - "--headless"
+
+  norish:
+    image: norishapp/norish:latest
+    container_name: norish
+    restart: unless-stopped
+    user: "1000:1000"
+    env_file:
+      - path: /var/lib/dock/norish.env
+        required: true
+    environment:
+      NODE_ENV: "production"
+  
+      TZ: "Asia/Kuala_Lumpur"
+      AUTH_URL: "https://norish.home.amsh.dev"
+      TRUSTED_ORIGINS: "https://norish.home.amsh.dev"
+      UPLOADS_DIR: "/app/uploads"
+
+      # Infra dependencies
+      CHROME_WS_ENDPOINT: "ws://norish-chrome:3000"
+      # DATABASE_PASSWORD from env file
+      DATABASE_HOST: "norish-db"
+      DATABASE_PORT: "5432"
+      DATABASE: "norish"
+      DATABASE_USER: "norish"
+      REDIS_URL: "redis://norish-redis:6379"
+
+      # Disable password auth (force OIDC via Kanidm)
+      PASSWORD_AUTH_ENABLED: "false"
+      ENABLE_REGISTRATION: "false"
+
+      # OIDC (Kanidm)
+      OIDC_NAME: "Kanidm"
+      OIDC_ISSUER: "https://idm.home.amsh.dev/oauth2/openid/norish"
+      OIDC_WELLKNOWN: "https://idm.home.amsh.dev/oauth2/openid/norish/.well-known/openid-configuration"
+      OIDC_CLIENT_ID: "norish"
+      # OIDC_CLIENT_SECRET: from env file
+
+      # Optional OIDC group claim mapping — admin/household auto-join
+      OIDC_CLAIM_MAPPING_ENABLED: "true"
+      OIDC_GROUPS_CLAIM: "groups"
+      OIDC_ADMIN_GROUP: "norish-admins@idm.home.amsh.dev"
+      # OIDC_HOUSEHOLD_GROUP_PREFIX: "norish-household-"  # uncomment if you want auto household-join
+
+      # AI features — enabled, configured per-user/household after first login
+      AI_ENABLED: "true"
+      AI_PROVIDER: "generic-openai"
+      AI_ENDPOINT: "https://openrouter.ai/api/v1"
+      AI_MODEL: "google/gemini-3.1-flash-lite"
+    volumes:
+      - /mnt/storage/norish/uploads:/app/uploads
+    networks:
+      - traefik
+      - norish
+    depends_on:
+      norish-db:
+        condition: service_healthy
+      norish-redis:
+        condition: service_healthy
+      norish-chrome:
+        condition: service_started
+    healthcheck:
+      test:
+        - "CMD-SHELL"
+        - "node -e \"require('http').get('http://localhost:3000/api/v1/health', r => process.exit(r.statusCode===200?0:1))\""
+      interval: 1m
+      timeout: 15s
+      retries: 3
+      start_period: 1m
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.norish.rule=Host(`norish.home.amsh.dev`)"
+      - "traefik.http.routers.norish.service=norish"
+      - "traefik.http.routers.norish.middlewares=default-chain@file"
+      - "traefik.http.services.norish.loadbalancer.server.port=3000"

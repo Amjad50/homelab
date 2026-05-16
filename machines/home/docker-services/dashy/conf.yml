@@ -105,6 +105,13 @@ sections:
         statusCheck: true
         statusCheckUrl: http://shelfmark:8084/api/health
         id: 11_1348_shelfmark
+      - title: Norish
+        description: AI-first realtime recipe app for households
+        icon: hl-norish
+        url: https://norish.home.amsh.dev
+        statusCheck: true
+        statusCheckUrl: http://norish:3000/api/v1/health
+        id: 13_1348_norish
   - name: Personal Services
     displayData:
       sortBy: alphabetical
