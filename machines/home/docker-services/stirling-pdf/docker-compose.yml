@@ -35,24 +35,12 @@ services:
       - /var/log/stirlingpdf:/logs/
       # - ./StirlingPDF/customFiles:/customFiles/
       # - ./StirlingPDF/pipeline:/pipeline/
-    env_file:
-      - path: /var/lib/dock/stirlingpdf.env
-        required: true
     environment:
+      # OAuth2 SSO moved to paid tier; auth is now handled by oauth2-proxy at
+      # the middle traefik (pdf.home.amsh.dev falls through to home-fallback).
       - DISABLE_ADDITIONAL_FEATURES=false
       - LANGS=en_US
-      # configs
-      - SECURITY_ENABLELOGIN=true
-      - SECURITY_LOGINMETHOD=all
-      - SECURITY_OAUTH2_ENABLED=true
-      - SECURITY_OAUTH2_ISSUER=https://idm.home.amsh.dev/oauth2/openid/stirlingpdf
-      - SECURITY_OAUTH2_CLIENTID=stirlingpdf
-      # - SECURITY_OAUTH2_CLIENTSECRET=set from env file
-      - SECURITY_OAUTH2_AUTOCREATEUSER=true
-      - SECURITY_OAUTH2_BLOCKREGISTRATION=false
-      - SECURITY_OAUTH2_USEASUSERNAME=email
-      - SECURITY_OAUTH2_SCOPES=openid,profile,email
-      - SECURITY_OAUTH2_PROVIDER=kanidm
+      - SECURITY_ENABLELOGIN=false
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.stirlingpdf.loadbalancer.server.port=8080"

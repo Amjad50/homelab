@@ -115,7 +115,6 @@ SECRETS=(
     "LINKWARDEN_NEXTAUTH_SECRET|gen|home|linkwarden-nextauth-secret|openssl rand -base64 32 | tr -d '/+=' | cut -c1-32"
     "LINKWARDEN_DB_PASSWORD|gen|home|linkwarden-db-password|openssl rand -base64 32 | tr -d '/+=' | cut -c1-32"
     "LINKWARDEN_KANIDM_CLIENT_SECRET|req|home|linkwarden-kanidm-client-secret|"
-    "STIRLINGPDF_KANIDM_CLIENT_SECRET|req|home|stirlingpdf-kanidm-client-secret|"
     "FRESHRSS_KANIDM_CLIENT_SECRET|req|home|freshrss-kanidm-client-secret|"
     "FRESHRSS_CRYPTO_SECRET|gen|home|freshrss-crypto-secret|openssl rand -base64 32 | tr -d '\n/+=' | cut -c1-32"
     "IMMICH_DB_PASSWORD|gen|home|immich-db-password|openssl rand -base64 32 | tr -d '/+=' | cut -c1-32"

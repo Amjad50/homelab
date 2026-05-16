@@ -138,16 +138,6 @@
     };
 
     stirling-pdf = {
-      secrets.stirlingpdf-kanidm-client-secret = {
-        owner = "dock"; group = "docker"; mode = "0400";
-      };
-      templates."stirlingpdf.env" = {
-        owner = "dock"; group = "docker"; mode = "0400";
-        path = "/var/lib/dock/stirlingpdf.env";
-        content = ''
-          SECURITY_OAUTH2_CLIENTSECRET=${config.sops.placeholder.stirlingpdf-kanidm-client-secret}
-        '';
-      };
     };
 
     media-stack = {
