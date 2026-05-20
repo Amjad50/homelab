@@ -64,6 +64,7 @@ let
       backup = {
         group               = lib.mkOption { type = lib.types.nullOr (lib.types.attrsOf lib.types.anything); default = null; description = "The backup group this service belongs to."; };
         paths               = lib.mkOption { type = lib.types.listOf lib.types.str; default = []; description = "Filesystem paths to include in the backup."; };
+        exclude             = lib.mkOption { type = lib.types.listOf lib.types.str; default = []; description = "Filesystem paths/patterns to exclude from the backup (passed to restic --exclude)."; };
         postgres            = lib.mkOption { type = lib.types.listOf postgresType;  default = []; description = "Postgres databases to dump before backup."; };
         customBackupScript  = lib.mkOption { type = lib.types.lines; default = ""; description = "Host shell script run before backup while services are still up."; };
         customRestoreScript = lib.mkOption { type = lib.types.lines; default = ""; description = "Host shell script run after restic restore while services in the group are still stopped."; };
@@ -109,6 +110,7 @@ in
         ) enabled;
       in {
         paths = lib.unique (lib.concatLists (lib.mapAttrsToList (_: svc: svc.backup.paths) dependentServices));
+        exclude = lib.unique (lib.concatLists (lib.mapAttrsToList (_: svc: svc.backup.exclude) dependentServices));
         postgres = lib.concatLists (lib.mapAttrsToList (svcName: svc:
           map (pg: {
             inherit (pg) composeService database user;
@@ -167,6 +169,7 @@ in
         environmentFile = config.sops.templates."restic-s3.env".path;
 
         paths = paths;
+        exclude = meta.exclude;
 
         extraBackupArgs = [
           "--tag=backup-v2"

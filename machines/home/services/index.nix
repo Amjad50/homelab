@@ -196,6 +196,10 @@
         paths = [
           "/mnt/storage/media/calibre-library"
         ];
+        exclude = [
+          "/mnt/storage/media/configs/calibre-web-automated/processed_books"
+          "/mnt/storage/media/configs/calibre-web-automated/thumbnails"
+        ];
       };
     };
 
