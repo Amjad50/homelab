@@ -46,7 +46,7 @@ backup_message() {
   status="$1"
   group="$2"
   unit="restic-backups-${group}.service"
-  host="$(hostname 2>/dev/null || printf 'home')"
+  host="$(hostname 2>/dev/null || printf 'unknown')"
   result="unknown"
   started="unknown"
   finished="unknown"
@@ -92,13 +92,8 @@ backup_stats() {
   command -v journalctl >/dev/null 2>&1 || return 0
 
   log="$(
-    journalctl -u "$unit" -n 300 --no-pager -o cat 2>/dev/null |
-      strip_control |
-      awk -v unit="$unit" '
-        $0 == "Starting " unit "..." { out = "" }
-        { out = out $0 "\n" }
-        END { printf "%s", out }
-      '
+    journalctl -I -u "$unit" --no-pager -o cat 2>/dev/null |
+      strip_control
   )"
 
   [ -n "$log" ] || return 0

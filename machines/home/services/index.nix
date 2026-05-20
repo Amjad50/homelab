@@ -189,7 +189,7 @@
       tmpfiles = [
         "v /mnt/storage/media/calibre-ingest 0755 1000 1000 - -"
         "v /mnt/storage/media/calibre-library 0755 1000 1000 - -"
-        "d   /mnt/storage/media/configs/calibre-web-automated 0755 1000 1000 - -"
+        "d /mnt/storage/media/configs/calibre-web-automated 0755 1000 1000 - -"
       ];
       backup = {
         group = config.homelab.backups.default;

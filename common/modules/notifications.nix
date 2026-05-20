@@ -39,7 +39,7 @@ in
       {
         "homelab-backup-notify-success@" = {
           description = "Notify successful homelab backup for %i";
-          path = with pkgs; [ coreutils curl gawk gnugrep gnused jq systemd ];
+          path = with pkgs; [ coreutils curl gawk gnugrep gnused jq nettools systemd ];
           serviceConfig = {
             Type = "oneshot";
             EnvironmentFile = config.sops.templates."ntfy-client.env".path;
@@ -49,7 +49,7 @@ in
 
         "homelab-backup-notify-failure@" = {
           description = "Notify failed homelab backup for %i";
-          path = with pkgs; [ coreutils curl gawk gnugrep gnused jq systemd ];
+          path = with pkgs; [ coreutils curl gawk gnugrep gnused jq nettools systemd ];
           serviceConfig = {
             Type = "oneshot";
             EnvironmentFile = config.sops.templates."ntfy-client.env".path;
