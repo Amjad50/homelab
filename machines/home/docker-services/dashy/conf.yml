@@ -199,6 +199,12 @@ sections:
         statusCheck: true
         statusCheckUrl: http://plane-proxy:80
         id: 12_1704_plane
+      - title: Huly
+        description: All-in-one project management & team collaboration
+        icon: https://raw.githubusercontent.com/hcengineering/platform/c36dd74fef9801090082dceb738755b47a63be8a/dev/prod/public/huly/apple-touch-icon.png
+        url: https://huly.home.amsh.dev
+        statusCheck: true
+        id: 13_1704_huly
   - name: Utilities
     displayData:
       sortBy: alphabetical

@@ -159,6 +159,16 @@ SECRETS=(
     "PLANE_MINIO_SECRET_KEY|gen|home|plane-minio-secret-key|openssl rand -hex 20"
     "PLANE_GITHUB_CLIENT_ID|req|home|plane-github-client-id|"
     "PLANE_GITHUB_CLIENT_SECRET|req|home|plane-github-client-secret|"
+    "HULY_SECRET|gen|home|huly-secret|openssl rand -hex 32"
+    "HULY_DB_PASSWORD|gen|home|huly-db-password|openssl rand -base64 32 | tr -d '/+=' | cut -c1-32"
+    "HULY_REDPANDA_PASSWORD|gen|home|huly-redpanda-password|openssl rand -base64 32 | tr -d '/+=' | cut -c1-32"
+    "HULY_KANIDM_CLIENT_SECRET|req|home|huly-kanidm-client-secret|"
+    "HULY_GITHUB_APP_ID|req|home|huly-github-app-id|"
+    "HULY_GITHUB_APP_SLUG|req|home|huly-github-app-slug|"
+    "HULY_GITHUB_CLIENT_ID|req|home|huly-github-client-id|"
+    "HULY_GITHUB_CLIENT_SECRET|req|home|huly-github-client-secret|"
+    "HULY_GITHUB_PRIVATE_KEY|req|home|huly-github-private-key|"
+    "HULY_GITHUB_WEBHOOK_SECRET|gen|home|huly-github-webhook-secret|openssl rand -hex 32"
 
     # Shared SMTP credentials (host/port/user/pass shared; from-address/name set per service)
     "SMTP_HOST|req|home|smtp-host|"

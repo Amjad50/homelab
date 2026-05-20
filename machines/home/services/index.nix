@@ -656,6 +656,91 @@
         ];
       };
     };
+
+    huly = {
+      enable = true;
+      tmpfiles = [
+        "d /mnt/storage/huly 0755 dock docker - -"
+        "d /mnt/storage/huly/minio 0755 dock docker - -"
+      ];
+      secrets = {
+        huly-secret                = { owner = "dock"; group = "docker"; mode = "0400"; };
+        huly-db-password           = { owner = "dock"; group = "docker"; mode = "0400"; };
+        huly-redpanda-password     = { owner = "dock"; group = "docker"; mode = "0400"; };
+        huly-kanidm-client-secret  = { owner = "dock"; group = "docker"; mode = "0400"; };
+        huly-github-app-id         = { owner = "dock"; group = "docker"; mode = "0400"; };
+        huly-github-app-slug       = { owner = "dock"; group = "docker"; mode = "0400"; };
+        huly-github-client-id      = { owner = "dock"; group = "docker"; mode = "0400"; };
+        huly-github-client-secret  = { owner = "dock"; group = "docker"; mode = "0400"; };
+        huly-github-private-key    = { owner = "dock"; group = "docker"; mode = "0400"; };
+        huly-github-webhook-secret = { owner = "dock"; group = "docker"; mode = "0400"; };
+        smtp-host                  = { owner = "dock"; group = "docker"; mode = "0400"; };
+        smtp-port                  = { owner = "dock"; group = "docker"; mode = "0400"; };
+        smtp-username              = { owner = "dock"; group = "docker"; mode = "0400"; };
+        smtp-password              = { owner = "dock"; group = "docker"; mode = "0400"; };
+      };
+      templates."huly.env" = {
+        owner = "dock"; group = "docker"; mode = "0400";
+        path = "/var/lib/dock/huly.env";
+        restartUnits = [ "docker-compose-huly.service" ];
+        content = ''
+          SECRET=${config.sops.placeholder.huly-secret}
+          SERVER_SECRET=${config.sops.placeholder.huly-secret}
+          DB_URL=postgres://selfhost:${config.sops.placeholder.huly-db-password}@cockroach:26257/defaultdb
+          ACCOUNTS_DB_URL=postgres://selfhost:${config.sops.placeholder.huly-db-password}@cockroach:26257/defaultdb
+          HULY_DB_CONNECTION=postgres://selfhost:${config.sops.placeholder.huly-db-password}@cockroach:26257/defaultdb
+          HULY_TOKEN_SECRET=${config.sops.placeholder.huly-secret}
+          STORAGE_CONFIG=minio|minio?accessKey=minioadmin&secretKey=minioadmin
+          COCKROACH_DATABASE=defaultdb
+          COCKROACH_USER=selfhost
+          COCKROACH_PASSWORD=${config.sops.placeholder.huly-db-password}
+          REDPANDA_ADMIN_USER=superadmin
+          REDPANDA_ADMIN_PWD=${config.sops.placeholder.huly-redpanda-password}
+          OPENID_CLIENT_SECRET=${config.sops.placeholder.huly-kanidm-client-secret}
+        '';
+      };
+      templates."huly-mail.env" = {
+        owner = "dock"; group = "docker"; mode = "0400";
+        path = "/var/lib/dock/huly-mail.env";
+        restartUnits = [ "docker-compose-huly.service" ];
+        content = ''
+          SMTP_HOST=${config.sops.placeholder.smtp-host}
+          SMTP_PORT=${config.sops.placeholder.smtp-port}
+          SMTP_USERNAME=${config.sops.placeholder.smtp-username}
+          SMTP_PASSWORD=${config.sops.placeholder.smtp-password}
+        '';
+      };
+      templates."huly-github.env" = {
+        owner = "dock"; group = "docker"; mode = "0400";
+        path = "/var/lib/dock/huly-github.env";
+        restartUnits = [ "docker-compose-huly.service" ];
+        content = ''
+          APP_ID=${config.sops.placeholder.huly-github-app-id}
+          CLIENT_ID=${config.sops.placeholder.huly-github-client-id}
+          CLIENT_SECRET=${config.sops.placeholder.huly-github-client-secret}
+          PRIVATE_KEY="${
+            builtins.replaceStrings [ "\\\\" ] [ "\\" ] config.sops.placeholder.huly-github-private-key
+          }"
+          WEBHOOK_SECRET=${config.sops.placeholder.huly-github-webhook-secret}
+          BOT_NAME=${config.sops.placeholder.huly-github-app-slug}[bot]
+        '';
+      };
+      templates."huly-github-front.env" = {
+        owner = "dock"; group = "docker"; mode = "0400";
+        path = "/var/lib/dock/huly-github-front.env";
+        restartUnits = [ "docker-compose-huly.service" ];
+        content = ''
+          GITHUB_APP=${config.sops.placeholder.huly-github-app-slug}
+          GITHUB_CLIENTID=${config.sops.placeholder.huly-github-client-id}
+        '';
+      };
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [
+          "/mnt/storage/huly/minio"
+        ];
+      };
+    };
   };
 
   homelab.backups = {
