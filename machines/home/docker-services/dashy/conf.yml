@@ -3,7 +3,7 @@ pageInfo:
   description: Personal Services Dashboard
 appConfig:
   theme: nord-frost
-  layout: auto
+  layout: masonry
   iconSize: large
   enableFontAwesome: true
   enableMaterialIcons: true
@@ -17,7 +17,7 @@ sections:
     displayData:
       sortBy: alphabetical
       rows: 1
-      cols: 1
+      cols: 2
       collapsed: false
       hideForGuests: false
     items:
@@ -107,7 +107,7 @@ sections:
         id: 11_1348_shelfmark
       - title: Norish
         description: AI-first realtime recipe app for households
-        icon: hl-norish
+        icon: sh-norish
         url: https://norish.home.amsh.dev
         statusCheck: true
         statusCheckUrl: http://norish:3000/api/v1/health
@@ -116,7 +116,7 @@ sections:
     displayData:
       sortBy: alphabetical
       rows: 1
-      cols: 1
+      cols: 2
       collapsed: false
       hideForGuests: false
     items:
@@ -129,7 +129,7 @@ sections:
         id: 0_1704_fireflyiii
       - title: Blinko
         description: Note Taking
-        icon: https://cdn.jsdelivr.net/gh/selfhst/icons/svg/blinko.svg
+        icon: sh-blinko
         url: https://blinko.home.amsh.dev
         statusCheck: true
         statusCheckUrl: http://blinko:1111
@@ -193,7 +193,7 @@ sections:
         id: 10_1704_infisical
       - title: OpenCloud
         description: Document and file collaboration
-        icon: https://cdn.jsdelivr.net/gh/selfhst/icons/svg/opencloud.svg
+        icon: sh-opencloud
         url: https://opencloud.home.amsh.dev
         id: 11_1704_opencloud
   - name: Utilities
