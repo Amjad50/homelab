@@ -33,8 +33,18 @@ for entry in "${entries[@]}"; do
   total=$((total + 1))
   log "[${GROUP_NAME}] Dumping ${database} from ${stack}/${compose_svc}..."
 
-  if ! compose-manage exec -T "$stack" "$compose_svc" pg_isready -U "$user" -q 2>/dev/null; then
-    log_err "[${GROUP_NAME}] Postgres not ready in ${stack}/${compose_svc} — skipping dump of ${database}"
+  compose-manage start-container "$stack" "$compose_svc" >/dev/null
+
+  ready=0
+  for _ in $(seq 1 30); do
+    if compose-manage exec -T "$stack" "$compose_svc" pg_isready -U "$user" -q 2>/dev/null; then
+      ready=1
+      break
+    fi
+    sleep 1
+  done
+  if (( ready == 0 )); then
+    log_err "[${GROUP_NAME}] Postgres not ready in ${stack}/${compose_svc} after 30s — skipping dump of ${database}"
     failed=$((failed + 1))
     continue
   fi
