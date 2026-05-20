@@ -60,7 +60,13 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.blinko.rule=Host(`blinko.home.amsh.dev`)"
       - "traefik.http.routers.blinko.service=blinko"
-      - "traefik.http.routers.blinko.middlewares=default-chain@file"
+      - "traefik.http.routers.blinko.middlewares=default-chain@file,sablier-blinko"
+      # Sablier scale-to-zero. Wakes app + db together.
+      # `allownonrunning` keeps the router registered while the container is
+      # stopped (Traefik v3.6+) — without it Sablier never gets called.
+      - "traefik.docker.allownonrunning=true"
+      - "traefik.http.middlewares.sablier-blinko.plugin.sablier.names=blinko,blinko-db"
+      - "traefik.http.middlewares.sablier-blinko.plugin.sablier.dynamic.displayName=Blinko"
       - "traefik.http.services.blinko.loadbalancer.server.port=1111"
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:1111/"]

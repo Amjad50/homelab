@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta http-equiv="refresh" content="{{ .RefreshFrequency }}" />
+    <title>Sablier — Starting {{ .DisplayName }}</title>
+    <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+    <link href="https://fonts.bunny.net/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #f6821f;
+            --accent-soft: rgba(246, 130, 31, 0.12);
+            --accent-glow: rgba(246, 130, 31, 0.5);
+            --text-primary: #f4f4f7;
+            --text-secondary: #b8b8c3;
+            --text-tertiary: #8a8a98;
+            --success: #4ec97a;
+            --danger: #ec5b59;
+            --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            --font-mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+        }
+        * { box-sizing: border-box; }
+        html, body {
+            margin: 0;
+            min-height: 100vh;
+            background: #0a0a0d;
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-feature-settings: "cv02","cv03","cv04","cv11";
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow: hidden;
+        }
+        canvas#topo {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+            z-index: 0;
+        }
+        .content {
+            position: relative;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 40px;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .card {
+            background: rgba(15, 15, 18, 0.92);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 14px;
+            padding: 36px 40px;
+            width: min(620px, 100%);
+            pointer-events: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+            text-align: left;
+            backdrop-filter: blur(2px);
+        }
+        .head {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+        .head .logo {
+            width: 44px; height: 44px;
+            border-radius: 10px;
+            background: var(--accent-soft);
+            display: grid;
+            place-items: center;
+            color: var(--accent);
+            border: 1px solid rgba(246,130,31,0.25);
+        }
+        .head .title-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+        .eyebrow {
+            font-size: 11px;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            font-weight: 600;
+        }
+        .head .name {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        h1 {
+            font-size: clamp(28px, 4.5vw, 40px);
+            line-height: 1.05;
+            font-weight: 600;
+            letter-spacing: -0.025em;
+            margin: 8px 0 14px;
+        }
+        h1 .accent { color: var(--accent); }
+        .lede {
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin: 0 0 26px;
+            max-width: 440px;
+        }
+        .grid {
+            display: grid;
+            gap: 8px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 10px;
+            padding: 12px;
+        }
+        .row {
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            align-items: center;
+            gap: 14px;
+            padding: 8px 6px;
+            font-size: 13px;
+        }
+        .dot {
+            width: 8px; height: 8px;
+            border-radius: 999px;
+            flex: 0 0 8px;
+        }
+        .dot.starting {
+            background: var(--accent);
+            animation: pulse 1.8s ease-out infinite;
+        }
+        .dot.running { background: var(--success); }
+        .dot.error   { background: var(--danger); }
+        @keyframes pulse {
+            0%   { box-shadow: 0 0 0 0   rgba(246,130,31,0.55); }
+            70%  { box-shadow: 0 0 0 10px rgba(246,130,31,0); }
+            100% { box-shadow: 0 0 0 0    rgba(246,130,31,0); }
+        }
+        .row .nm {
+            font-family: var(--font-mono);
+            color: var(--text-primary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .row .st {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .row .st.err { color: var(--danger); }
+        .row .ct {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-tertiary);
+            background: rgba(255,255,255,0.04);
+            padding: 3px 8px;
+            border-radius: 999px;
+        }
+
+        .meta {
+            margin-top: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-tertiary);
+            letter-spacing: 0.04em;
+        }
+        .live {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .live::before {
+            content: "";
+            width: 6px; height: 6px;
+            border-radius: 999px;
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent-glow);
+            animation: pulseDot 1.4s ease-in-out infinite;
+        }
+        @keyframes pulseDot {
+            0%, 100% { opacity: 1; }
+            50%      { opacity: 0.3; }
+        }
+        @media (max-width: 520px) {
+            .card { padding: 28px 24px; border-radius: 12px; }
+            .row { grid-template-columns: auto 1fr auto; gap: 10px; }
+            .row .st { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="topo"></canvas>
+    <div class="content">
+        <div class="card">
+            <h1>Starting <span class="accent">{{ .DisplayName }}</span>…</h1>
+            <p class="lede">Your service is being scheduled. You'll be redirected as soon as the first replica answers a health check.</p>
+
+            <div class="grid">
+                {{- range $i, $instance := .InstanceStates }}
+                <div class="row">
+                    {{- if $instance.Error }}
+                    <span class="dot error"></span>
+                    <span class="nm">{{ $instance.Name }}</span>
+                    <span class="st err">{{ $instance.Error }}</span>
+                    <span class="ct">{{ $instance.CurrentReplicas }}/{{ $instance.DesiredReplicas }}</span>
+                    {{- else }}
+                    <span class="dot {{ if eq $instance.Status "ready" }}running{{ else }}starting{{ end }}"></span>
+                    <span class="nm">{{ $instance.Name }}</span>
+                    <span class="st">{{ $instance.Status }}</span>
+                    <span class="ct">{{ $instance.CurrentReplicas }}/{{ $instance.DesiredReplicas }}</span>
+                    {{- end }}
+                </div>
+                {{ end -}}
+            </div>
+
+            <div class="meta">
+                <span class="live">refreshing every {{ .RefreshFrequency }}s</span>
+                <span>auto-sleeps after {{ .SessionDuration }}</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        var cnv = document.getElementById('topo');
+        var ctx = cnv.getContext('2d');
+        var dpr = Math.min(window.devicePixelRatio || 1, 2);
+        var W = 0, H = 0;
+
+        function resize() {
+            W = window.innerWidth;
+            H = window.innerHeight;
+            cnv.width = W * dpr;
+            cnv.height = H * dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        // The page auto-refreshes every few seconds (meta refresh) while the
+        // service is waking up. To make the wave appear continuous across
+        // reloads, we anchor "t = 0" to a timestamp stored in sessionStorage.
+        // Each reload re-reads the same anchor → the sine phase stays in sync.
+        var EPOCH_KEY = 'sablier-topo-epoch';
+        var epoch = parseFloat(sessionStorage.getItem(EPOCH_KEY));
+        if (!isFinite(epoch)) {
+            epoch = Date.now();
+            sessionStorage.setItem(EPOCH_KEY, String(epoch));
+        }
+
+        function frame() {
+            // Wall-clock seconds since the first page-view of this session,
+            // so the wave keeps advancing across meta-refresh reloads.
+            var t = (Date.now() - epoch) / 1000;
+            ctx.clearRect(0, 0, W, H);
+
+            var spacing = 28;
+            var cols = Math.ceil(W / spacing) + 2;
+            var rows = Math.ceil(H / spacing) + 2;
+            var cx = W / 2;
+            var cy = H / 2;
+            var maxDim = Math.max(W, H);
+
+            for (var i = 0; i < cols; i++) {
+                for (var j = 0; j < rows; j++) {
+                    var x = i * spacing - spacing;
+                    var y = j * spacing - spacing;
+                    var dx = x - cx;
+                    var dy = y - cy;
+                    var d = Math.sqrt(dx * dx + dy * dy);
+
+                    // Two interfering ripples at slightly different speeds
+                    // and wavelengths add up to something that never visibly
+                    // repeats — the eye doesn't latch onto a single rhythm.
+                    var wave1 = Math.sin(d * 0.022 - t * 1.2);
+                    var wave2 = Math.sin(d * 0.013 - t * 0.7);
+                    var wave  = (wave1 + wave2 * 0.55) / 1.55;   // ∈ [-1, 1]
+                    var w01   = wave * 0.5 + 0.5;                // ∈ [0, 1]
+
+                    // Soft cosine falloff toward edges → no hard cutoff ring.
+                    var rNorm  = Math.min(1, d / maxDim);
+                    var radial = 0.5 * (1 + Math.cos(rNorm * Math.PI));
+
+                    var size = 1.0 + w01 * 2.4 * (0.4 + radial * 0.8);
+                    var a    = 0.08 + w01 * 0.55 * (0.3 + radial * 0.7);
+
+                    // Color blend: ease the lerp so we don't pop at extremes.
+                    var mix = w01 * w01 * (3 - 2 * w01);          // smoothstep
+                    var r = (184 + (246 - 184) * mix * 0.85) | 0;
+                    var g = (184 + (130 - 184) * mix * 0.85) | 0;
+                    var b = (195 + ( 31 - 195) * mix * 0.85) | 0;
+
+                    ctx.fillStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+    })();
+    </script>
+</body>
+</html>

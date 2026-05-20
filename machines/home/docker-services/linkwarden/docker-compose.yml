@@ -58,11 +58,21 @@ services:
     depends_on:
       linkwarden-db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://127.0.0.1:3000/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.linkwarden.rule=Host(`linkwarden.home.amsh.dev`)"
       - "traefik.http.routers.linkwarden.service=linkwarden"
-      - "traefik.http.routers.linkwarden.middlewares=default-chain@file"
+      - "traefik.http.routers.linkwarden.middlewares=default-chain@file,sablier-linkwarden"
+      # Sablier scale-to-zero. Wakes app + db together.
+      - "traefik.docker.allownonrunning=true"
+      - "traefik.http.middlewares.sablier-linkwarden.plugin.sablier.names=linkwarden,linkwarden-db"
+      - "traefik.http.middlewares.sablier-linkwarden.plugin.sablier.dynamic.displayName=Linkwarden"
       - "traefik.http.services.linkwarden.loadbalancer.server.port=3000"
 
 

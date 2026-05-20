@@ -55,7 +55,13 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.solidtime.loadbalancer.server.port=8000"
       - "traefik.http.routers.solidtime.rule=Host(`solidtime.home.amsh.dev`)"
-      - "traefik.http.routers.solidtime.middlewares=default-chain@file"
+      - "traefik.http.routers.solidtime.middlewares=default-chain@file,sablier-solidtime"
+      # Sablier scale-to-zero. Wakes the whole stack: app + db + gotenberg
+      # (gotenberg has no container_name so docker auto-assigns
+      # solidtime-gotenberg-1).
+      - "traefik.docker.allownonrunning=true"
+      - "traefik.http.middlewares.sablier-solidtime.plugin.sablier.names=solidtime,solidtime-db,solidtime-gotenberg-1"
+      - "traefik.http.middlewares.sablier-solidtime.plugin.sablier.dynamic.displayName=Solidtime"
     networks:
       - traefik
       - solidtime

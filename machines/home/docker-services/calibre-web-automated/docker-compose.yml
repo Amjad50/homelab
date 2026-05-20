@@ -19,8 +19,18 @@ services:
       - /mnt/storage/media/calibre-ingest:/cwa-book-ingest
       - /mnt/storage/media/calibre-library:/calibre-library
       - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://127.0.0.1:8083/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.calibre-web-automated.rule=Host(`calibre.home.amsh.dev`)"
       - "traefik.http.services.calibre-web-automated.loadbalancer.server.port=8083"
-      - "traefik.http.routers.calibre-web-automated.middlewares=default-chain@file"
+      - "traefik.http.routers.calibre-web-automated.middlewares=default-chain@file,sablier-calibre-web"
+      # Sablier scale-to-zero
+      - "traefik.docker.allownonrunning=true"
+      - "traefik.http.middlewares.sablier-calibre-web.plugin.sablier.names=calibre-web-automated"
+      - "traefik.http.middlewares.sablier-calibre-web.plugin.sablier.dynamic.displayName=Calibre Web"

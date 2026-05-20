@@ -57,6 +57,14 @@ services:
       - "--remote-debugging-address=0.0.0.0"
       - "--remote-debugging-port=3000"
       - "--headless"
+    healthcheck:
+      # Image is FROM scratch-ish — only nc is available. We listen on
+      # 0.0.0.0:3000 (not 127.0.0.1), so probe the same address.
+      test: ["CMD-SHELL", "nc -z 0.0.0.0 3000 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   norish:
     image: norishapp/norish:latest
@@ -129,5 +137,10 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.norish.rule=Host(`norish.home.amsh.dev`)"
       - "traefik.http.routers.norish.service=norish"
-      - "traefik.http.routers.norish.middlewares=default-chain@file"
+      - "traefik.http.routers.norish.middlewares=default-chain@file,sablier-norish"
+      # Sablier scale-to-zero. Wakes the whole stack:
+      # app + db + redis + headless chrome.
+      - "traefik.docker.allownonrunning=true"
+      - "traefik.http.middlewares.sablier-norish.plugin.sablier.names=norish,norish-db,norish-redis,norish-chrome"
+      - "traefik.http.middlewares.sablier-norish.plugin.sablier.dynamic.displayName=Norish"
       - "traefik.http.services.norish.loadbalancer.server.port=3000"

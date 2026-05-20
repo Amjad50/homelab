@@ -53,3 +53,11 @@ accessLog:
 # Ping for health checks
 ping:
   entryPoint: ping
+
+# Experimental: Sablier plugin for stopping/starting idle containers on demand.
+# https://github.com/sablierapp/sablier-traefik-plugin
+experimental:
+  plugins:
+    sablier:
+      moduleName: "github.com/sablierapp/sablier-traefik-plugin"
+      version: "v1.3.0"

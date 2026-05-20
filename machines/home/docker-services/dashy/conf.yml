@@ -74,8 +74,8 @@ sections:
         description: Digital library for comics, manga, and e-books
         icon: hl-kavita
         url: https://books.home.amsh.dev
-        statusCheck: true
-        statusCheckUrl: http://kavita:5000/api/health
+        # Sabled — see calibre comment above.
+        statusCheck: false
         id: 7_1348_kavita
       - title: Audiobookshelf
         description: Audiobook and podcast server
@@ -95,8 +95,9 @@ sections:
         description: Calibre Web Automated for library management
         icon: hl-calibre-web
         url: https://calibre.home.amsh.dev
-        statusCheck: true
-        statusCheckUrl: http://calibre-web-automated:8083
+        # Status check disabled — sabled by Sablier, direct-IP probe would
+        # bypass the wake middleware and keep the container alive forever.
+        statusCheck: false
         id: 10_1348_calibre
       - title: Shelfmark
         description: Book and audiobook request tool
@@ -109,8 +110,8 @@ sections:
         description: AI-first realtime recipe app for households
         icon: sh-norish
         url: https://norish.home.amsh.dev
-        statusCheck: true
-        statusCheckUrl: http://norish:3000/api/v1/health
+        # Sabled — see calibre comment above.
+        statusCheck: false
         id: 13_1348_norish
   - name: Personal Services
     displayData:
@@ -124,15 +125,15 @@ sections:
         description: Personal Finance Manager
         icon: hl-firefly
         url: https://firefly.home.amsh.dev
-        statusCheck: true
-        statusCheckUrl: http://fireflyiii:8080/health
+        # Sabled — see calibre comment above.
+        statusCheck: false
         id: 0_1704_fireflyiii
       - title: Blinko
         description: Note Taking
         icon: sh-blinko
         url: https://blinko.home.amsh.dev
-        statusCheck: true
-        statusCheckUrl: http://blinko:1111
+        # Sabled — see calibre comment above.
+        statusCheck: false
         id: 1_1704_blinko
       # - title: Memos
       #   description: Memo Service
@@ -145,8 +146,8 @@ sections:
         description: Time Tracking
         icon: hl-solidtime
         url: https://solidtime.home.amsh.dev
-        statusCheck: true
-        statusCheckUrl: http://solidtime:8000/health-check/up
+        # Sabled — see calibre comment above.
+        statusCheck: false
         id: 3_1704_solidtime
       - title: Adguard
         description: Adblocker DNS
@@ -167,15 +168,15 @@ sections:
         description: Personal Knowledge Management, bookmarks and archives
         icon: sh-linkwarden
         url: https://linkwarden.home.amsh.dev
-        statusCheck: true
-        statusCheckUrl: http://linkwarden:3000
+        # Sabled — see calibre comment above.
+        statusCheck: false
         id: 7_1704_linkwarden
       - title: Stirling PDF
         description: PDF Tools and Editor
         icon: hl-stirling-pdf
         url: https://pdf.home.amsh.dev
-        statusCheck: true
-        statusCheckUrl: http://stirling-pdf:8080/api/v1/info/status
+        # Sabled — see calibre comment above.
+        statusCheck: false
         id: 8_1704_stirlingpdf
       # - title: FreshRSS
       #   description: RSS Feed Reader
@@ -215,22 +216,22 @@ sections:
         description: Privacy translation tools
         icon: sh-vert
         url: https://vert.home.amsh.dev
-        statusCheck: true
-        statusCheckUrl: http://vert:80
+        # Sabled — see calibre comment above.
+        statusCheck: false
         id: 0_1810_vert
       - title: it-tools
         description: Developer utilities
         icon: hl-it-tools
         url: https://it-tools.home.amsh.dev
-        statusCheck: true
-        statusCheckUrl: http://it-tools:80
+        # Sabled — see calibre comment above.
+        statusCheck: false
         id: 1_1810_ittools
       - title: CyberChef
         description: Data transformation and analysis
         icon: hl-cyberchef
         url: https://cyberchef.home.amsh.dev
-        statusCheck: true
-        statusCheckUrl: http://cyberchef:8080
+        # Sabled — see calibre comment above.
+        statusCheck: false
         id: 2_1810_cyberchef
   - name: Storage & Automation
     displayData:
@@ -251,8 +252,8 @@ sections:
         description: Workflow Automation
         icon: hl-n8n
         url: https://n8n.home.amsh.dev
-        statusCheck: true
-        statusCheckUrl: http://n8n:5678/healthz
+        # Sabled — see calibre comment above.
+        statusCheck: false
         id: 1_1884_nn
       - title: Syncthing
         description: File Synchronization

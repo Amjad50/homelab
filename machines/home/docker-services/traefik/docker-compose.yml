@@ -40,3 +40,38 @@ services:
       - "traefik.http.routers.debug.rule=Host(`debug-internal.home.amsh.dev`)"
       - "traefik.http.services.debug.loadbalancer.server.port=80"
       - "traefik.http.routers.debug.middlewares=default-chain@file"
+
+  # Sablier: scale-to-zero helper for the traefik Sablier plugin.
+  # Stops sabled containers after their session expires and starts them on
+  # demand when traefik's middleware asks. Not a user-facing service — lives
+  # next to traefik because the plugin is the only thing that talks to it.
+  sablier:
+    image: sablierapp/sablier:1.12.0
+    container_name: sablier
+    restart: unless-stopped
+    networks:
+      - traefik
+    command:
+      - start
+      - --provider.name=docker
+    environment:
+      TZ: "Asia/Kuala_Lumpur"
+      SABLIER_SESSIONS_DEFAULT_DURATION: "30m"
+      SABLIER_SESSIONS_EXPIRATION_INTERVAL: "30s"
+      SABLIER_LOGGING_LEVEL: "info"
+      # Dynamic loading page defaults — used when middlewares don't override.
+      # `amsh` is loaded from ./config/sablier-themes/amsh.html below.
+      SABLIER_STRATEGY_DYNAMIC_DEFAULT_THEME: "amsh"
+      SABLIER_STRATEGY_DYNAMIC_DEFAULT_REFRESH_FREQUENCY: "2s"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Custom themes; sablier discovers any .html file as a theme named
+      # after the file. New files require a sablier restart; edits to
+      # existing files are picked up live.
+      - ./config/sablier-themes:/etc/sablier/themes:ro
+    healthcheck:
+      test: ["CMD", "/bin/sablier", "health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

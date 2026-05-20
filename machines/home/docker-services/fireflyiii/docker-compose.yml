@@ -84,10 +84,20 @@ services:
       
     volumes:
       - /mnt/storage/firefly/upload:/var/www/html/storage/upload
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://127.0.0.1:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
     labels:
       # Enable Traefik
       - "traefik.enable=true"
       - "traefik.http.routers.fireflyiii.rule=Host(`firefly.home.amsh.dev`)"
       - "traefik.http.routers.fireflyiii.service=fireflyiii"
-      - "traefik.http.routers.fireflyiii.middlewares=default-chain@file"
+      - "traefik.http.routers.fireflyiii.middlewares=default-chain@file,sablier-fireflyiii"
+      # Sablier scale-to-zero. Wakes app + db together.
+      - "traefik.docker.allownonrunning=true"
+      - "traefik.http.middlewares.sablier-fireflyiii.plugin.sablier.names=fireflyiii,fireflyiii-db"
+      - "traefik.http.middlewares.sablier-fireflyiii.plugin.sablier.dynamic.displayName=Firefly III"
       - "traefik.http.services.fireflyiii.loadbalancer.server.port=8080"
