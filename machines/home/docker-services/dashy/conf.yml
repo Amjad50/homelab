@@ -196,6 +196,13 @@ sections:
         icon: sh-opencloud
         url: https://opencloud.home.amsh.dev
         id: 11_1704_opencloud
+      - title: Plane
+        description: Project management — issues, sprints, docs
+        icon: hl-plane
+        url: https://plane.home.amsh.dev
+        statusCheck: true
+        statusCheckUrl: http://plane-proxy:80
+        id: 12_1704_plane
   - name: Utilities
     displayData:
       sortBy: alphabetical

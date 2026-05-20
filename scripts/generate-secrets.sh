@@ -132,6 +132,15 @@ SECRETS=(
     "NORISH_DB_PASSWORD|gen|home|norish-db-password|openssl rand -base64 32 | tr -d '/+=' | cut -c1-32"
     "NORISH_MASTER_KEY|gen|home|norish-master-key|openssl rand -base64 32"
     "NORISH_KANIDM_CLIENT_SECRET|req|home|norish-kanidm-client-secret|"
+    "PLANE_DB_PASSWORD|gen|home|plane-db-password|openssl rand -hex 32"
+    "PLANE_SECRET_KEY|gen|home|plane-secret-key|openssl rand -base64 48 | tr -d '\n/+=' | cut -c1-50"
+    "PLANE_LIVE_SERVER_SECRET|gen|home|plane-live-server-secret|openssl rand -hex 32"
+    "PLANE_RABBITMQ_USER|gen|home|plane-rabbitmq-user|openssl rand -hex 8"
+    "PLANE_RABBITMQ_PASSWORD|gen|home|plane-rabbitmq-password|openssl rand -hex 32"
+    "PLANE_MINIO_ACCESS_KEY|gen|home|plane-minio-access-key|openssl rand -hex 10"
+    "PLANE_MINIO_SECRET_KEY|gen|home|plane-minio-secret-key|openssl rand -hex 20"
+    "PLANE_GITHUB_CLIENT_ID|req|home|plane-github-client-id|"
+    "PLANE_GITHUB_CLIENT_SECRET|req|home|plane-github-client-secret|"
 
     # Infrastructure and Backup
     "RESTIC_REPOSITORY_PASSWORD|gen|both|restic-repository-password|openssl rand -base64 64 | tr -d '\n/+=' | cut -c1-64"

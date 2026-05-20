@@ -424,6 +424,75 @@
       };
     };
 
+    plane = {
+      tmpfiles = [
+        "v /mnt/storage/plane 0755 dock docker - -"
+        "d /mnt/storage/plane/postgres 0755 dock docker - -"
+        "d /mnt/storage/plane/redis 0755 dock docker - -"
+        "d /mnt/storage/plane/rabbitmq 0755 dock docker - -"
+        "d /mnt/storage/plane/minio 0755 dock docker - -"
+        "d /mnt/storage/plane/logs 0755 dock docker - -"
+      ];
+      secrets = {
+        plane-db-password         = { owner = "dock"; group = "docker"; mode = "0400"; };
+        plane-secret-key          = { owner = "dock"; group = "docker"; mode = "0400"; };
+        plane-live-server-secret  = { owner = "dock"; group = "docker"; mode = "0400"; };
+        plane-rabbitmq-user       = { owner = "dock"; group = "docker"; mode = "0400"; };
+        plane-rabbitmq-password   = { owner = "dock"; group = "docker"; mode = "0400"; };
+        plane-minio-access-key    = { owner = "dock"; group = "docker"; mode = "0400"; };
+        plane-minio-secret-key    = { owner = "dock"; group = "docker"; mode = "0400"; };
+        plane-github-client-id    = { owner = "dock"; group = "docker"; mode = "0400"; };
+        plane-github-client-secret = { owner = "dock"; group = "docker"; mode = "0400"; };
+      };
+      templates."plane.env" = {
+        owner = "dock"; group = "docker"; mode = "0400";
+        path = "/var/lib/dock/plane.env";
+        content = ''
+          POSTGRES_PASSWORD=${config.sops.placeholder.plane-db-password}
+          DATABASE_URL=postgresql://plane:${config.sops.placeholder.plane-db-password}@plane-db/plane
+
+          SECRET_KEY=${config.sops.placeholder.plane-secret-key}
+          LIVE_SERVER_SECRET_KEY=${config.sops.placeholder.plane-live-server-secret}
+
+          # Plane backend's expected names
+          RABBITMQ_USER=${config.sops.placeholder.plane-rabbitmq-user}
+          RABBITMQ_PASSWORD=${config.sops.placeholder.plane-rabbitmq-password}
+          RABBITMQ_VHOST=plane
+          AMQP_URL=amqp://${config.sops.placeholder.plane-rabbitmq-user}:${config.sops.placeholder.plane-rabbitmq-password}@plane-mq:5672/plane
+
+          # RabbitMQ image's bootstrap names (same values, different keys)
+          RABBITMQ_DEFAULT_USER=${config.sops.placeholder.plane-rabbitmq-user}
+          RABBITMQ_DEFAULT_PASS=${config.sops.placeholder.plane-rabbitmq-password}
+          RABBITMQ_DEFAULT_VHOST=plane
+
+          # Plane backend's S3-style names
+          AWS_ACCESS_KEY_ID=${config.sops.placeholder.plane-minio-access-key}
+          AWS_SECRET_ACCESS_KEY=${config.sops.placeholder.plane-minio-secret-key}
+
+          # MinIO image's bootstrap names (same values, different keys)
+          MINIO_ROOT_USER=${config.sops.placeholder.plane-minio-access-key}
+          MINIO_ROOT_PASSWORD=${config.sops.placeholder.plane-minio-secret-key}
+
+          # GitHub OAuth + sync
+          GITHUB_CLIENT_ID=${config.sops.placeholder.plane-github-client-id}
+          GITHUB_CLIENT_SECRET=${config.sops.placeholder.plane-github-client-secret}
+          ENABLE_GITHUB_SYNC=1
+        '';
+      };
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [
+          "/mnt/storage/plane/minio"
+          "/mnt/storage/plane/rabbitmq"
+        ];
+        postgres = [{
+          composeService = "plane-db";
+          database = "plane";
+          user = "plane";
+        }];
+      };
+    };
+
     opencloud = {
       tmpfiles = [
         "v /mnt/storage/opencloud 0755 1000 1000 - -"
