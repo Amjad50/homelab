@@ -1,12 +1,36 @@
 networks:
   traefik:
     external: true
+  oauth2-proxy:
+    internal: true
 
 secrets:
   oauth2-proxy-client-secret:
     file: /run/secrets/oauth2-proxy-client-secret
 
 services:
+  oauth2-proxy-redis:
+    image: redis:7-alpine
+    container_name: oauth2-proxy-redis
+    restart: unless-stopped
+    networks:
+      - oauth2-proxy
+    command:
+      - redis-server
+      - --save
+      - ""
+      - --appendonly
+      - "no"
+      - --maxmemory
+      - 64mb
+      - --maxmemory-policy
+      - allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
   oauth2-proxy:
     image: quay.io/oauth2-proxy/oauth2-proxy:latest
     container_name: oauth2-proxy
@@ -14,6 +38,10 @@ services:
     user: "nobody:nobody"
     networks:
       - traefik
+      - oauth2-proxy
+    depends_on:
+      oauth2-proxy-redis:
+        condition: service_healthy
     secrets:
       - oauth2-proxy-client-secret
     env_file:
@@ -25,6 +53,10 @@ services:
       OAUTH2_PROXY_REVERSE_PROXY: "true"
       OAUTH2_PROXY_SET_XAUTHREQUEST: "true"
       OAUTH2_PROXY_UPSTREAMS: "static://202"
+
+      # Server-side session storage (Redis). 
+      OAUTH2_PROXY_SESSION_STORE_TYPE: "redis"
+      OAUTH2_PROXY_REDIS_CONNECTION_URL: "redis://oauth2-proxy-redis:6379/0"
       
       # OIDC Provider (Kanidm on home server via tunnel)
       OAUTH2_PROXY_PROVIDER: "oidc"
