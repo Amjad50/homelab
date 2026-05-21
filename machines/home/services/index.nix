@@ -432,7 +432,7 @@
       tmpfiles = [
         "v /mnt/storage/plane 0755 dock docker - -"
         "d /mnt/storage/plane/postgres 0755 dock docker - -"
-        "d /mnt/storage/plane/redis 0755 dock docker - -"
+        "d /mnt/storage/plane/redis 0700 999 999 - -"
         "d /mnt/storage/plane/rabbitmq 0755 dock docker - -"
         "d /mnt/storage/plane/minio 0755 dock docker - -"
         "d /mnt/storage/plane/logs 0755 dock docker - -"
