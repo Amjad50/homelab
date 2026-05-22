@@ -19,7 +19,7 @@ services:
       TZ: "Asia/Kuala_Lumpur"
       APP_URL: "https://beszel.home.amsh.dev"
       CHECK_UPDATES: false
-      CONTAINER_DETAILS: false
+      CONTAINER_DETAILS: true
       DISABLE_PASSWORD_AUTH: true
       USER_CREATION: true
     volumes:
