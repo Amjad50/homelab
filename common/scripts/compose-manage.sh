@@ -5,9 +5,12 @@ source /etc/homelab/lib.sh
 # --- Commands ---
 
 cmd_list() {
+  # Resolve sablier set once up-front so children don't each curl Traefik.
+  sablier_managed_set >/dev/null
+
   info "Registered services:"
   while read -r name; do
-    print_status_line "$name"
+    print_stack_status "$name"
   done < <(registry_services | sort)
 
   echo ""
