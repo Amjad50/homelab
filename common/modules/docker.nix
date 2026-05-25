@@ -27,11 +27,12 @@
       no-new-privileges = true;
     };
     
-    # Automatically prune unused data
+    # Automatically prune unused data.
+    # Do NOT pass --all: Sablier scales idle containers to "stopped" state, and
+    # `docker system prune --all` removes stopped containers + their images.
     autoPrune = {
       enable = true;
       dates = "weekly";
-      flags = [ "--all" ];
     };
   };
 }
