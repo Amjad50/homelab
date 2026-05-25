@@ -142,6 +142,12 @@ SECRETS=(
     "PLANE_GITHUB_CLIENT_ID|req|home|plane-github-client-id|"
     "PLANE_GITHUB_CLIENT_SECRET|req|home|plane-github-client-secret|"
 
+    # Shared SMTP credentials (host/port/user/pass shared; from-address/name set per service)
+    "SMTP_HOST|req|home|smtp-host|"
+    "SMTP_PORT|req|home|smtp-port|"
+    "SMTP_USERNAME|req|home|smtp-username|"
+    "SMTP_PASSWORD|req|home|smtp-password|"
+
     # Infrastructure and Backup
     "RESTIC_REPOSITORY_PASSWORD|gen|both|restic-repository-password|openssl rand -base64 64 | tr -d '\n/+=' | cut -c1-64"
     "BACKUP_AWS_ACCESS_KEY_ID|req|both|backup-aws-access-key-id|"

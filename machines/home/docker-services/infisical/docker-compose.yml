@@ -67,6 +67,12 @@ services:
       # AUTH_SECRET: set from env file
       # INF_APP_CONNECTION_GITHUB_OAUTH_CLIENT_ID: set from env file
       # INF_APP_CONNECTION_GITHUB_OAUTH_CLIENT_SECRET: set from env file
+      # SMTP_HOST: set from env file
+      # SMTP_PORT: set from env file
+      # SMTP_USERNAME: set from env file
+      # SMTP_PASSWORD: set from env file
+      # SMTP_FROM_ADDRESS: set from env file
+      # SMTP_FROM_NAME: set from env file
       SITE_URL: "https://infisical.home.amsh.dev"
       INVITE_ONLY_SIGNUP: "true"
       TZ: "Asia/Kuala_Lumpur"

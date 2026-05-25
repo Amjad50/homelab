@@ -395,6 +395,10 @@
         infisical-github-app-slug             = { owner = "dock"; group = "docker"; mode = "0400"; };
         infisical-github-app-id               = { owner = "dock"; group = "docker"; mode = "0400"; };
         infisical-github-app-private-key      = { owner = "dock"; group = "docker"; mode = "0400"; };
+        smtp-host                             = { owner = "dock"; group = "docker"; mode = "0400"; };
+        smtp-port                             = { owner = "dock"; group = "docker"; mode = "0400"; };
+        smtp-username                         = { owner = "dock"; group = "docker"; mode = "0400"; };
+        smtp-password                         = { owner = "dock"; group = "docker"; mode = "0400"; };
       };
       templates."infisical.env" = {
         owner = "dock"; group = "docker"; mode = "0400";
@@ -416,6 +420,12 @@
           INF_APP_CONNECTION_GITHUB_APP_PRIVATE_KEY="${
             builtins.replaceStrings [ "\\\\" ] [ "\\" ] config.sops.placeholder.infisical-github-app-private-key
           }"
+          SMTP_HOST=${config.sops.placeholder.smtp-host}
+          SMTP_PORT=${config.sops.placeholder.smtp-port}
+          SMTP_USERNAME=${config.sops.placeholder.smtp-username}
+          SMTP_PASSWORD=${config.sops.placeholder.smtp-password}
+          SMTP_FROM_ADDRESS=infisical@home.amsh.dev
+          SMTP_FROM_NAME=Infisical
         '';
       };
       backup = {
