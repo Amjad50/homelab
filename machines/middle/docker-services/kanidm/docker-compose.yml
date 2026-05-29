@@ -39,3 +39,16 @@ services:
       - "traefik.http.services.kanidm.loadbalancer.server.port=8443"
       - "traefik.http.services.kanidm.loadbalancer.server.scheme=https"
       - "traefik.http.services.kanidm.loadbalancer.serverstransport=kanidm-transport@file"
+  admin-ui:
+    image: ghcr.io/amjad50/kanidm-admin-ui:latest
+    container_name: kanidm-admin-ui
+    restart: unless-stopped
+    environment:
+      TZ: "Asia/Kuala_Lumpur"
+      KANIDM_ADMIN_KANIDM_URL: "https://idm.home.amsh.dev"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.kanidm-admin.rule=Host(`idm.home.amsh.dev`) && PathPrefix(`/admin`)"
+      - "traefik.http.routers.kanidm-admin.priority=1000"
+      - "traefik.http.services.kanidm-admin.loadbalancer.server.port=3000"
+
