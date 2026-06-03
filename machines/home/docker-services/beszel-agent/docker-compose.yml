@@ -15,6 +15,8 @@ services:
       - beszel-home-agent-token
     cap_add:
       - CAP_PERFMON
+      - SYS_RAWIO # required for S.M.A.R.T. data (SATA)
+      - SYS_ADMIN # required for NVMe S.M.A.R.T. data
     environment:
       TZ: "Asia/Kuala_Lumpur"
       DATA_DIR: /var/lib/beszel-agent
@@ -37,3 +39,5 @@ services:
       - /mnt/storage/.beszel:/extra-filesystems/storage__Storage:ro
     devices:
       - /dev/dri/card1:/dev/dri/card1
+      - /dev/sda:/dev/sda # SATA controller for S.M.A.R.T.
+      - /dev/nvme0:/dev/nvme0 # NVMe controller for S.M.A.R.T.
