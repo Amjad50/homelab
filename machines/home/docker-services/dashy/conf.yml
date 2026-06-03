@@ -7,11 +7,6 @@ appConfig:
   iconSize: large
   enableFontAwesome: true
   enableMaterialIcons: true
-pages:
-  - name: System monitoring
-    path: "monitoring.yml"
-    displayData:
-      hideForGuests: false
 sections:
   - name: Media Services
     displayData:
@@ -277,13 +272,6 @@ sections:
       #   statusCheck: true
       #   statusCheckUrl: http://wud:3000/health
       #   id: 0_1739_wud
-      - title: Glances
-        description: Glances Monitoring
-        icon: hl-glances
-        url: https://glances.home.amsh.dev
-        statusCheck: true
-        statusCheckUrl: http://glances:61208
-        id: 1_1739_glances
       - title: Upsnap
         description: Network Discovery and Wake-on-LAN
         icon: hl-upsnap

@@ -107,7 +107,6 @@ http:
               - "jellyseerr.home.amsh.dev"
               - "bazarr.home.amsh.dev"
               - "qbittorrent.home.amsh.dev"
-              - "glances.home.amsh.dev"
               - "filebrowser.home.amsh.dev"
               - "sync.home.amsh.dev"
               - "it-tools.home.amsh.dev"

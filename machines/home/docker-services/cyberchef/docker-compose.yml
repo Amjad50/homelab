@@ -17,3 +17,8 @@ services:
       - "traefik.http.routers.cyberchef.service=cyberchef"
       - "traefik.http.routers.cyberchef.middlewares=default-chain@file"
       - "traefik.http.services.cyberchef.loadbalancer.server.port=8080"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:8080/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

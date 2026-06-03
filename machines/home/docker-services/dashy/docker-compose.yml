@@ -9,7 +9,6 @@ services:
     restart: unless-stopped
     volumes:
       - ./conf.yml:/app/user-data/conf.yml
-      - ./monitoring.yml:/app/user-data/monitoring.yml
     environment:
       - NODE_ENV=production
     labels:
@@ -26,28 +25,3 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-
-  glances:
-    image: nicolargo/glances:latest
-    container_name: glances
-    restart: unless-stopped
-    pid: host
-    privileged: true
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "./glances.conf:/glances/conf/glances.conf"
-      - "/etc/os-release:/etc/os-release:ro"
-      - "/etc/localtime:/etc/localtime:ro"
-      - "/sys:/sys:ro"
-      - "/dev:/dev:ro"
-      - "/run/udev:/run/udev:ro"
-      - "/mnt/storage:/mnt/storage:ro"
-    environment:
-      - "GLANCES_OPT=-C /glances/conf/glances.conf -w"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.glances.rule=Host(`glances.home.amsh.dev`)"
-      - "traefik.http.services.glances.loadbalancer.server.port=61208"
-      - "traefik.http.routers.glances.middlewares=default-chain@file"
-    networks:
-      - traefik
