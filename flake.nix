@@ -3,10 +3,6 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
-    home-manager.url = "github:nix-community/home-manager/release-25.05";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
-    nixvim.url = "github:nix-community/nixvim/nixos-25.05";
-    nixvim.inputs.nixpkgs.follows = "nixpkgs";
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
     disko.url = "github:nix-community/disko";
@@ -14,7 +10,7 @@
   };
 
   outputs =
-    { self, nixpkgs, home-manager, nixvim, sops-nix, disko }:
+    { self, nixpkgs, sops-nix, disko }:
     let
       lib = nixpkgs.lib;
       productionHardwareModules =
@@ -41,15 +37,6 @@
             ./common/configuration.nix
             ./machines/middle/configuration.nix
             sops-nix.nixosModules.sops
-            home-manager.nixosModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.users.amjad = import ./common/home.nix;
-              home-manager.sharedModules = [
-                nixvim.homeManagerModules.nixvim
-              ];
-            }
           ];
         };
         home = nixpkgs.lib.nixosSystem {
@@ -58,15 +45,6 @@
             ./common/configuration.nix
             ./machines/home/configuration.nix
             sops-nix.nixosModules.sops
-            home-manager.nixosModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.users.amjad = import ./common/home.nix;
-              home-manager.sharedModules = [
-                nixvim.homeManagerModules.nixvim
-              ];
-            }
           ];
         };
         home-vm = nixpkgs.lib.nixosSystem {
@@ -77,15 +55,6 @@
             ./common/configuration.nix
             ./machines/home-vm/configuration.nix
             sops-nix.nixosModules.sops
-            home-manager.nixosModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.users.amjad = import ./common/home.nix;
-              home-manager.sharedModules = [
-                nixvim.homeManagerModules.nixvim
-              ];
-            }
           ];
         };
         middle-vm = nixpkgs.lib.nixosSystem {
@@ -96,15 +65,6 @@
             ./common/configuration.nix
             ./machines/middle-vm/configuration.nix
             sops-nix.nixosModules.sops
-            home-manager.nixosModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.users.amjad = import ./common/home.nix;
-              home-manager.sharedModules = [
-                nixvim.homeManagerModules.nixvim
-              ];
-            }
           ];
         };
       };

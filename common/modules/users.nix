@@ -19,6 +19,9 @@ in
     # Uncomment and add your SSH public key here
     openssh.authorizedKeys.keys = adminSshKeys;
     shell = pkgs.zsh;
+    # Start amjad's user systemd instance at boot (no login required), so the
+    # chezmoi-apply user service runs on a headless server.
+    linger = true;
   };
 
   users.users.dock = {

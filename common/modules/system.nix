@@ -52,6 +52,19 @@
     # Archive tools
     unzip
     p7zip
+
+    # User CLI tools 
+    delta
+    ripgrep
+    bat
+    eza
+    cargo
+    git-lfs
+    direnv
+
+    # Toolchain for nvim (nvim-treesitter compiles grammars at runtime)
+    gcc
+    gnumake
   ];
 
   # Enable programs

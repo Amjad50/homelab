@@ -11,6 +11,7 @@
   imports = [
     # Modular configurations
     ./modules/system.nix
+    ./modules/chezmoi.nix
     ./modules/btrfs.nix
     ./modules/services.nix
     ./modules/users.nix
