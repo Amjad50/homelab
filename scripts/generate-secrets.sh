@@ -96,6 +96,9 @@ SECRETS=(
     "OAUTH2_PROXY_CLIENT_SECRET|req|middle|oauth2-proxy-client-secret|"
     "OAUTH2_PROXY_COOKIE_SECRET|gen|middle|oauth2-proxy-cookie-secret|openssl rand -base64 32 | tr -d '=+/' | cut -c1-32"
 
+    # coturn TURN relay (shared static auth secret for TURN REST API)
+    "COTURN_STATIC_AUTH_SECRET|gen|middle|coturn-static-auth-secret|openssl rand -hex 32"
+
     # Services - Home
     "FIREFLY_APP_KEY|gen|home|firefly-app-key|echo \"base64:\$(openssl rand -base64 32)\""
     "FIREFLY_DB_PASSWORD|gen|home|firefly-db-password|openssl rand -base64 32"

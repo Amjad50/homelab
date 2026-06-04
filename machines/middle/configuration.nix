@@ -4,6 +4,7 @@
     ./fail2ban.nix
     ./networking.nix
     ./services/index.nix
+    ./services/coturn.nix
   ];
 
   homelab.machineName = "middle";
