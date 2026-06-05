@@ -164,7 +164,7 @@
     restartUnits = [ "rathole-server.service" ];
     content = ''
       [server]
-      bind_addr = "0.0.0.0:2333"
+      bind_addr = "[::]:2333"
       default_token = "${config.sops.placeholder.rathole-token}"
 
       [server.transport]
