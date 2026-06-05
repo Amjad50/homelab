@@ -70,6 +70,10 @@
   # Enable programs
   programs.zsh.enable = true;
 
+  # Run dynamically-linked, non-Nix prebuilt binaries (e.g. zinit-downloaded
+  # yazi/sd) that expect a standard glibc interpreter.
+  programs.nix-ld.enable = true;
+
   # Enable experimental features for flakes
   nix.settings = {
     experimental-features = [
