@@ -41,7 +41,7 @@ qemu-system-x86_64 \
   -name ${TARGET}-vm \
   -machine type=q35,accel=kvm \
   -cpu host \
-  -m 8192 \
+  -m 16384 \
   -smp 4 \
   -drive if=pflash,format=raw,readonly=on,file="$OVMF_CODE" \
   -drive if=pflash,format=raw,file="$OVMF_VARS" \
