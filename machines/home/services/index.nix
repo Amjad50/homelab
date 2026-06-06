@@ -154,6 +154,14 @@
         paths = [
           "/mnt/storage/media/configs"  # include stuff for kavita and audiobookshelf as well
         ];
+        exclude = [
+          "/mnt/storage/media/configs/calibre-web-automated/processed_books"
+          "/mnt/storage/media/configs/calibre-web-automated/thumbnails"
+          # qBittorrent can't start while this is there
+          "/mnt/storage/media/configs/qbittorrent/qBittorrent/lockfile"
+          # safe to delete (cached images)
+          "/mnt/storage/media/configs/jellyfin/metadata/People"
+        ];
       };
     };
 
@@ -164,7 +172,7 @@
         "v /mnt/storage/media/manga 0755 1000 1000 - -"
       ];
       backup = {
-        group = config.homelab.backups.default;
+        group = config.homelab.backups.media;
         paths = [
           "/mnt/storage/media/books"
         ];
@@ -177,7 +185,7 @@
         "v /mnt/storage/media/podcasts 0755 1000 1000 - -"
       ];
       backup = {
-        group = config.homelab.backups.default;
+        group = config.homelab.backups.media;
         paths = [
           "/mnt/storage/media/audiobooks"
           "/mnt/storage/media/podcasts"
@@ -192,7 +200,7 @@
         "d /mnt/storage/media/configs/calibre-web-automated 0755 1000 1000 - -"
       ];
       backup = {
-        group = config.homelab.backups.default;
+        group = config.homelab.backups.media;
         paths = [
           "/mnt/storage/media/calibre-library"
         ];
@@ -629,6 +637,12 @@
           touch "/mnt/storage/immich/upload/$dir/.immich"
         done
       '';
+    };
+
+    # Heavy, mostly-static/re-importable media (book library, podcasts,
+    # audiobooks). Split out of `default` to keep daily snapshots lean.
+    media = {
+      restoreAutoStart = false;
     };
   };
 
