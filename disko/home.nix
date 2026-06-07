@@ -89,6 +89,16 @@
                     mountpoint = "/tmp";
                     mountOptions = [ "nodatacow" "noatime" "space_cache=v2" ];
                   };
+                }
+                # Single-disk machines (no separate storageDevice) get /storage as
+                # a btrfs subvolume on the boot disk, matching the live `middle`.
+                # When a storageDevice IS given (home, middle-vm), /storage comes
+                # from that second disk at /mnt/storage instead — leave this off.
+                // lib.optionalAttrs (storageDevice == null) {
+                  "@storage" = {
+                    mountpoint = "/storage";
+                    mountOptions = [ "compress=zstd:1" "noatime" "space_cache=v2" ];
+                  };
                 };
               };
             };

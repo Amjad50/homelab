@@ -67,6 +67,16 @@
             sops-nix.nixosModules.sops
           ];
         };
+        middle-arm = nixpkgs.lib.nixosSystem {
+          system = "aarch64-linux";
+          modules = [
+            disko.nixosModules.disko
+            ./hardware/middle-arm.nix
+            ./common/configuration.nix
+            ./machines/middle-arm/configuration.nix
+            sops-nix.nixosModules.sops
+          ];
+        };
       };
       packages.x86_64-linux.installer-iso =
         let
