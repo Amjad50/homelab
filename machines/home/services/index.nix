@@ -78,6 +78,9 @@
           "/mnt/storage/dockge/data/db-config.json"
           "/mnt/storage/dockge/data/dockge.db"
         ];
+        sqlite = [
+          { path = "/mnt/storage/dockge/data/dockge.db"; }
+        ];
       };
     };
 
@@ -134,6 +137,10 @@
       backup = {
         group = config.homelab.backups.default;
         paths = [ "/mnt/storage/upsnap" ];
+        sqlite = [
+          { path = "/mnt/storage/upsnap/data.db"; }
+          { path = "/mnt/storage/upsnap/auxiliary.db"; }
+        ];
       };
     };
 
@@ -162,6 +169,19 @@
           # safe to delete (cached images)
           "/mnt/storage/media/configs/jellyfin/metadata/People"
         ];
+        # Consistent VACUUM copies of the *arr / jellyfin / *seerr / bazarr / shelfmark
+        # SQLite DBs (raw files also captured via the configs path above).
+        # logs.db / cache.db deliberately omitted (regenerable noise).
+        sqlite = [
+          { path = "/mnt/storage/media/configs/sonarr/sonarr.db"; }
+          { path = "/mnt/storage/media/configs/radarr/radarr.db"; }
+          { path = "/mnt/storage/media/configs/prowlarr/prowlarr.db"; }
+          { path = "/mnt/storage/media/configs/jellyfin/data/jellyfin.db"; }
+          { path = "/mnt/storage/media/configs/overseerr/db/db.sqlite3"; }
+          { path = "/mnt/storage/media/configs/jellyseerr/db/db.sqlite3"; }
+          { path = "/mnt/storage/media/configs/bazarr/db/bazarr.db"; }
+          { path = "/mnt/storage/media/configs/shelfmark/users.db"; }
+        ];
       };
     };
 
@@ -176,6 +196,11 @@
         paths = [
           "/mnt/storage/media/books"
         ];
+        # cache.db omitted (regenerable). Raw kavita.db is captured by media-stack
+        # (group default) via the configs path; this vacuum copy lands in group media.
+        sqlite = [
+          { path = "/mnt/storage/media/configs/kavita/kavita.db"; }
+        ];
       };
     };
 
@@ -189,6 +214,9 @@
         paths = [
           "/mnt/storage/media/audiobooks"
           "/mnt/storage/media/podcasts"
+        ];
+        sqlite = [
+          { path = "/mnt/storage/media/configs/audiobookshelf/absdatabase.sqlite"; }
         ];
       };
     };
@@ -207,6 +235,11 @@
         exclude = [
           "/mnt/storage/media/configs/calibre-web-automated/processed_books"
           "/mnt/storage/media/configs/calibre-web-automated/thumbnails"
+        ];
+        sqlite = [
+          { path = "/mnt/storage/media/configs/calibre-web-automated/app.db"; }
+          { path = "/mnt/storage/media/configs/calibre-web-automated/cwa.db"; }
+          { path = "/mnt/storage/media/configs/calibre-web-automated/gdrive.db"; }
         ];
       };
     };

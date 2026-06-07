@@ -19,6 +19,9 @@
         paths = [
           "/storage/wg-easy"
         ];
+        sqlite = [
+          { path = "/storage/wg-easy/wg-easy.db"; }
+        ];
       };
     };
 
@@ -31,6 +34,9 @@
         paths = [
           "/storage/dockge/data/db-config.json"
           "/storage/dockge/data/dockge.db"
+        ];
+        sqlite = [
+          { path = "/storage/dockge/data/dockge.db"; }
         ];
       };
     };
@@ -50,6 +56,10 @@
       backup = {
         group = config.homelab.backups.default;
         paths = [ "/storage/beszel/data" ];
+        sqlite = [
+          { path = "/storage/beszel/data/data.db"; }
+          { path = "/storage/beszel/data/auxiliary.db"; }
+        ];
       };
     };
 
@@ -118,6 +128,10 @@
       backup = {
         group = config.homelab.backups.default;
         paths = [ "/storage/ntfy" ];
+        # cache.db omitted (regenerable message cache); auth.db holds users/tokens.
+        sqlite = [
+          { path = "/storage/ntfy/data/auth.db"; }
+        ];
       };
     };
   };

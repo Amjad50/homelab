@@ -13,6 +13,28 @@ let
     };
   };
 
+  sqliteType = lib.types.submodule {
+    options = {
+      path = lib.mkOption { type = lib.types.str; description = "Host path to the live SQLite database file."; };
+    };
+  };
+
+  # Derive a collision-free dump filename from the stack + full source path.
+  # Two same-named DBs in different dirs (e.g. sonarr/logs.db, radarr/logs.db)
+  # must never map to the same dump file. We slugify the absolute path:
+  # leading slash dropped, every remaining "/" -> "__". The result is unique
+  # per source path and round-trips visually to the original location.
+  # Build a collision-free dump filename from stack + full source path. The whole
+  # absolute path is slugified (/ -> __, . -> _) and prefixed with the stack, so
+  # any two distinct source paths map to distinct dump files — including same-named
+  # files in different dirs (sonarr/logs.db vs radarr/logs.db) and same-dir files
+  # differing only by extension (a.db vs a.sqlite). backup-sqlite.sh writes this
+  # name verbatim (no extra extension appended).
+  sqliteDumpName = stack: path:
+    let
+      slug = builtins.replaceStrings [ "/" "." ] [ "__" "_" ] (lib.removePrefix "/" path);
+    in "${stack}--${slug}";
+
   backupType = lib.types.submodule ({ name, ... }: {
     options = {
       enable = lib.mkOption { type = lib.types.bool; default = true; };
@@ -66,6 +88,7 @@ let
         paths               = lib.mkOption { type = lib.types.listOf lib.types.str; default = []; description = "Filesystem paths to include in the backup."; };
         exclude             = lib.mkOption { type = lib.types.listOf lib.types.str; default = []; description = "Filesystem paths/patterns to exclude from the backup (passed to restic --exclude)."; };
         postgres            = lib.mkOption { type = lib.types.listOf postgresType;  default = []; description = "Postgres databases to dump before backup."; };
+        sqlite              = lib.mkOption { type = lib.types.listOf sqliteType;    default = []; description = "SQLite databases to VACUUM INTO a consistent copy before backup (the live file is still backed up raw via paths)."; };
         customBackupScript  = lib.mkOption { type = lib.types.lines; default = ""; description = "Host shell script run before backup while services are still up."; };
         customRestoreScript = lib.mkOption { type = lib.types.lines; default = ""; description = "Host shell script run after restic restore while services in the group are still stopped."; };
       };
@@ -117,6 +140,13 @@ in
             stack = svcName;
           }) svc.backup.postgres
         ) dependentServices);
+        sqlite = lib.concatLists (lib.mapAttrsToList (svcName: svc:
+          map (db: {
+            inherit (db) path;
+            stack = svcName;
+            name  = sqliteDumpName svcName db.path;
+          }) svc.backup.sqlite
+        ) dependentServices);
         customBackups = lib.filter (x: x.script != "") (lib.mapAttrsToList (svcName: svc: {
           service = svcName;
           script = svc.backup.customBackupScript;
@@ -141,12 +171,15 @@ in
         dumpDir     = "/tmp/db-dumps/${groupName}";
         artifactDir = "/tmp/homelab-artifacts/${groupName}";
         hasPg       = meta.postgres != [];
+        hasDb       = meta.sqlite != [];
         hasCustom   = meta.customBackups != [];
+        # Both postgres dumps and sqlite vacuum copies land in dumpDir.
+        hasDumps    = hasPg || hasDb;
         paths       = meta.paths
-          ++ lib.optional hasPg dumpDir
+          ++ lib.optional hasDumps dumpDir
           ++ lib.optional hasCustom artifactDir;
         cleanupTargets = lib.concatStringsSep " " (
-          lib.optional hasPg (lib.escapeShellArg dumpDir)
+          lib.optional hasDumps (lib.escapeShellArg dumpDir)
           ++ lib.optional hasCustom (lib.escapeShellArg artifactDir)
         );
         hookPath = "${lib.makeBinPath (with pkgs; [
@@ -185,7 +218,7 @@ in
         ];
 
         backupPrepareCommand =
-          lib.optionalString (hasPg || hasCustom) ''
+          lib.optionalString (hasDumps || hasCustom) ''
             export PATH="${hookPath}"
           ''
           + lib.optionalString hasPg ''
@@ -194,10 +227,16 @@ in
             ${pkgs.bash}/bin/bash ${../scripts/backup-postgres.sh} \
               ${lib.escapeShellArg (builtins.toJSON meta.postgres)}
           ''
+          + lib.optionalString hasDb ''
+            export DUMP_DIR=${lib.escapeShellArg dumpDir}
+            export GROUP_NAME=${lib.escapeShellArg groupName}
+            ${pkgs.bash}/bin/bash ${../scripts/backup-sqlite.sh} \
+              ${lib.escapeShellArg (builtins.toJSON meta.sqlite)}
+          ''
           + lib.optionalString hasCustom (lib.concatMapStringsSep "\n" mkCustomBackupCommand meta.customBackups);
 
         backupCleanupCommand =
-          lib.optionalString (hasPg || hasCustom) ''
+          lib.optionalString (hasDumps || hasCustom) ''
             rm -rf ${cleanupTargets}
           '';
 
@@ -335,6 +374,7 @@ in
           inherit (b) sentinel schedule restoreAutoStart postRestoreScript;
           composeServices = groupMeta.${groupName}.serviceNames;
           postgres = groupMeta.${groupName}.postgres;
+          sqlite = groupMeta.${groupName}.sqlite;
           paths = groupMeta.${groupName}.paths;
           customRestores = groupMeta.${groupName}.customRestores;
         }) backupGroups;
