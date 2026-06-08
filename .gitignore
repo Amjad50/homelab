@@ -17,3 +17,4 @@ result-*
 
 # Stray disk images at repo root
 *.qcow2
+docs/superpowers
