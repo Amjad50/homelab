@@ -83,6 +83,19 @@ let
       secrets   = lib.mkOption { type = lib.types.attrsOf secretType;   default = {}; };
       templates = lib.mkOption { type = lib.types.attrsOf templateType; default = {}; };
 
+      # builtins.path (not "${d}/${name}") so each service is its own store path, keyed
+      # only on its own contents — otherwise one change re-hashes all and restarts everything.
+      source = lib.mkOption {
+        type = lib.types.nullOr lib.types.path;
+        default =
+          let d = cfg.dockerServicesDir;
+          in if builtins.pathExists "${d}/${name}"
+             then builtins.path { path = "${d}/${name}"; name = "docker-service-${name}"; }
+             else null;
+        defaultText = lib.literalExpression "<dockerServicesDir>/<name> if present, else null";
+        description = "Compose dir for this service; synced to /opt/docker-services/<name>, wired to restartTriggers.";
+      };
+
       backup = {
         group               = lib.mkOption { type = lib.types.nullOr (lib.types.attrsOf lib.types.anything); default = null; description = "The backup group this service belongs to."; };
         paths               = lib.mkOption { type = lib.types.listOf lib.types.str; default = []; description = "Filesystem paths to include in the backup."; };
@@ -102,6 +115,11 @@ in
       type = lib.types.str;
       default = "unconfigured";
       description = "Machine identifier used in restic job names, tags, and lockfile path.";
+    };
+    dockerServicesDir = lib.mkOption {
+      type = lib.types.path;
+      example = lib.literalExpression "../docker-services";
+      description = "Base dir for per-service compose stacks; each service's source defaults to <dir>/<name>.";
     };
     services = lib.mkOption {
       type = lib.types.attrsOf serviceType;
@@ -315,6 +333,10 @@ in
     assertions = lib.mapAttrsToList (svcName: svc: {
       assertion = (svc.backup.paths == [] && svc.backup.postgres == []) || svc.backup.group != null;
       message   = "Service '${svcName}' has backup paths or postgres defined but no backup.group assigned.";
+    }) enabled
+    ++ lib.mapAttrsToList (svcName: svc: {
+      assertion = svc.source != null;
+      message   = "Service '${svcName}' has no compose dir at ${toString cfg.dockerServicesDir}/${svcName} (set homelab.services.${svcName}.source).";
     }) enabled;
 
     services.compose-services.services = lib.attrNames enabled;
@@ -347,6 +369,16 @@ in
       # Auto-restore services (only for restoreAutoStart = true groups)
       ++ [ (lib.listToAttrs (lib.mapAttrsToList mkAutoRestoreService
               (lib.filterAttrs (_: b: b.restoreAutoStart) backupGroups))) ]
+      # Sync each service's store dir into /opt/docker-services/<svc> before compose up.
+      # No --delete: don't clobber live `deploy.sh --only-docker` pushes.
+      ++ lib.mapAttrsToList (svcName: svc: {
+          "docker-compose-${svcName}" = {
+            restartTriggers = [ svc.source ];
+            serviceConfig.ExecStartPre = lib.mkBefore [
+              "${pkgs.rsync}/bin/rsync -a ${svc.source}/ /opt/docker-services/${svcName}/"
+            ];
+          };
+        }) (lib.filterAttrs (_: s: s.source != null) enabled)
       # Per-service sentinel conditions + ordering after restore units
       ++ lib.mapAttrsToList (svcName: svc:
         let

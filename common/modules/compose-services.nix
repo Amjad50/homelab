@@ -50,10 +50,10 @@ in
   # Create systemd services for all listed compose services
   config.systemd.services = lib.listToAttrs (map createComposeService services);
 
-  # Create the docker-services directory if it doesn't exist
-  config.systemd.tmpfiles.rules = [
-    "d ${composeRoot} 0755 dock docker - -"
-  ];
+  # Root + per-service dirs; the latter must exist before each unit's WorkingDirectory.
+  config.systemd.tmpfiles.rules =
+    [ "d ${composeRoot} 0755 dock docker - -" ]
+    ++ map (s: "d ${composeRoot}/${s} 0755 dock docker - -") services;
 
   # Allow docker group to manage docker-compose services via polkit
   config.security.polkit.enable = true;

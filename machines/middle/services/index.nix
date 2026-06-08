@@ -1,6 +1,8 @@
 # Middle machine service registry.
 { config, lib, pkgs, ... }:
 {
+  homelab.dockerServicesDir = ../docker-services;
+
   homelab.services = {
     traefik = {
       secrets = {

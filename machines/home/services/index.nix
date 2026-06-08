@@ -2,6 +2,8 @@
 # Replaces machines/home/services.nix and machines/home/backup.nix.
 { config, lib, pkgs, ... }:
 {
+  homelab.dockerServicesDir = ../docker-services;
+
   homelab.services = {
     traefik = {
       tmpfiles = [];
