@@ -1,4 +1,4 @@
-{ lib, device ? "/dev/vda", storageDevice ? null }:
+{ lib, device ? "/dev/vda", storageDevice ? null, storageWholeDisk ? false }:
 {
   disko.devices = {
     disk = {
@@ -110,20 +110,31 @@
       storage = {
         device = storageDevice;
         type = "disk";
-        content = {
-          type = "gpt";
-          partitions = {
-            storage = {
-              size = "100%";
-              content = {
-                type = "filesystem";
-                format = "btrfs";
+        # storageWholeDisk: btrfs directly on the disk (no GPT) — matches the live
+        # `home` storage disk. Default false uses a GPT partition (fresh-install VMs).
+        content =
+          if storageWholeDisk then {
+            type = "btrfs";
+            subvolumes = {
+              "@" = {
                 mountpoint = "/mnt/storage";
                 mountOptions = [ "compress=zstd:1" "noatime" "space_cache=v2" ];
               };
             };
+          } else {
+            type = "gpt";
+            partitions = {
+              storage = {
+                size = "100%";
+                content = {
+                  type = "filesystem";
+                  format = "btrfs";
+                  mountpoint = "/mnt/storage";
+                  mountOptions = [ "compress=zstd:1" "noatime" "space_cache=v2" ];
+                };
+              };
+            };
           };
-        };
       };
     };
   };

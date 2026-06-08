@@ -2,7 +2,7 @@
 {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
-    (import ../disko/home.nix { inherit lib; device = "/dev/nvme0n1"; storageDevice = "/dev/sda"; })
+    (import ../disko/home.nix { inherit lib; device = "/dev/nvme0n1"; storageDevice = "/dev/sda"; storageWholeDisk = true; })
   ];
 
   boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "nvme" "usb_storage" "sd_mod" ];

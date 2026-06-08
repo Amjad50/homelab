@@ -41,7 +41,9 @@
         };
         home = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
-          modules = productionHardwareModules ++ [
+          modules = [
+            disko.nixosModules.disko
+            ./hardware/home.nix
             ./common/configuration.nix
             ./machines/home/configuration.nix
             sops-nix.nixosModules.sops
