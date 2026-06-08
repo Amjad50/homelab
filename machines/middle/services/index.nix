@@ -100,6 +100,37 @@
       };
     };
 
+    headscale = {
+      tmpfiles = [
+        "v /storage/headscale 0755 dock docker - -"
+        "d /storage/headscale/headscale 0755 dock docker - -"
+        "d /storage/headscale/headplane 0755 dock docker - -"
+        # dns_records.json must pre-exist as a FILE (else docker bind-mounts a dir).
+        # Seed with empty-array JSON; headplane rewrites it. 'f' won't clobber existing.
+        "f /storage/headscale/dns_records.json 0664 dock docker - []"
+      ];
+      secrets = {
+        headscale-kanidm-client-secret = { owner = "dock"; group = "docker"; mode = "0400"; };
+        headplane-cookie-secret = { owner = "dock"; group = "docker"; mode = "0400"; };
+        headplane-headscale-api-key = { owner = "dock"; group = "docker"; mode = "0400"; };
+      };
+      templates."headscale.env" = {
+        owner = "dock"; group = "docker"; mode = "0400";
+        path = "/var/lib/dock/headscale.env";
+        content = ''
+          HEADSCALE_OIDC_CLIENT_SECRET=${config.sops.placeholder.headscale-kanidm-client-secret}
+        '';
+      };
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [ "/storage/headscale" ];
+        sqlite = [
+          { path = "/storage/headscale/headscale/db.sqlite"; }
+          { path = "/storage/headscale/headplane/hp_persist.db"; }
+        ];
+      };
+    };
+
     adguard = {
       tmpfiles = [
         "v /storage/adguard 0755 dock docker - -"

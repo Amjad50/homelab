@@ -99,6 +99,11 @@ SECRETS=(
     # coturn TURN relay (shared static auth secret for TURN REST API)
     "COTURN_STATIC_AUTH_SECRET|gen|middle|coturn-static-auth-secret|openssl rand -hex 32"
 
+    # headscale OIDC client secret (from kanidm) + headplane cookie secret (32 chars)
+    "HEADSCALE_KANIDM_CLIENT_SECRET|req|middle|headscale-kanidm-client-secret|"
+    "HEADPLANE_COOKIE_SECRET|gen|middle|headplane-cookie-secret|openssl rand -base64 32 | tr -d '\n/+=' | cut -c1-32"
+    "HEADPLANE_HEADSCALE_API_KEY|req|middle|headplane-headscale-api-key|"
+
     # Services - Home
     "FIREFLY_APP_KEY|gen|home|firefly-app-key|echo \"base64:\$(openssl rand -base64 32)\""
     "FIREFLY_DB_PASSWORD|gen|home|firefly-db-password|openssl rand -base64 32"

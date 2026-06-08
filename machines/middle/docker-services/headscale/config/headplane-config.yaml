@@ -1,0 +1,39 @@
+
+server:
+  host: "0.0.0.0"
+  port: 3000
+  base_url: "https://vpn.home.amsh.dev"
+  # 32-char session-signing secret, rendered from sops to this file by the registry.
+  cookie_secret_path: "/run/secrets/headplane-cookie-secret"
+  cookie_secure: true
+  cookie_max_age: 86400
+  data_path: "/var/lib/headplane"
+
+headscale:
+  url: "http://headscale:8080"
+  public_url: "https://vpn.home.amsh.dev"
+  # Shared read of headscale's config (mounted ro) — enables network management.
+  config_path: "/etc/headscale/config.yaml"
+  config_strict: true
+  # Shared, writable custom A-records file (same path as headscale's extra_records_path).
+  dns_records_path: "/etc/headscale/dns_records.json"
+  api_key_path: "/run/secrets/headplane-headscale-api-key"
+
+integration:
+  docker:
+    enabled: true
+    # Manage the headscale container via the mounted docker socket.
+    container_name: "headscale"
+  agent:
+    enabled: true
+
+# SSO for the headplane admin UI via kanidm. headscale_api_key is a long-lived key
+# created AFTER first deploy (`headscale apikeys create`) and stored in sops.
+oidc:
+  enabled: true
+  issuer: "https://idm.home.amsh.dev/oauth2/openid/headscale"
+  client_id: "headscale"
+  client_secret_path: "/run/secrets/headscale-kanidm-client-secret"
+  use_pkce: true
+  disable_api_key_login: true
+  scope: "openid email profile"

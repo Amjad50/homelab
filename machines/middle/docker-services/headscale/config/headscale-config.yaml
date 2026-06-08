@@ -1,0 +1,68 @@
+server_url: https://vpn.home.amsh.dev
+listen_addr: 0.0.0.0:8080
+metrics_listen_addr: 0.0.0.0:9090
+grpc_listen_addr: 127.0.0.1:50443
+grpc_allow_insecure: false
+
+noise:
+  private_key_path: /var/lib/headscale/noise_private.key
+
+prefixes:
+  v4: 100.64.0.0/10
+  v6: fd7a:115c:a1e0::/48
+  allocation: sequential
+
+# Trust Traefik's forwarded client IP (single reverse proxy in front).
+policy:
+  mode: database
+
+database:
+  type: sqlite
+  sqlite:
+    path: /var/lib/headscale/db.sqlite
+    write_ahead_log: true
+
+# Embedded DERP relay on this (public) box. STUN exposed via compose ports (3478/udp).
+derp:
+  server:
+    enabled: true
+    region_id: 999
+    region_code: "homelab"
+    region_name: "Homelab Embedded DERP"
+    # 3479, not the default 3478 — coturn already owns 3478/udp natively on this host.
+    stun_listen_addr: "0.0.0.0:3479"
+    private_key_path: /var/lib/headscale/derp_server_private.key
+    automatically_add_embedded_derp_region: true
+  urls:
+    - https://controlplane.tailscale.com/derpmap/default
+  auto_update_enabled: true
+  update_frequency: 24h
+
+dns:
+  magic_dns: true
+  base_domain: ts.amsh.dev
+  # Custom A-records file, managed by headplane's Network Management UI.
+  extra_records_path: /etc/headscale/dns_records.json
+  nameservers:
+    global:
+      - 1.1.1.1
+      - 1.0.0.1
+      - 2606:4700:4700::1111
+      - 2606:4700:4700::1001
+
+log:
+  level: info
+
+# OIDC via kanidm. Pre-auth keys (`headscale preauthkeys create`) keep working
+# alongside this for outsiders/headless nodes that shouldn't use SSO.
+oidc:
+  issuer: "https://idm.home.amsh.dev/oauth2/openid/headscale"
+  client_id: "headscale"
+  # Rendered into /var/lib/dock/headscale.env by the service registry (sops).
+  client_secret: "${HEADSCALE_OIDC_CLIENT_SECRET}"
+  scope: ["openid", "profile", "email", "preferred_username", "groups"]
+  allowed_groups:
+    - "headscale_users@idm.home.amsh.dev"
+  pkce:
+    enabled: true
+    method: S256

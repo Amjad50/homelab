@@ -341,3 +341,9 @@ sections:
         url: https://idm.home.amsh.dev
         statusCheck: true
         id: 3_1858_kanidm
+      - title: Headscale
+        description: Tailnet control & management
+        icon: hl-headplane
+        url: https://vpn.home.amsh.dev/admin
+        statusCheck: false
+        id: 4_1858_headplane

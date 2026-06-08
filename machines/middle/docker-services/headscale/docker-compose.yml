@@ -1,0 +1,68 @@
+networks:
+  traefik:
+    external: true
+
+secrets:
+  headplane-cookie-secret:
+    file: /run/secrets/headplane-cookie-secret
+  headscale-kanidm-client-secret:
+    file: /run/secrets/headscale-kanidm-client-secret
+  headplane-headscale-api-key:
+    file: /run/secrets/headplane-headscale-api-key
+
+services:
+  headscale:
+    image: headscale/headscale:0.28.0
+    container_name: headscale
+    read_only: true
+    restart: unless-stopped
+    command: serve
+    networks:
+      - traefik
+    ports:
+      # Embedded DERP STUN (3479, not 3478 — coturn owns 3478/udp on this host).
+      - "3479:3479/udp"
+    tmpfs:
+      - /var/run/headscale
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./config/headscale-config.yaml:/etc/headscale/config.yaml:ro
+      # Shared dns_records.json (headplane writes A-records, headscale reads).
+      # Same host path + container path in both containers (headplane requirement).
+      - /storage/headscale/dns_records.json:/etc/headscale/dns_records.json
+      - /storage/headscale/headscale:/var/lib/headscale
+    env_file:
+      - /var/lib/dock/headscale.env
+    labels:
+      # Required so headplane's docker integration can locate headscale.
+      - "me.tale.headplane.target=headscale"
+      - "traefik.enable=true"
+      - "traefik.http.routers.headscale.rule=Host(`vpn.home.amsh.dev`)"
+      - "traefik.http.services.headscale.loadbalancer.server.port=8080"
+      - "traefik.http.routers.headscale.middlewares=default-chain@file"
+
+  headplane:
+    image: ghcr.io/tale/headplane:0.7.0-beta.4-shell
+    container_name: headplane
+    restart: unless-stopped
+    depends_on:
+      - headscale
+    networks:
+      - traefik
+    secrets:
+      - headscale-kanidm-client-secret
+      - headplane-cookie-secret
+      - headplane-headscale-api-key
+    volumes:
+      - ./config/headplane-config.yaml:/etc/headplane/config.yaml:ro
+      - ./config/headscale-config.yaml:/etc/headscale/config.yaml:ro
+      # Shared dns_records.json — headplane reads AND writes it (no :ro).
+      - /storage/headscale/dns_records.json:/etc/headscale/dns_records.json
+      - /storage/headscale/headplane:/var/lib/headplane
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.headplane.rule=Host(`vpn.home.amsh.dev`) && PathPrefix(`/admin`)"
+      - "traefik.http.routers.headplane.priority=1000"
+      - "traefik.http.routers.headplane.middlewares=internal-chain@file"
+      - "traefik.http.services.headplane.loadbalancer.server.port=3000"
