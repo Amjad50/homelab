@@ -17,9 +17,10 @@
   hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 
   boot.loader.grub = {
-    device = "/dev/nvme0n1";
+    enable = true;
     efiSupport = true;
     efiInstallAsRemovable = true;
+    device = "/dev/nvme0n1";
   };
   boot.loader.efi.efiSysMountPoint = "/boot/efi";
   boot.loader.efi.canTouchEfiVariables = false;
