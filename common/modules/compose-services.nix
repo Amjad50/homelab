@@ -51,9 +51,11 @@ in
   config.systemd.services = lib.listToAttrs (map createComposeService services);
 
   # Root + per-service dirs; the latter must exist before each unit's WorkingDirectory.
+  # 2775 (setgid, group-writable) lets docker-group users upload/edit compose files
+  # without sudo (deploy.sh --only-docker); new files inherit the docker group.
   config.systemd.tmpfiles.rules =
-    [ "d ${composeRoot} 0755 dock docker - -" ]
-    ++ map (s: "d ${composeRoot}/${s} 0755 dock docker - -") services;
+    [ "d ${composeRoot} 2775 dock docker - -" ]
+    ++ map (s: "d ${composeRoot}/${s} 2775 dock docker - -") services;
 
   # Allow docker group to manage docker-compose services via polkit
   config.security.polkit.enable = true;
