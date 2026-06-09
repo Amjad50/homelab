@@ -13,27 +13,14 @@
     { self, nixpkgs, sops-nix, disko }:
     let
       lib = nixpkgs.lib;
-      productionHardwareModules =
-        if builtins.pathExists ./hardware-configuration.nix then
-          [ ./hardware-configuration.nix ]
-        else
-          [
-            # Evaluation fallback for this repo checkout. Real deployed machines
-            # should keep their generated /etc/nixos/hardware-configuration.nix,
-            # which overrides these mkDefault filesystem settings.
-            {
-              fileSystems."/" = lib.mkDefault {
-                device = "none";
-                fsType = "tmpfs";
-              };
-            }
-          ];
     in
     {
       nixosConfigurations = {
         middle = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          modules = productionHardwareModules ++ [
+          system = "aarch64-linux";
+          modules = [
+            disko.nixosModules.disko
+            ./hardware/middle.nix
             ./common/configuration.nix
             ./machines/middle/configuration.nix
             sops-nix.nixosModules.sops
@@ -66,16 +53,6 @@
             ./hardware/middle-vm.nix
             ./common/configuration.nix
             ./machines/middle-vm/configuration.nix
-            sops-nix.nixosModules.sops
-          ];
-        };
-        middle-arm = nixpkgs.lib.nixosSystem {
-          system = "aarch64-linux";
-          modules = [
-            disko.nixosModules.disko
-            ./hardware/middle-arm.nix
-            ./common/configuration.nix
-            ./machines/middle-arm/configuration.nix
             sops-nix.nixosModules.sops
           ];
         };

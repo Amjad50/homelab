@@ -1,3 +1,6 @@
+# Hardware profile for middle — Oracle Cloud Ampere A1 (aarch64).
+# Oracle presents the boot volume as /dev/sda and boots via UEFI.
+# Disk layout is disko-managed (same layout as the other machines).
 { lib, modulesPath, ... }:
 {
   imports = [
@@ -5,21 +8,33 @@
     (import ../disko/home.nix { inherit lib; device = "/dev/sda"; })
   ];
 
-  boot.initrd.availableKernelModules = [ "ata_piix" "uhci_hcd" "virtio_pci" "virtio_scsi" "sd_mod" "sr_mod" ];
+  # virtio + Oracle (KVM) guest modules needed in initrd to find the root disk.
+  boot.initrd.availableKernelModules = [
+    "virtio_pci"
+    "virtio_blk"
+    "virtio_scsi"
+    "virtio_net"
+    "sd_mod"
+    "sr_mod"
+    "xhci_pci"
+  ];
   boot.initrd.kernelModules = [ ];
+  # No kvm-amd/kvm-intel on aarch64.
   boot.kernelModules = [ ];
   boot.extraModulePackages = [ ];
 
   swapDevices = [ ];
 
-  networking.useDHCP = lib.mkDefault true;
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-
+  # GRUB UEFI. disko mounts the ESP at /boot/efi (see disko/home.nix).
   boot.loader.grub = {
-    device = "/dev/sda";
+    enable = true;
     efiSupport = true;
     efiInstallAsRemovable = true;
+    device = "nodev";
   };
   boot.loader.efi.efiSysMountPoint = "/boot/efi";
   boot.loader.efi.canTouchEfiVariables = false;
+
+  networking.useDHCP = lib.mkDefault true;
+  nixpkgs.hostPlatform = lib.mkDefault "aarch64-linux";
 }

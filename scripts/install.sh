@@ -5,7 +5,7 @@
 # Usage:
 #   ./scripts/install.sh <machine> <user@host> [--host-key PATH] [--build-on-remote]
 #
-#   <machine>          flake nixosConfiguration name (home, middle-arm, ...)
+#   <machine>          flake nixosConfiguration name (home, middle, ...)
 #   <user@host>        ssh target (must reach it as root, or a sudo user)
 #   --host-key PATH    inject this ed25519 host key as /etc/ssh/ssh_host_ed25519_key
 #                      (PATH and PATH.pub). Use when the machine's sops secrets are

@@ -2,15 +2,16 @@
 
 # Usage: ./deploy.sh <machine> [server] [options]
 #
-#   <machine>            flake name (home, middle, middle-arm, ...)
+#   <machine>            flake name (home, middle, ...)
 #   [server]             SSH target (user@host); omit = deploy to localhost
 #
 #   --only-docker        Fast path: NO nix. Upload compose files + restart changed services.
 #   --update             flake update (nix path) AND docker image pull (both paths).
 #   --secrets <machine>  Which machine's secrets.yaml to git-expose for the build
-#                        (default: <machine>; e.g. `middle` for middle-arm). Nix path only.
+#                        (default: <machine>; override for configs that reuse another
+#                        machine's secrets). Nix path only.
 #   --docker-from <m>    Which machine's docker-services to upload in --only-docker
-#                        (default: <machine>; `middle` for middle-arm). Fast path only.
+#                        (default: <machine>). Fast path only.
 #   --strategy <s>       nix-here | on-machine  (default: auto). Nix path only.
 
 set -e

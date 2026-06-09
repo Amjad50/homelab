@@ -12,7 +12,7 @@
 # Usage:
 #   ./scripts/gen-host-key.sh <anchor-name> [out-dir]
 #
-#   <anchor-name>  sops anchor for the line, e.g. `middle-arm` -> `- &middle-arm age1...`
+#   <anchor-name>  sops anchor for the line, e.g. `middle` -> `- &middle age1...`
 #   [out-dir]      where to write the keypair (default: a kept mktemp dir). The PRIVATE
 #                  key is a secret — move it somewhere safe and delete it after install.
 set -euo pipefail
