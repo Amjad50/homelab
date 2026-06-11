@@ -29,7 +29,7 @@ services:
       STORAGE_USERS_DRIVER: "posix"
       STORAGE_USERS_ID_CACHE_STORE: "nats-js-kv"
       PROXY_HTTP_ADDR: 0.0.0.0:9200
-      OC_LOG_LEVEL: debug
+      OC_LOG_LEVEL: info
       OC_LOG_COLOR: true
       OC_LOG_PRETTY: true
       # do not use SSL between the reverse proxy and OpenCloud
@@ -40,6 +40,8 @@ services:
       PROXY_ENABLE_BASIC_AUTH: false
       FRONTEND_ARCHIVER_MAX_SIZE: "10000000000"
       PROXY_CSP_CONFIG_FILE_LOCATION: /etc/opencloud/csp.yaml
+      # cap fulltext extraction per file; default 20MB was too generous for this box
+      SEARCH_CONTENT_EXTRACTION_SIZE_LIMIT: "10485760"
       # control the password enforcement and policy for public shares
       OC_SHARING_PUBLIC_SHARE_MUST_HAVE_PASSWORD: false
       OC_SHARING_PUBLIC_WRITEABLE_SHARE_MUST_HAVE_PASSWORD: false
@@ -98,6 +100,11 @@ services:
       - ./config/opencloud/proxy.yaml:/etc/opencloud/proxy.yaml
       - ./config/opencloud/apps:/var/lib/opencloud/web/assets/apps
       - clamav-socket:/var/run/clamav
+    # ~15 internal Go services + embedded NATS + antivirus worker
+    # (ANTIVIRUS_MAX_SCAN_SIZE 100MB x ANTIVIRUS_WORKERS 1 x factor 8-14 ≈ 0.8-1.4G)
+    # memswap_limit == mem_limit: no swap, clean OOM kill instead of host thrash
+    mem_limit: 2.5g
+    memswap_limit: 2.5g
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
@@ -109,6 +116,9 @@ services:
     image: apache/tika:latest-full
     networks:
       - opencloud
+    # JVM sizes its heap from the container limit (UseContainerSupport)
+    mem_limit: 1.5g
+    memswap_limit: 1.5g
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "bash -ec 'exec 3<>/dev/tcp/127.0.0.1/9998'"]
@@ -123,12 +133,17 @@ services:
       # Accepts a number with optional K, M or G suffix. Must be greater or equal to ANTIVIRUS_MAX_SCAN_SIZE above.
       # K = KiB (1024), M = MiB (1024 * 1024), G = GiB (1024 * 1024 * 1024)
       CLAMD_CONF_StreamMaxLength: 100M
+      # default (yes) doubles memory (~2.6G) during signature reloads; serial reload stays ~1.3G
+      CLAMD_CONF_ConcurrentDatabaseReload: "no"
     networks:
       - opencloud
       - clamav-egress
     volumes:
       - clamav-socket:/tmp
       - clamav-db:/var/lib/clamav
+    # signature DB ~1.3G resident; serial reload (above) keeps the spike inside this cap
+    mem_limit: 2g
+    memswap_limit: 2g
     restart: unless-stopped
   
   # Office collaboration service
@@ -161,6 +176,8 @@ services:
       OC_URL: https://opencloud.home.amsh.dev
     volumes:
       - /mnt/storage/opencloud/config:/etc/opencloud
+    mem_limit: 512m
+    memswap_limit: 512m
     restart: unless-stopped
   
   onlyoffice:
@@ -187,6 +204,9 @@ services:
       # CSP to allow embedding onlyoffice in ocis
       - "traefik.http.middlewares.onlyoffice.headers.contentSecurityPolicy=frame-ancestors 'self' https://opencloud.home.amsh.dev"
       - "traefik.http.routers.onlyoffice.middlewares=onlyoffice"
+    # asset-cache regen on container recreate is CPU/memory heavy
+    mem_limit: 2g
+    memswap_limit: 2g
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/hosting/discovery"]
