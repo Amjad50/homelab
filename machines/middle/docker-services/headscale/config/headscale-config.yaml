@@ -41,10 +41,12 @@ derp:
 dns:
   magic_dns: true
   base_domain: ts.amsh.dev
+  override_local_dns: true
   # Custom A-records file, managed by headplane's Network Management UI.
   extra_records_path: /etc/headscale/dns_records.json
   nameservers:
     global:
+      - 100.64.0.5
       - 1.1.1.1
       - 1.0.0.1
       - 2606:4700:4700::1111

@@ -3,19 +3,47 @@ networks:
   traefik:
     external: true
 
+secrets:
+  headplane-headscale-api-key:
+    file: /run/secrets/headplane-headscale-api-key
 
 services:
+  ts-adguard:
+    build:
+      context: .
+      dockerfile: ts-adguard.Dockerfile
+    container_name: adguard-tailscale
+    hostname: adguard
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    networks:
+      - traefik
+    secrets:
+      - headplane-headscale-api-key
+    environment:
+      - TS_AUTH_ONCE=true
+      - TS_USERSPACE=false
+      - TS_EXTRA_ARGS=--login-server=https://vpn.home.amsh.dev --accept-dns=false
+      - TS_STATE_DIR=/var/lib/tailscale
+    volumes:
+      - /storage/adguard/ts-state:/var/lib/tailscale
+
   adguard:
     image: adguard/adguardhome:latest
     container_name: adguard
     restart: unless-stopped
+    network_mode: service:ts-adguard
+    depends_on:
+      - ts-adguard
     volumes:
       - /storage/adguard/work:/opt/adguardhome/work
       - /storage/adguard/conf:/opt/adguardhome/conf
-    networks:
-      - traefik
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
 
       # First setup
       - "traefik.http.routers.adguard-init.rule=Host(`dns-initial.home.amsh.dev`)"
@@ -33,7 +61,7 @@ services:
       - "traefik.http.services.adguard.loadbalancer.server.port=80"
       - "traefik.http.routers.adguard.service=adguard"
       - "traefik.http.routers.adguard.middlewares=default-chain@file,oauth2-auth@docker"
-  
+
   # Used to enable DoH on the configs and restart the container
   adguard-configurator:
     build:
@@ -50,6 +78,3 @@ services:
     depends_on:
       - adguard
     restart: "no"
-
-
-

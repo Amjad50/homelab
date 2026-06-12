@@ -39,7 +39,10 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.headscale.rule=Host(`vpn.home.amsh.dev`)"
       - "traefik.http.services.headscale.loadbalancer.server.port=8080"
-      - "traefik.http.routers.headscale.middlewares=default-chain@file"
+      - "traefik.http.middlewares.vpn-root.redirectregex.regex=^https://vpn\\.home\\.amsh\\.dev/?$$"
+      - "traefik.http.middlewares.vpn-root.redirectregex.replacement=https://vpn.home.amsh.dev/admin"
+      - "traefik.http.middlewares.vpn-root.redirectregex.permanent=false"
+      - "traefik.http.routers.headscale.middlewares=vpn-root,default-chain@file"
 
   headplane:
     image: ghcr.io/tale/headplane:0.7.0-beta.4-shell
