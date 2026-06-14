@@ -30,14 +30,27 @@ services:
       - TS_STATE_DIR=/var/lib/tailscale
     volumes:
       - /storage/adguard/ts-state:/var/lib/tailscale
+    # adguard shares this netns (network_mode: service), so AdGuard's listeners
+    # live here. Probe its web port — bound at the same time as DNS:53 on startup,
+    # and curl is present in this image (scratch-based adguard has no shell/tools).
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:80"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 30s
 
   adguard:
     image: adguard/adguardhome:latest
     container_name: adguard
     restart: unless-stopped
     network_mode: service:ts-adguard
+    # service_started, NOT service_healthy: the ts-adguard healthcheck probes
+    # AdGuard's own port, so it can only pass once this container is up — waiting
+    # on healthy here would deadlock. We only need the netns to exist first.
     depends_on:
-      - ts-adguard
+      ts-adguard:
+        condition: service_started
     volumes:
       - /storage/adguard/work:/opt/adguardhome/work
       - /storage/adguard/conf:/opt/adguardhome/conf
@@ -76,5 +89,6 @@ services:
       - /storage/adguard/conf:/config:rw
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
-      - adguard
+      ts-adguard:
+        condition: service_healthy
     restart: "no"
