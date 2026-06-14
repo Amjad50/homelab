@@ -65,7 +65,7 @@ services:
       PROXY_OIDC_REWRITE_WELLKNOWN: "true"
       PROXY_OIDC_ACCESS_TOKEN_VERIFY_METHOD: "none"
       PROXY_OIDC_SKIP_USER_INFO: "false"
-      WEB_OIDC_SCOPE: "openid profile email groups"
+      WEB_OIDC_SCOPE: "openid profile email groups offline_access"
       PROXY_USER_OIDC_CLAIM: "preferred_username"
       PROXY_USER_CS3_CLAIM: "username"
       PROXY_AUTOPROVISION_CLAIM_EMAIL: 'email'
@@ -79,7 +79,13 @@ services:
       SEARCH_EXTRACTOR_TIKA_TIKA_URL: http://tika:9998
       FRONTEND_FULL_TEXT_SEARCH_ENABLED: "true"
       # antivirus
-      POSTPROCESSING_STEPS: "virusscan"
+      # virusscan disabled 2026-06-12: the antivirus service treats a NATS publish
+      # timeout as FATAL and exits, and the saturated event bus (main-queue +
+      # KV_eventhistory ~66k msgs each) made those timeouts constant → ~70s
+      # crash-loop + upload 404s. Empty steps = postprocessing is an instant no-op,
+      # so uploads finalize without a scan that can fail. Re-add "virusscan" only
+      # after the event-bus saturation is addressed.
+      POSTPROCESSING_STEPS: ""
       STORAGE_USERS_DATA_GATEWAY_URL: "http://opencloud:9200/data"
       ANTIVIRUS_MAX_SCAN_SIZE: 100MB
       ANTIVIRUS_INFECTED_FILE_HANDLING: abort
@@ -103,8 +109,11 @@ services:
     # ~15 internal Go services + embedded NATS + antivirus worker
     # (ANTIVIRUS_MAX_SCAN_SIZE 100MB x ANTIVIRUS_WORKERS 1 x factor 8-14 ≈ 0.8-1.4G)
     # memswap_limit == mem_limit: no swap, clean OOM kill instead of host thrash
-    mem_limit: 2.5g
-    memswap_limit: 2.5g
+    # 4g (raised from 2.5g 2026-06-12): on boot embedded NATS replays ~135k persisted
+    # JetStream msgs into RAM (~2.6G peak) which exceeded 2.5g and OOM-looped the
+    # service before it could finalize a deep virusscan backlog. Headroom lets it drain.
+    mem_limit: 4g
+    memswap_limit: 4g
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
