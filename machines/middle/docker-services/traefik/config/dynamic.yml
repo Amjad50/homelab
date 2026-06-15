@@ -43,6 +43,9 @@ http:
           - "10.8.0.0/24" # WireGuard VPN subnet (wg-easy)
           - "100.64.0.0/10" # headscale mesh (v4)
           - "fd7a:115c:a1e0::/48" # headscale mesh (v6)
+          - "100.97.0.0/16" # NetBird
+          - "fd42:ba4b:da3d:8f27::/64" # NetBird
+          - "149.118.147.243/32" # middle's own public ip
 
     # Chain multiple middlewares
     default-chain:

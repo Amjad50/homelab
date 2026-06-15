@@ -107,6 +107,13 @@ SECRETS=(
     # middle's own host-level tailscale node: reusable headscale preauthkey
     "HEADSCALE_MIDDLE_AUTHKEY|req|middle|headscale-middle-authkey|"
 
+    # NetBird self-hosted mesh (combined netbird-server: sqlite store + relay/shared auth)
+    # Datastore key must keep base64 padding (Go base64.StdEncoding); relay authSecret strips it.
+    "NETBIRD_DATASTORE_ENC_KEY|gen|middle|netbird-datastore-enc-key|openssl rand -base64 32"
+    "NETBIRD_RELAY_AUTH_SECRET|gen|middle|netbird-relay-auth-secret|openssl rand -base64 32 | tr -d '/+='"
+    # middle's own netbird client: setup key created in the NetBird dashboard (Settings -> Setup Keys)
+    "NETBIRD_MIDDLE_SETUP_KEY|req|middle|netbird-middle-setup-key|"
+
     # Services - Home
     "FIREFLY_APP_KEY|gen|home|firefly-app-key|echo \"base64:\$(openssl rand -base64 32)\""
     "FIREFLY_DB_PASSWORD|gen|home|firefly-db-password|openssl rand -base64 32"

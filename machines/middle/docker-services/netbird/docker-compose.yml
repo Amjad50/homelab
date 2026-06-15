@@ -1,0 +1,65 @@
+networks:
+  traefik:
+    external: true
+
+services:
+  netbird-server:
+    image: netbirdio/netbird-server:latest
+    container_name: netbird-server
+    restart: unless-stopped
+    networks:
+      - traefik
+    volumes:
+      - /storage/netbird/data:/var/lib/netbird
+      - /var/lib/dock/netbird-config.yaml:/etc/netbird/config.yaml:ro
+    command: ["--config", "/etc/netbird/config.yaml"]
+    healthcheck:
+      # No curl/wget in image; bash /dev/tcp probes healthcheckAddress (:9000).
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/9000"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      # gRPC (h2c) on /signalexchange.* and /management.* — default-chain.
+      - "traefik.http.routers.netbird-grpc.rule=Host(`netbird.home.amsh.dev`) && (PathPrefix(`/signalexchange.SignalExchange/`) || PathPrefix(`/management.ManagementService/`))"
+      - "traefik.http.routers.netbird-grpc.priority=20"
+      - "traefik.http.routers.netbird-grpc.service=netbird-server-h2c"
+      - "traefik.http.routers.netbird-grpc.middlewares=default-chain@file"
+      # HTTP backend: relay websocket, ws-proxy, REST API, embedded IdP (/oauth2) — default-chain.
+      - "traefik.http.routers.netbird-backend.rule=Host(`netbird.home.amsh.dev`) && (PathPrefix(`/relay`) || PathPrefix(`/ws-proxy/`) || PathPrefix(`/api`) || PathPrefix(`/oauth2`))"
+      - "traefik.http.routers.netbird-backend.priority=10"
+      - "traefik.http.routers.netbird-backend.service=netbird-server"
+      - "traefik.http.routers.netbird-backend.middlewares=default-chain@file"
+      - "traefik.http.services.netbird-server.loadbalancer.server.port=80"
+      - "traefik.http.services.netbird-server-h2c.loadbalancer.server.port=80"
+      - "traefik.http.services.netbird-server-h2c.loadbalancer.server.scheme=h2c"
+
+  netbird-dashboard:
+    image: netbirdio/dashboard:latest
+    container_name: netbird-dashboard
+    restart: unless-stopped
+    depends_on:
+      netbird-server:
+        condition: service_healthy
+    networks:
+      - traefik
+    env_file:
+      - /var/lib/dock/netbird-dashboard.env
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:80/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      # Dashboard UI (catch-all for the host, lowest priority) — default-chain.
+      - "traefik.http.routers.netbird-dashboard.rule=Host(`netbird.home.amsh.dev`)"
+      - "traefik.http.routers.netbird-dashboard.priority=5"
+      - "traefik.http.routers.netbird-dashboard.service=netbird-dashboard"
+      - "traefik.http.routers.netbird-dashboard.middlewares=default-chain@file"
+      - "traefik.http.services.netbird-dashboard.loadbalancer.server.port=80"

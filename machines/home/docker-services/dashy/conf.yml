@@ -347,3 +347,9 @@ sections:
         url: https://headplane.home.amsh.dev
         statusCheck: false
         id: 4_1858_headplane
+      - title: NetBird
+        description: Mesh VPN control & management
+        icon: hl-netbird
+        url: https://netbird.home.amsh.dev
+        statusCheck: false
+        id: 5_1858_netbird

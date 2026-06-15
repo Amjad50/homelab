@@ -143,6 +143,78 @@
       };
     };
 
+    netbird = {
+      tmpfiles = [
+        "v /storage/netbird 0755 dock docker - -"
+        "d /storage/netbird/data 0755 dock docker - -"
+      ];
+      secrets = {
+        netbird-datastore-enc-key = { owner = "dock"; group = "docker"; mode = "0400"; };
+        netbird-relay-auth-secret = { owner = "dock"; group = "docker"; mode = "0400"; };
+      };
+      templates = {
+        "netbird-config.yaml" = {
+          owner = "dock"; group = "docker"; mode = "0400";
+          path = "/var/lib/dock/netbird-config.yaml";
+          content = ''
+            server:
+              listenAddress: ":80"
+              exposedAddress: "https://netbird.home.amsh.dev:443"
+              stunPorts: []
+              metricsPort: 9090
+              healthcheckAddress: ":9000"
+              logLevel: "info"
+              logFile: "console"
+              disableAnonymousMetrics: true
+              authSecret: "${config.sops.placeholder.netbird-relay-auth-secret}"
+              dataDir: "/var/lib/netbird"
+              stuns:
+                - uri: "stun:turn.amsh.dev:3478"
+                  proto: "udp"
+              auth:
+                issuer: "https://netbird.home.amsh.dev/oauth2"
+                localAuthDisabled: true
+                signKeyRefreshEnabled: true
+                dashboardRedirectURIs:
+                  - "https://netbird.home.amsh.dev/nb-auth"
+                  - "https://netbird.home.amsh.dev/nb-silent-auth"
+                cliRedirectURIs:
+                  - "http://localhost:53000/"
+              reverseProxy:
+                trustedHTTPProxies:
+                  - "172.18.0.0/16"
+                trustedPeers:
+                  - "0.0.0.0/0"
+              store:
+                engine: "sqlite"
+                encryptionKey: "${config.sops.placeholder.netbird-datastore-enc-key}"
+          '';
+        };
+        "netbird-dashboard.env" = {
+          owner = "dock"; group = "docker"; mode = "0400";
+          path = "/var/lib/dock/netbird-dashboard.env";
+          content = ''
+            NETBIRD_MGMT_API_ENDPOINT=https://netbird.home.amsh.dev
+            NETBIRD_MGMT_GRPC_API_ENDPOINT=https://netbird.home.amsh.dev
+            AUTH_AUDIENCE=netbird-dashboard
+            AUTH_CLIENT_ID=netbird-dashboard
+            AUTH_CLIENT_SECRET=
+            AUTH_AUTHORITY=https://netbird.home.amsh.dev/oauth2
+            USE_AUTH0=false
+            AUTH_SUPPORTED_SCOPES=openid profile email groups
+            AUTH_REDIRECT_URI=/nb-auth
+            AUTH_SILENT_REDIRECT_URI=/nb-silent-auth
+            NGINX_SSL_PORT=443
+            LETSENCRYPT_DOMAIN=none
+          '';
+        };
+      };
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [ "/storage/netbird/data" ];
+      };
+    };
+
     ntfy = {
       tmpfiles = [
         "v /storage/ntfy 0755 dock docker - -"

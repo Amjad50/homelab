@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
     disko.url = "github:nix-community/disko";
@@ -10,7 +11,7 @@
   };
 
   outputs =
-    { self, nixpkgs, sops-nix, disko }:
+    { self, nixpkgs, nixpkgs-unstable, sops-nix, disko }:
     let
       lib = nixpkgs.lib;
     in
@@ -18,6 +19,7 @@
       nixosConfigurations = {
         middle = nixpkgs.lib.nixosSystem {
           system = "aarch64-linux";
+          specialArgs = { inherit nixpkgs-unstable; };
           modules = [
             disko.nixosModules.disko
             ./hardware/middle.nix
