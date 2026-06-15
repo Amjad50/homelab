@@ -24,7 +24,7 @@ entryPoints:
         certResolver: cloudflare
 
   ping:
-    address: ":8082"
+    address: "127.0.0.1:8082"
 
 providers:
   # File provider for dynamic configuration

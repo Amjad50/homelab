@@ -1,59 +1,27 @@
-
 networks:
   traefik:
     external: true
 
-secrets:
-  headplane-headscale-api-key:
-    file: /run/secrets/headplane-headscale-api-key
-
 services:
-  ts-adguard:
-    build:
-      context: .
-      dockerfile: ts-adguard.Dockerfile
-    container_name: adguard-tailscale
+  adguard:
+    image: adguard/adguardhome:latest
+    container_name: adguard
     hostname: adguard
     restart: unless-stopped
-    cap_add:
-      - NET_ADMIN
-    devices:
-      - /dev/net/tun:/dev/net/tun
     networks:
       - traefik
-    secrets:
-      - headplane-headscale-api-key
-    environment:
-      - TS_AUTH_ONCE=true
-      - TS_USERSPACE=false
-      - TS_EXTRA_ARGS=--login-server=https://vpn.home.amsh.dev --accept-dns=false
-      - TS_STATE_DIR=/var/lib/tailscale
+    ports:
+      - "127.0.0.1:5300:53/udp"
+      - "127.0.0.1:5300:53/tcp"
     volumes:
-      - /storage/adguard/ts-state:/var/lib/tailscale
-    # adguard shares this netns (network_mode: service), so AdGuard's listeners
-    # live here. Probe its web port — bound at the same time as DNS:53 on startup,
-    # and curl is present in this image (scratch-based adguard has no shell/tools).
+      - /storage/adguard/work:/opt/adguardhome/work
+      - /storage/adguard/conf:/opt/adguardhome/conf
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:80"]
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80"]
       interval: 10s
       timeout: 3s
       retries: 6
       start_period: 30s
-
-  adguard:
-    image: adguard/adguardhome:latest
-    container_name: adguard
-    restart: unless-stopped
-    network_mode: service:ts-adguard
-    # service_started, NOT service_healthy: the ts-adguard healthcheck probes
-    # AdGuard's own port, so it can only pass once this container is up — waiting
-    # on healthy here would deadlock. We only need the netns to exist first.
-    depends_on:
-      ts-adguard:
-        condition: service_started
-    volumes:
-      - /storage/adguard/work:/opt/adguardhome/work
-      - /storage/adguard/conf:/opt/adguardhome/conf
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik"
@@ -89,6 +57,6 @@ services:
       - /storage/adguard/conf:/config:rw
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
-      ts-adguard:
-        condition: service_healthy
+      adguard:
+        condition: service_started
     restart: "no"

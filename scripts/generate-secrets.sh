@@ -104,6 +104,9 @@ SECRETS=(
     "HEADPLANE_COOKIE_SECRET|gen|middle|headplane-cookie-secret|openssl rand -base64 32 | tr -d '\n/+=' | cut -c1-32"
     "HEADPLANE_HEADSCALE_API_KEY|req|middle|headplane-headscale-api-key|"
 
+    # middle's own host-level tailscale node: reusable headscale preauthkey
+    "HEADSCALE_MIDDLE_AUTHKEY|req|middle|headscale-middle-authkey|"
+
     # Services - Home
     "FIREFLY_APP_KEY|gen|home|firefly-app-key|echo \"base64:\$(openssl rand -base64 32)\""
     "FIREFLY_DB_PASSWORD|gen|home|firefly-db-password|openssl rand -base64 32"

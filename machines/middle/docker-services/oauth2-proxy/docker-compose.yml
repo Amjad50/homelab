@@ -39,6 +39,8 @@ services:
     networks:
       - traefik
       - oauth2-proxy
+    ports:
+      - "127.0.0.1:4180:4180"
     depends_on:
       oauth2-proxy-redis:
         condition: service_healthy
@@ -97,6 +99,6 @@ services:
 
       
       # OAuth2 Proxy auth middleware (for protecting other services)
-      - "traefik.http.middlewares.oauth2-auth.forwardauth.address=http://oauth2-proxy:4180"
+      - "traefik.http.middlewares.oauth2-auth.forwardauth.address=http://127.0.0.1:4180"
       - "traefik.http.middlewares.oauth2-auth.forwardauth.trustforwardheader=true"
       - "traefik.http.middlewares.oauth2-auth.forwardauth.authresponseheaders=X-Auth-Request-Access-Token,X-Auth-Request-Email,Authorization"

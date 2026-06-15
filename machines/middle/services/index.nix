@@ -134,13 +134,11 @@
     adguard = {
       tmpfiles = [
         "v /storage/adguard 0755 dock docker - -"
-        "d /storage/adguard/ts-state 0755 dock docker - -"
       ];
       backup = {
         group = config.homelab.backups.default;
         paths = [
           "/storage/adguard/conf"
-          "/storage/adguard/ts-state"
         ];
       };
     };

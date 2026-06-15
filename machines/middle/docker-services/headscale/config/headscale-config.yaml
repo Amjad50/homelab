@@ -46,8 +46,11 @@ dns:
   extra_records_path: /etc/headscale/dns_records.json
   nameservers:
     global:
-      - 100.64.0.5
-      - https://dns.nextdns.io/a1d9a9
+      - 100.64.0.6
+    split:
+      vpn.home.amsh.dev:
+        - 1.1.1.1
+        - 1.0.0.1
 
 log:
   level: info

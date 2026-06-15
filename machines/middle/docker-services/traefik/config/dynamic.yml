@@ -39,9 +39,10 @@ http:
         sourceRange:
           - "10.0.0.0/8" # Private networks
           - "192.168.0.0/16" # Private networks
-          - "172.16.0.0/12" # Docker networks
           - "127.0.0.1/32" # Localhost
-          - "10.8.0.0/24" # WireGuard VPN subnet
+          - "10.8.0.0/24" # WireGuard VPN subnet (wg-easy)
+          - "100.64.0.0/10" # headscale mesh (v4)
+          - "fd7a:115c:a1e0::/48" # headscale mesh (v6)
 
     # Chain multiple middlewares
     default-chain:

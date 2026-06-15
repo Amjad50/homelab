@@ -5,6 +5,7 @@
     ./networking.nix
     ./services/index.nix
     ./services/coturn.nix
+    ./services/mesh.nix
   ];
 
   homelab.machineName = "middle";

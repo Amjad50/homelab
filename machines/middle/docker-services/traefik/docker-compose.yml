@@ -19,11 +19,7 @@ services:
     image: traefik:v3
     container_name: traefik
     restart: unless-stopped
-    networks:
-      - traefik
-    ports:
-      - "80:80"
-      - "443:443"
+    network_mode: host
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -46,7 +42,7 @@ services:
       - "traefik.http.routers.traefik.service=api@internal"
       - "traefik.http.routers.traefik.middlewares=default-chain@file,oauth2-auth@docker"
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "host.docker.internal:127.0.0.1"
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
       interval: 30s
