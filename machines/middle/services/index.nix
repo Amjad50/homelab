@@ -160,7 +160,8 @@
             server:
               listenAddress: ":80"
               exposedAddress: "https://netbird.home.amsh.dev:443"
-              stunPorts: []
+              stunPorts:
+                - 3480
               metricsPort: 9090
               healthcheckAddress: ":9000"
               logLevel: "info"
@@ -168,9 +169,6 @@
               disableAnonymousMetrics: true
               authSecret: "${config.sops.placeholder.netbird-relay-auth-secret}"
               dataDir: "/var/lib/netbird"
-              stuns:
-                - uri: "stun:turn.amsh.dev:3478"
-                  proto: "udp"
               auth:
                 issuer: "https://netbird.home.amsh.dev/oauth2"
                 localAuthDisabled: true
