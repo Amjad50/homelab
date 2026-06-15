@@ -344,6 +344,6 @@ sections:
       - title: Headscale
         description: Tailnet control & management
         icon: hl-headplane
-        url: https://vpn.home.amsh.dev/admin
+        url: https://headplane.home.amsh.dev
         statusCheck: false
         id: 4_1858_headplane

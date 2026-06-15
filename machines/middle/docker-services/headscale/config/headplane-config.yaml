@@ -2,7 +2,7 @@
 server:
   host: "0.0.0.0"
   port: 3000
-  base_url: "https://vpn.home.amsh.dev"
+  base_url: "https://headplane.home.amsh.dev"
   # 32-char session-signing secret, rendered from sops to this file by the registry.
   cookie_secret_path: "/run/secrets/headplane-cookie-secret"
   cookie_secure: true
