@@ -56,4 +56,4 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.debug.rule=Host(`debug.home.amsh.dev`)"
       - "traefik.http.services.debug.loadbalancer.server.port=80"
-      - "traefik.http.routers.debug.middlewares=default-chain@file,oauth2-auth@docker"
+      - "traefik.http.routers.debug.middlewares=default-chain@file"
