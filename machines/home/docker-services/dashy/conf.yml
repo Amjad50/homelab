@@ -344,7 +344,7 @@ sections:
       - title: Headscale
         description: Tailnet control & management
         icon: hl-headplane
-        url: https://headplane.home.amsh.dev
+        url: https://vpn.home.amsh.dev/admin
         statusCheck: false
         id: 4_1858_headplane
       - title: NetBird
