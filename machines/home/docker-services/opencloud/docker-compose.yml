@@ -24,7 +24,8 @@ services:
       OC_ADD_RUN_SERVICES: "antivirus"
       OC_ENABLE_OCM: "true"
       # Kanidm is the external IdP; OpenCloud still runs IDM for its internal LDAP user store.
-      OC_EXCLUDE_RUN_SERVICES: "idp"
+      # search runs as its own container (the bleve indexer OOM-killed the process)
+      OC_EXCLUDE_RUN_SERVICES: "idp,search"
       OC_URL: https://opencloud.home.amsh.dev
       STORAGE_USERS_DRIVER: "posix"
       STORAGE_USERS_ID_CACHE_STORE: "nats-js-kv"
@@ -74,9 +75,7 @@ services:
       PROXY_AUTOPROVISION_CLAIM_GROUPS: 'groups'
       PROXY_AUTOPROVISION_ACCOUNTS: "true"
       WEB_OIDC_POST_LOGOUT_REDIRECT_URI: 'https://opencloud.home.amsh.dev'
-      # fulltext search
-      SEARCH_EXTRACTOR_TYPE: tika
-      SEARCH_EXTRACTOR_TIKA_TIKA_URL: http://tika:9998
+      # fulltext search (indexer runs in the `search` container; this is the UI flag)
       FRONTEND_FULL_TEXT_SEARCH_ENABLED: "true"
       # antivirus
       # virusscan disabled 2026-06-12: the antivirus service treats a NATS publish
@@ -109,11 +108,8 @@ services:
     # ~15 internal Go services + embedded NATS + antivirus worker
     # (ANTIVIRUS_MAX_SCAN_SIZE 100MB x ANTIVIRUS_WORKERS 1 x factor 8-14 ≈ 0.8-1.4G)
     # memswap_limit == mem_limit: no swap, clean OOM kill instead of host thrash
-    # 4g (raised from 2.5g 2026-06-12): on boot embedded NATS replays ~135k persisted
-    # JetStream msgs into RAM (~2.6G peak) which exceeded 2.5g and OOM-looped the
-    # service before it could finalize a deep virusscan backlog. Headroom lets it drain.
-    mem_limit: 4g
-    memswap_limit: 4g
+    mem_limit: 5g
+    memswap_limit: 5g
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
@@ -155,6 +151,48 @@ services:
     memswap_limit: 2g
     restart: unless-stopped
   
+  # Full-text search indexer, isolated so a bleve memory spike only restarts
+  # this container. Joins the mesh like the collaboration service below.
+  search:
+    image: opencloudeu/opencloud-rolling:latest
+    user: 1000:1000
+    networks:
+      - opencloud
+    depends_on:
+      opencloud:
+        condition: service_started
+      tika:
+        condition: service_healthy
+    entrypoint:
+      - /bin/sh
+    command: [ "-c", "opencloud search server" ]
+    environment:
+      MICRO_REGISTRY: "nats-js-kv"
+      MICRO_REGISTRY_ADDRESS: "opencloud:9233"
+      # point event/store endpoints at the main NATS (default 127.0.0.1 = self here)
+      OC_EVENTS_ENDPOINT: "opencloud:9233"
+      OC_CACHE_STORE_NODES: "opencloud:9233"
+      OC_PERSISTENT_STORE_NODES: "opencloud:9233"
+      # bind GRPC on all interfaces so the main process can reach it via the registry
+      SEARCH_GRPC_ADDR: "0.0.0.0:9220"
+      OC_URL: https://opencloud.home.amsh.dev
+      OC_LOG_LEVEL: info
+      OC_LOG_COLOR: true
+      OC_LOG_PRETTY: true
+      STORAGE_USERS_DATA_GATEWAY_URL: "http://opencloud:9200/data"
+      SEARCH_EXTRACTOR_TYPE: tika
+      SEARCH_EXTRACTOR_TIKA_TIKA_URL: http://tika:9998
+      # cap fulltext extraction per file; default 20MB was too generous for this box
+      SEARCH_CONTENT_EXTRACTION_SIZE_LIMIT: "10485760"
+      GOGC: "50"
+    volumes:
+      - /mnt/storage/opencloud/config:/etc/opencloud
+      - /mnt/storage/opencloud/data:/var/lib/opencloud
+    # caps a bleve spike to this container instead of the whole process
+    mem_limit: 2g
+    memswap_limit: 2g
+    restart: unless-stopped
+
   # Office collaboration service
   collaboration:
     image: opencloudeu/opencloud-rolling:latest
