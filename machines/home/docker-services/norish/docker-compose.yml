@@ -27,6 +27,9 @@ services:
       timeout: 3s
       retries: 5
       start_period: 10s
+    labels:
+      - "sablier.enable=true"
+      - "sablier.group=norish"
 
   norish-redis:
     image: redis:8-alpine
@@ -41,6 +44,9 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
+    labels:
+      - "sablier.enable=true"
+      - "sablier.group=norish"
 
   norish-chrome:
     image: zenika/alpine-chrome:latest
@@ -65,6 +71,9 @@ services:
       timeout: 5s
       retries: 5
       start_period: 15s
+    labels:
+      - "sablier.enable=true"
+      - "sablier.group=norish"
 
   norish:
     image: norishapp/norish:latest
@@ -141,6 +150,9 @@ services:
       # Sablier scale-to-zero. Wakes the whole stack:
       # app + db + redis + headless chrome.
       - "traefik.docker.allownonrunning=true"
-      - "traefik.http.middlewares.sablier-norish.plugin.sablier.names=norish,norish-db,norish-redis,norish-chrome"
+      - "traefik.http.middlewares.sablier-norish.plugin.sablier.group=norish"
+      - "traefik.http.middlewares.sablier-norish.plugin.sablier.sablierUrl=http://sablier:10000"
       - "traefik.http.middlewares.sablier-norish.plugin.sablier.dynamic.displayName=Norish"
+      - "sablier.enable=true"
+      - "sablier.group=norish"
       - "traefik.http.services.norish.loadbalancer.server.port=3000"

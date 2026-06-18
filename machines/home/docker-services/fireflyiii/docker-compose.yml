@@ -32,6 +32,9 @@ services:
       timeout: 3s
       retries: 3
       start_period: 7s
+    labels:
+      - "sablier.enable=true"
+      - "sablier.group=fireflyiii"
 
   fireflyiii:
     image: fireflyiii/core:latest
@@ -98,6 +101,9 @@ services:
       - "traefik.http.routers.fireflyiii.middlewares=default-chain@file,sablier-fireflyiii"
       # Sablier scale-to-zero. Wakes app + db together.
       - "traefik.docker.allownonrunning=true"
-      - "traefik.http.middlewares.sablier-fireflyiii.plugin.sablier.names=fireflyiii,fireflyiii-db"
+      - "traefik.http.middlewares.sablier-fireflyiii.plugin.sablier.group=fireflyiii"
+      - "traefik.http.middlewares.sablier-fireflyiii.plugin.sablier.sablierUrl=http://sablier:10000"
       - "traefik.http.middlewares.sablier-fireflyiii.plugin.sablier.dynamic.displayName=Firefly III"
       - "traefik.http.services.fireflyiii.loadbalancer.server.port=8080"
+      - "sablier.enable=true"
+      - "sablier.group=fireflyiii"

@@ -25,8 +25,11 @@ services:
       - "traefik.http.routers.kavita.middlewares=default-chain@file,sablier-kavita"
       # Sablier scale-to-zero
       - "traefik.docker.allownonrunning=true"
-      - "traefik.http.middlewares.sablier-kavita.plugin.sablier.names=kavita"
+      - "traefik.http.middlewares.sablier-kavita.plugin.sablier.group=kavita"
+      - "traefik.http.middlewares.sablier-kavita.plugin.sablier.sablierUrl=http://sablier:10000"
       - "traefik.http.middlewares.sablier-kavita.plugin.sablier.dynamic.displayName=Kavita"
+      - "sablier.enable=true"
+      - "sablier.group=kavita"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
       interval: 30s

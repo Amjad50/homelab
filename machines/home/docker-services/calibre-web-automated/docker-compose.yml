@@ -32,5 +32,8 @@ services:
       - "traefik.http.routers.calibre-web-automated.middlewares=default-chain@file,sablier-calibre-web"
       # Sablier scale-to-zero
       - "traefik.docker.allownonrunning=true"
-      - "traefik.http.middlewares.sablier-calibre-web.plugin.sablier.names=calibre-web-automated"
+      - "traefik.http.middlewares.sablier-calibre-web.plugin.sablier.group=calibre-web"
+      - "traefik.http.middlewares.sablier-calibre-web.plugin.sablier.sablierUrl=http://sablier:10000"
       - "traefik.http.middlewares.sablier-calibre-web.plugin.sablier.dynamic.displayName=Calibre Web"
+      - "sablier.enable=true"
+      - "sablier.group=calibre-web"

@@ -57,6 +57,9 @@ services:
       # Sablier scale-to-zero. JVM cold start is ~15s so we use a slower
       # refresh frequency on the loading page.
       - "traefik.docker.allownonrunning=true"
-      - "traefik.http.middlewares.sablier-stirling-pdf.plugin.sablier.names=stirling-pdf"
+      - "traefik.http.middlewares.sablier-stirling-pdf.plugin.sablier.group=stirling-pdf"
+      - "traefik.http.middlewares.sablier-stirling-pdf.plugin.sablier.sablierUrl=http://sablier:10000"
       - "traefik.http.middlewares.sablier-stirling-pdf.plugin.sablier.dynamic.displayName=Stirling PDF"
       - "traefik.http.middlewares.sablier-stirling-pdf.plugin.sablier.dynamic.refreshFrequency=3s"
+      - "sablier.enable=true"
+      - "sablier.group=stirling-pdf"

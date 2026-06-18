@@ -24,6 +24,9 @@ services:
       - solidtime-db-password
     networks:
       - solidtime
+    labels:
+      - "sablier.enable=true"
+      - "sablier.group=solidtime"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U solidtime -d solidtime"]
       retries: 3
@@ -60,8 +63,11 @@ services:
       # (gotenberg has no container_name so docker auto-assigns
       # solidtime-gotenberg-1).
       - "traefik.docker.allownonrunning=true"
-      - "traefik.http.middlewares.sablier-solidtime.plugin.sablier.names=solidtime,solidtime-db,solidtime-gotenberg-1"
+      - "traefik.http.middlewares.sablier-solidtime.plugin.sablier.group=solidtime"
+      - "traefik.http.middlewares.sablier-solidtime.plugin.sablier.sablierUrl=http://sablier:10000"
       - "traefik.http.middlewares.sablier-solidtime.plugin.sablier.dynamic.displayName=Solidtime"
+      - "sablier.enable=true"
+      - "sablier.group=solidtime"
     networks:
       - traefik
       - solidtime
@@ -122,5 +128,8 @@ services:
     image: gotenberg/gotenberg:8
     networks:
       - solidtime
+    labels:
+      - "sablier.enable=true"
+      - "sablier.group=solidtime"
     healthcheck:
       test: [ "CMD", "curl", "--silent", "--fail", "http://localhost:3000/health" ]

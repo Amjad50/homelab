@@ -39,6 +39,9 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
+    labels:
+      - "sablier.enable=true"
+      - "sablier.group=n8n"
 
   init-secrets:
     image: alpine
@@ -116,9 +119,12 @@ services:
       # NOTE: stopped n8n cannot fire scheduled workflows — only sleep this
       # if you don't rely on cron triggers.
       - "traefik.docker.allownonrunning=true"
-      - "traefik.http.middlewares.sablier-n8n.plugin.sablier.names=n8n,n8n-db"
+      - "traefik.http.middlewares.sablier-n8n.plugin.sablier.group=n8n"
+      - "traefik.http.middlewares.sablier-n8n.plugin.sablier.sablierUrl=http://sablier:10000"
       - "traefik.http.middlewares.sablier-n8n.plugin.sablier.dynamic.displayName=n8n"
       - "traefik.http.services.n8n.loadbalancer.server.port=5678"
+      - "sablier.enable=true"
+      - "sablier.group=n8n"
     healthcheck:
       test: ["CMD-SHELL", "wget --spider -q http://127.0.0.1:5678/healthz"]
       interval: 30s

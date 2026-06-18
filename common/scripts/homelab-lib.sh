@@ -168,7 +168,9 @@ print_stack_status() {
 # --- Sablier awareness ---
 
 # Returns the set of container names that are sablier-managed, newline-separated.
-# Sourced from Traefik's middleware API; falls back to scanning docker labels.
+# Sourced from the `sablier.enable=true` container label (sablier plugin v1.3+
+# groups containers via per-container `sablier.enable`/`sablier.group` labels
+# rather than a `plugin.sablier.names` list on the middleware).
 # Cached per-process via __SABLIER_SET (set on first call).
 sablier_managed_set() {
   if [[ -n "${__SABLIER_SET+x}" ]]; then
@@ -177,35 +179,10 @@ sablier_managed_set() {
   fi
 
   local -a names=()
-  local json
-  json=$(curl -fsS --max-time 2 \
-    -H "Host: traefik-internal.home.amsh.dev" \
-    http://127.0.0.1:8080/api/http/middlewares 2>/dev/null) || true
-
-  if [[ -n "$json" ]]; then
-    mapfile -t names < <(echo "$json" | jq -r '
-      .[]
-      | select(.type == "sablier")
-      | (.plugin.sablier.names // "")
-      | split(",")
-      | .[]
-      | select(length > 0)
-    ' 2>/dev/null | sort -u)
-  fi
-
-  # Fallback: scrape labels from docker if traefik query failed or empty.
-  # Look for any label matching `*sablier*.plugin.sablier.names` and split its value.
-  if [[ ${#names[@]} -eq 0 ]]; then
-    mapfile -t names < <(
-      docker ps -a --format '{{.Names}}' 2>/dev/null | while read -r c; do
-        docker inspect "$c" --format \
-          '{{range $k,$v := .Config.Labels}}{{$k}}={{$v}}{{"\n"}}{{end}}' 2>/dev/null \
-          | grep -E '^traefik\.http\.middlewares\.[^.]+\.plugin\.sablier\.names=' \
-          | sed 's/^[^=]*=//' \
-          | tr ',' '\n'
-      done | sed '/^$/d' | sort -u
-    )
-  fi
+  mapfile -t names < <(
+    docker ps -a --filter 'label=sablier.enable=true' \
+      --format '{{.Names}}' 2>/dev/null | sed '/^$/d' | sort -u
+  )
 
   # Per-process cache (arrays can't be exported across processes; the cache
   # benefit only applies within the current shell, which is enough for cmd_list).
