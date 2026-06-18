@@ -5,7 +5,7 @@ let
   nbIface = "nb-default";
   mgmtUrl = "https://netbird.home.amsh.dev";
 
-  unstablePkgs = import nixpkgs-unstable { inherit (pkgs) system; };
+  unstablePkgs = import nixpkgs-unstable { inherit (pkgs.stdenv.hostPlatform) system; };
 
   # 25.05's netbird is 0.43.3, too old for the 0.72.4 server; pin unstable's 0.72.x (keep 25.05's module, unstable's needs services.firewalld).
   netbird-pinned = unstablePkgs.netbird;
@@ -54,6 +54,7 @@ in
     # 51820/udp is taken by the netbird-server container on this host.
     port = 51821;
     # Don't set ManagementURL here: `config` writes it as a string but the daemon needs a url.URL (string = crash); passed via `netbird up --management-url` in netbird-enroll instead.
+    config.DisableDNS = true;
   };
 
   # 25.05's module has no `login.setupKeyFile`, so enroll once via `netbird up`.

@@ -2,7 +2,7 @@
   description = "Multi-machine NixOS configuration";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
@@ -18,7 +18,6 @@
     {
       nixosConfigurations = {
         middle = nixpkgs.lib.nixosSystem {
-          system = "aarch64-linux";
           specialArgs = { inherit nixpkgs-unstable; };
           modules = [
             disko.nixosModules.disko
@@ -29,7 +28,6 @@
           ];
         };
         home = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
           modules = [
             disko.nixosModules.disko
             ./hardware/home.nix
@@ -39,7 +37,6 @@
           ];
         };
         home-vm = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
           modules = [
             disko.nixosModules.disko
             ./hardware/home-vm.nix
@@ -49,7 +46,6 @@
           ];
         };
         middle-vm = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
           modules = [
             disko.nixosModules.disko
             ./hardware/middle-vm.nix
@@ -69,8 +65,8 @@
               installerAuthorizedKey;
         in
         (nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
           modules = [
+            { nixpkgs.hostPlatform = "x86_64-linux"; }
             "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
             {
               isoImage.isoName = "home-vm-installer-${builtins.substring 0 8 (builtins.hashString "sha256" checkedInstallerAuthorizedKey)}.iso";

@@ -38,7 +38,7 @@
     jq
     yq
     fd
-    neofetch
+    fastfetch
     tree
     zellij
     bind
