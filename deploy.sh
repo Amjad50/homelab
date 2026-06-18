@@ -162,7 +162,7 @@ nixos_rebuild() {
 
 build_nix_here() {
     [ "$UPDATE" = true ] && nix flake update --flake "$REPO_ROOT"
-    local args=(switch --flake "$REPO_ROOT#$MACHINE")
+    local args=(switch --install-bootloader --flake "$REPO_ROOT#$MACHINE")
     if [ -n "$SERVER" ]; then
         # --use-remote-sudo: works across the nixos-rebuild versions our `nix run`
         # resolves (older ones lack --sudo). Remote activation runs via sudo on the box.
@@ -195,7 +195,7 @@ build_on_machine() {
     [ "$UPDATE" = true ] && upd="sudo nix flake update --flake '$tmp'; "
     log_step "nixos-rebuild switch on $SERVER"
     # shellcheck disable=SC2029  # intentional remote-side expansion of $tmp/$MACHINE
-    ssh -t "$SERVER" "${upd}sudo nixos-rebuild switch --flake '$tmp#$MACHINE'; rc=\$?; rm -rf '$tmp'; exit \$rc"
+    ssh -t "$SERVER" "${upd}sudo nixos-rebuild switch --install-bootloader --flake '$tmp#$MACHINE'; rc=\$?; rm -rf '$tmp'; exit \$rc"
 }
 
 deploy_full() {
