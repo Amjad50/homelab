@@ -124,6 +124,7 @@ services:
       AI_MODEL: "google/gemini-3.1-flash-lite"
     volumes:
       - /mnt/storage/norish/uploads:/app/uploads
+      - ./yt-dlp.conf:/app/bin/yt-dlp.conf:ro
     networks:
       - traefik
       - norish
