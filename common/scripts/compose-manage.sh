@@ -153,6 +153,125 @@ cmd_pull() {
   fi
 }
 
+# Stacks never touched by `update` (pinned on purpose, or updated by hand).
+UPDATE_SKIP=(
+  traefik
+)
+
+# Digest of the pinned tag from the registry. Manifest-only request — cheap and
+# never resolves to a different tag, so postgres:15 can't surface as 18.
+remote_digest() {
+  regctl image digest --list "$1" 2>/dev/null
+}
+
+# RepoDigests of the locally-present image for the pinned tag.
+local_digest() {
+  docker image inspect "$1" --format '{{join .RepoDigests "\n"}}' 2>/dev/null
+}
+
+update_skipped() {
+  local name=$1 s
+  for s in "${UPDATE_SKIP[@]}"; do [[ "$name" == "$s" ]] && return 0; done
+  return 1
+}
+
+# Unique images of a stack. Prefers running containers (exact, resolved tags,
+# no env_file needed); falls back to the compose YAML when the stack is down.
+stack_images() {
+  local name=$1 imgs
+  imgs=$(docker ps -a --filter "label=com.docker.compose.project=$name" \
+    --format '{{.Image}}' 2>/dev/null | sed '/^$/d' | sort -u)
+  if [[ -z "$imgs" ]]; then
+    imgs=$(grep -hE '^\s*image:' "$COMPOSE_ROOT/$name/docker-compose.yml" 2>/dev/null |
+      sed -E 's/^\s*image:\s*//; s/^["'\'']//; s/["'\'']\s*$//' |
+      sed -E 's/\$\{[^:}]+:-([^}]+)\}/\1/g' | sed '/\$/d' | sort -u)
+  fi
+  printf '%s\n' "$imgs"
+}
+
+cmd_update() {
+  local check_only=false
+  [[ "${1:-}" == "--check" ]] && { check_only=true; shift; }
+
+  local -a targets
+  if [[ $# -gt 0 ]]; then
+    for name in "$@"; do require_service "$name"; done
+    targets=("$@")
+  else
+    mapfile -t targets < <(registry_services | sort)
+  fi
+
+  local -a updated=() report=()
+  local name
+
+  for name in "${targets[@]}"; do
+    update_skipped "$name" && { info "[SKIP] $name (pinned)"; continue; }
+
+    local -a outdated=()
+    local image
+    while read -r image; do
+      [[ -z "$image" ]] && continue
+      local remote have
+      remote=$(remote_digest "$image")
+      if [[ -z "$remote" ]]; then
+        warn "[WARN] $name: no remote digest for $image"
+        continue
+      fi
+      have=$(local_digest "$image")
+      if [[ "$have" == *"$remote"* ]]; then
+        echo -e "  ${GREEN}✓${NC} $name: $image"
+      else
+        warn "  ↑ $name: $image (update available)"
+        outdated+=("$image")
+      fi
+    done < <(stack_images "$name")
+
+    [[ ${#outdated[@]} -eq 0 ]] && continue
+    $check_only && continue
+
+    cd "$COMPOSE_ROOT/$name" || { err "$name: missing stack dir"; continue; }
+
+    local pulled=true
+    for image in "${outdated[@]}"; do
+      info "[PULL] $name: $image"
+      sudo -u dock docker pull "$image" || { err "$name: pull failed for $image"; pulled=false; }
+    done
+    $pulled || continue
+
+    info "[RESTART] $name"
+    if sudo -u dock docker compose up -d --remove-orphans; then
+      updated+=("$name")
+      local img
+      for img in "${outdated[@]}"; do report+=("  $name: $(basename "$img")"); done
+    else
+      err "$name: up -d failed"
+    fi
+  done
+
+  if [[ ${#updated[@]} -gt 0 ]]; then
+    success "Updated: ${updated[*]}"
+    update_notify "${report[@]}"
+  else
+    $check_only || success "Everything up to date"
+  fi
+}
+
+# ntfy only on a committed update, reusing the homelab ntfy env.
+update_notify() {
+  local env_file=/var/lib/dock/ntfy-client.env
+  [[ -r "$env_file" ]] || return 0
+  # shellcheck disable=SC1090
+  source "$env_file"
+  [[ -n "${NTFY_TOKEN:-}" ]] || return 0
+  local body; body=$(printf '%s\n' "$@")
+  curl -fsS \
+    -H "Authorization: Bearer ${NTFY_TOKEN}" \
+    -H "Title: Containers updated on $(hostname)" \
+    -H "Tags: arrow_up,whale" \
+    -d "$body" \
+    "${NTFY_URL%/}/${NTFY_TOPIC}" >/dev/null || true
+}
+
 cmd_help() {
   info "Docker Compose Services Manager"
   echo ""
@@ -174,6 +293,7 @@ cmd_help() {
   echo "  exec <svc> <ctr> <cmd...>   - Execute command in container"
   echo "  ps [service]                - Show running containers"
   echo "  pull [--up] [services...]   - Pull images (--up to restart if running)"
+  echo "  update [--check] [svc...]   - Digest-check pinned tags; pull+restart only changed (--check: console only, no pull/notify)"
 }
 
 # --- Main ---
@@ -194,6 +314,7 @@ case "${1:-}" in
   exec)            shift; cmd_exec "$@" ;;
   ps)              cmd_ps "${2:-}" ;;
   pull)            shift; cmd_pull "$@" ;;
+  update)          shift; cmd_update "$@" ;;
   unlock)          cmd_unlock ;;
   lock)            cmd_lock ;;
   *)               cmd_help ;;

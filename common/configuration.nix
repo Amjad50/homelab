@@ -17,6 +17,7 @@
     ./modules/users.nix
     ./modules/docker.nix
     ./modules/compose-services.nix
+    ./modules/compose-update.nix
     ./modules/service-registry.nix
     ./modules/notifications.nix
   ];

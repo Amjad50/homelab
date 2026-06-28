@@ -77,6 +77,9 @@ in
 
   # Install management scripts
   config.environment.systemPackages = with pkgs; [
+    # `compose-manage update` reads pinned-tag digests from registries.
+    regclient
+
     # Main management script from external file
     (writeShellScriptBin "compose-manage" (builtins.readFile ../scripts/compose-manage.sh))
 
