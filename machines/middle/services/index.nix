@@ -159,7 +159,7 @@
           content = ''
             server:
               listenAddress: ":80"
-              exposedAddress: "https://netbird.home.amsh.dev:443"
+              exposedAddress: "https://netbird.leaf-svc.cc:443"
               stunPorts:
                 - 3480
               metricsPort: 9090
@@ -170,10 +170,15 @@
               authSecret: "${config.sops.placeholder.netbird-relay-auth-secret}"
               dataDir: "/var/lib/netbird"
               auth:
-                issuer: "https://netbird.home.amsh.dev/oauth2"
+                issuer: "https://netbird.leaf-svc.cc/oauth2"
                 localAuthDisabled: true
                 signKeyRefreshEnabled: true
+                # Both domains registered during the amsh.dev -> leaf-svc.cc migration
+                # so the dashboard authenticates on either host. Drop the amsh.dev
+                # entries once all clients have reconnected on leaf-svc.cc.
                 dashboardRedirectURIs:
+                  - "https://netbird.leaf-svc.cc/nb-auth"
+                  - "https://netbird.leaf-svc.cc/nb-silent-auth"
                   - "https://netbird.home.amsh.dev/nb-auth"
                   - "https://netbird.home.amsh.dev/nb-silent-auth"
                 cliRedirectURIs:
@@ -192,12 +197,12 @@
           owner = "dock"; group = "docker"; mode = "0400";
           path = "/var/lib/dock/netbird-dashboard.env";
           content = ''
-            NETBIRD_MGMT_API_ENDPOINT=https://netbird.home.amsh.dev
-            NETBIRD_MGMT_GRPC_API_ENDPOINT=https://netbird.home.amsh.dev
+            NETBIRD_MGMT_API_ENDPOINT=https://netbird.leaf-svc.cc
+            NETBIRD_MGMT_GRPC_API_ENDPOINT=https://netbird.leaf-svc.cc
             AUTH_AUDIENCE=netbird-dashboard
             AUTH_CLIENT_ID=netbird-dashboard
             AUTH_CLIENT_SECRET=
-            AUTH_AUTHORITY=https://netbird.home.amsh.dev/oauth2
+            AUTH_AUTHORITY=https://netbird.leaf-svc.cc/oauth2
             USE_AUTH0=false
             AUTH_SUPPORTED_SCOPES=openid profile email groups
             AUTH_REDIRECT_URI=/nb-auth

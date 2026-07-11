@@ -6,11 +6,6 @@ http:
     # Security headers
     secure-headers:
       headers:
-        accessControlAllowMethods:
-          - GET
-          - OPTIONS
-          - PUT
-        accessControlMaxAge: 100
         hostsProxyHeaders:
           - "X-Forwarded-Host"
           - "X-Forwarded-Proto"
@@ -46,6 +41,32 @@ http:
           - "100.97.0.0/16" # NetBird
           - "fd42:ba4b:da3d:8f27::/64" # NetBird
           - "149.118.147.243/32" # middle's own public ip
+
+    # CORS for the NetBird management API. The dashboard bakes in one absolute
+    # API endpoint (netbird.leaf-svc.cc), so loading the dashboard from the
+    # alternate host (netbird.home.amsh.dev) makes cross-origin /api calls. The
+    # management server emits no Access-Control-Allow-Origin itself, so add it
+    # here for both dashboard origins.
+    netbird-api-cors:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - PATCH
+          - OPTIONS
+        # Explicit headers (not "*"): the spec forbids wildcard when credentials
+        # are allowed, and the dashboard sends Authorization + Content-Type.
+        accessControlAllowHeaders:
+          - "Authorization"
+          - "Content-Type"
+        accessControlAllowOriginList:
+          - "https://netbird.leaf-svc.cc"
+          - "https://netbird.home.amsh.dev"
+        accessControlAllowCredentials: true
+        accessControlMaxAge: 100
+        addVaryHeader: true
 
     # Chain multiple middlewares
     default-chain:
