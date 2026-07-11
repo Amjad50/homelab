@@ -35,12 +35,6 @@ services:
       - CLOUDFLARE_EMAIL_FILE=/run/secrets/cloudflare-email
       - CLOUDFLARE_DNS_API_TOKEN_FILE=/run/secrets/cloudflare-dns-api-token
       - CLOUDFLARE_ZONE_API_TOKEN_FILE=/run/secrets/cloudflare-zone-api-token
-    labels:
-      # Dashboard
-      - "traefik.enable=true"
-      - "traefik.http.routers.traefik.rule=Host(`traefik.home.amsh.dev`)"
-      - "traefik.http.routers.traefik.service=api@internal"
-      - "traefik.http.routers.traefik.middlewares=default-chain@file,oauth2-auth@docker"
     extra_hosts:
       - "host.docker.internal:127.0.0.1"
     healthcheck:
