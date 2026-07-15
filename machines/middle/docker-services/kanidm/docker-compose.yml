@@ -28,6 +28,8 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ./config/server.toml:/data/server.toml:ro
+      # Reskin kanidm's Bootstrap UI to match the admin-ui design (orange).
+      - ./config/override.css:/hpkg/override.css:ro
       - kanidm_data:/data
     environment:
       TZ: "Asia/Kuala_Lumpur"
