@@ -9,10 +9,8 @@ The system manages Docker Compose services in `/opt/docker-services/`. Each dire
 ### Home Machine
 - **traefik** - Reverse proxy (internal port 8080)
 - **fireflyiii** - Personal finance manager
-- **blinko** - Note-taking app with PostgreSQL
 - **memos** - Memo service with Telegram bot
 - **minio** - S3-compatible object storage
-- **n8n** - Workflow automation platform
 
 ### Middle Machine
 - **traefik** - Reverse proxy with HTTPS (ports 80/443)

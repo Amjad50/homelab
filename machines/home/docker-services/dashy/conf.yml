@@ -123,13 +123,6 @@ sections:
         # Sabled — see calibre comment above.
         statusCheck: false
         id: 0_1704_fireflyiii
-      - title: Blinko
-        description: Note Taking
-        icon: sh-blinko
-        url: https://blinko.home.amsh.dev
-        # Sabled — see calibre comment above.
-        statusCheck: false
-        id: 1_1704_blinko
       # - title: Memos
       #   description: Memo Service
       #   icon: hl-memos
@@ -192,13 +185,6 @@ sections:
         icon: sh-opencloud
         url: https://opencloud.home.amsh.dev
         id: 11_1704_opencloud
-      - title: Plane
-        description: Project management — issues, sprints, docs
-        icon: hl-plane
-        url: https://plane.home.amsh.dev
-        statusCheck: true
-        statusCheckUrl: http://plane-proxy:80
-        id: 12_1704_plane
       - title: Huly
         description: All-in-one project management & team collaboration
         icon: https://raw.githubusercontent.com/hcengineering/platform/c36dd74fef9801090082dceb738755b47a63be8a/dev/prod/public/huly/apple-touch-icon.png
@@ -249,13 +235,6 @@ sections:
       #   statusCheck: true
       #   statusCheckUrl: http://minio:9000/minio/health/live
       #   id: 0_1884_minio
-      - title: n8n
-        description: Workflow Automation
-        icon: hl-n8n
-        url: https://n8n.home.amsh.dev
-        # Sabled — see calibre comment above.
-        statusCheck: false
-        id: 1_1884_nn
       - title: Syncthing
         description: File Synchronization
         icon: hl-syncthing

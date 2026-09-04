@@ -31,7 +31,7 @@ Each machine has its own directory in `machines/MACHINE_NAME/`:
 - `secrets.yaml` - Machine-specific encrypted secrets generated locally and ignored by Git
 
 ### Home Machine (`machines/home/`)
-Services: traefik, fireflyiii, blinko, memos, minio, n8n, immich, linkwarden, solidtime, infisical, and others
+Services: traefik, fireflyiii, memos, minio, immich, linkwarden, solidtime, infisical, and others
 - Internal traefik (port 8080 only)
 - Rathole client configuration
 - Service registry-driven backups and restore metadata
