@@ -29,9 +29,6 @@ services:
       timeout: 3s
       retries: 5
       start_period: 10s
-    labels:
-      - "sablier.enable=true"
-      - "sablier.group=linkwarden"
   linkwarden:
     image: ghcr.io/linkwarden/linkwarden:latest
     container_name: linkwarden
@@ -71,14 +68,6 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.linkwarden.rule=Host(`linkwarden.home.amsh.dev`)"
       - "traefik.http.routers.linkwarden.service=linkwarden"
-      - "traefik.http.routers.linkwarden.middlewares=default-chain@file,sablier-linkwarden"
-      # Sablier scale-to-zero. Wakes app + db together.
-      - "traefik.docker.allownonrunning=true"
-      - "traefik.http.middlewares.sablier-linkwarden.plugin.sablier.group=linkwarden"
-      - "traefik.http.middlewares.sablier-linkwarden.plugin.sablier.sablierUrl=http://sablier:10000"
-      - "traefik.http.middlewares.sablier-linkwarden.plugin.sablier.dynamic.displayName=Linkwarden"
+      - "traefik.http.routers.linkwarden.middlewares=default-chain@file"
       - "traefik.http.services.linkwarden.loadbalancer.server.port=3000"
-      - "sablier.enable=true"
-      - "sablier.group=linkwarden"
-
 
