@@ -189,7 +189,7 @@ build_on_machine() {
     # Copy exactly the git-tracked set (incl. the secrets.yaml exposed via `git add -fN`
     # in deploy_full) and nothing gitignored — skips qcow2 disk images, machines/tests/,
     # result dirs, etc. Authoritative match for what the flake build sees.
-    rsync -a --files-from=<(git -C "$REPO_ROOT" ls-files) \
+    git -C "$REPO_ROOT" ls-files | rsync -a --files-from=- \
         "$REPO_ROOT"/ "$SERVER:$tmp/"
     local upd=""
     [ "$UPDATE" = true ] && upd="sudo nix flake update --flake '$tmp'; "
