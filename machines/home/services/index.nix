@@ -537,7 +537,7 @@
         };
       };
       backup = {
-        group = config.homelab.backups.default;
+        group = config.homelab.backups.opencloud;
         paths = [
           "/mnt/storage/opencloud/config"
           "/mnt/storage/opencloud/data"
@@ -651,6 +651,10 @@
     # Heavy, mostly-static/re-importable media (book library, podcasts,
     # audiobooks). Split out of `default` to keep daily snapshots lean.
     media = {
+      restoreAutoStart = false;
+    };
+
+    opencloud = {
       restoreAutoStart = false;
     };
   };
