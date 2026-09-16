@@ -91,12 +91,15 @@ http:
         - websecure
       priority: 100
 
-    # Solidtime PWA
-    solidtime-favicons-bypass:
-      rule: "Host(`solidtime.home.amsh.dev`) && PathPrefix(`/favicons`)"
+    # Solidtime PWA assets and desktop OAuth/API requests must reach Solidtime
+    # directly. The desktop authenticates API calls with its own bearer token.
+    solidtime-bypass:
+      rule: "Host(`solidtime.home.amsh.dev`) && (PathPrefix(`/favicons`) || Path(`/oauth/token`) || Path(`/api/v1`) || PathPrefix(`/api/v1/`))"
       service: "home-tunnel"
       entryPoints:
         - websecure
+      middlewares:
+        - default-chain
       priority: 100
 
     # Services which have their own authentication
