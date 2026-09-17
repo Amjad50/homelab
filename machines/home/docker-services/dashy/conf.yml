@@ -166,6 +166,13 @@ sections:
         # Sabled — see calibre comment above.
         statusCheck: false
         id: 8_1704_stirlingpdf
+      - title: BentoPDF
+        description: Private browser-based PDF toolkit
+        icon: sh-bentopdf
+        url: https://bento.home.amsh.dev
+        statusCheck: true
+        statusCheckUrl: http://bentopdf:8080/
+        id: 12_1704_bentopdf
       # - title: FreshRSS
       #   description: RSS Feed Reader
       #   icon: hl-freshrss

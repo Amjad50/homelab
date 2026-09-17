@@ -68,6 +68,14 @@ http:
         accessControlMaxAge: 100
         addVaryHeader: true
 
+    # BentoPDF's LibreOffice WASM needs SharedArrayBuffer. Browsers expose it
+    # only when HTTPS responses opt into cross-origin isolation.
+    bentopdf-cross-origin:
+      headers:
+        customResponseHeaders:
+          Cross-Origin-Opener-Policy: "same-origin"
+          Cross-Origin-Embedder-Policy: "require-corp"
+
     # Chain multiple middlewares
     default-chain:
       chain:
@@ -101,6 +109,18 @@ http:
       middlewares:
         - default-chain
       priority: 100
+
+    # Keep BentoPDF behind Kanidm while preserving the cross-origin isolation
+    # headers required by its browser-side LibreOffice runtime.
+    bentopdf:
+      rule: "Host(`bento.home.amsh.dev`)"
+      service: "home-tunnel"
+      entryPoints:
+        - websecure
+      middlewares:
+        - oauth2-auth@docker
+        - bentopdf-cross-origin
+      priority: 20
 
     # Services which have their own authentication
     # and may need to bypass OAuth2
@@ -144,6 +164,7 @@ http:
               - "onlyoffice.home.amsh.dev"
               - "shelfmark.home.amsh.dev"
               - "pdf.home.amsh.dev"
+              - "bento.home.amsh.dev"
       middlewares:
         - oauth2-auth@docker
       priority: 1

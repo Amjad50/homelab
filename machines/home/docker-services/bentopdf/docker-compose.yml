@@ -1,0 +1,27 @@
+networks:
+  traefik:
+    external: true
+
+services:
+  bentopdf:
+    image: ghcr.io/alam00000/bentopdf-simple:latest
+    container_name: bentopdf
+    restart: unless-stopped
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.bentopdf.rule=Host(`bento.home.amsh.dev`)"
+      - "traefik.http.routers.bentopdf.service=bentopdf"
+      - "traefik.http.routers.bentopdf.middlewares=default-chain@file,bentopdf-cross-origin"
+      - "traefik.http.services.bentopdf.loadbalancer.server.port=8080"
+      # LibreOffice WASM requires a cross-origin-isolated HTTPS context.
+      # The image sends these too; enforce them here so they survive proxying.
+      - "traefik.http.middlewares.bentopdf-cross-origin.headers.customresponseheaders.Cross-Origin-Opener-Policy=same-origin"
+      - "traefik.http.middlewares.bentopdf-cross-origin.headers.customresponseheaders.Cross-Origin-Embedder-Policy=require-corp"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8080/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
