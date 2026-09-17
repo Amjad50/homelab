@@ -32,12 +32,14 @@ services:
       - traefik
     volumes:
       - tessdata:/usr/share/tessdata # Required for extra OCR languages
+      # Settings, users, the H2 database, JWT keys, and application SQL backups.
+      - /mnt/storage/stirling-pdf/configs:/configs
       - /var/log/stirlingpdf:/logs/
       # - ./StirlingPDF/customFiles:/customFiles/
       # - ./StirlingPDF/pipeline:/pipeline/
     environment:
-      # OAuth2 SSO moved to paid tier; auth is now handled by oauth2-proxy at
-      # the middle traefik (pdf.home.amsh.dev falls through to home-fallback).
+      # Kanidm/oauth2-proxy is the access gate. Native login is unnecessary for
+      # the browser-local workspace, and native OIDC requires a paid license.
       - DISABLE_ADDITIONAL_FEATURES=false
       - LANGS=en_US
       - SECURITY_ENABLELOGIN=false

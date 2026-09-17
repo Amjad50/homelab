@@ -147,6 +147,16 @@
     };
 
     stirling-pdf = {
+      # Stirling runs as UID/GID 1000 and stores its settings, user database,
+      # JWT keys, and internal SQL backups under /configs.
+      tmpfiles = [
+        "v /mnt/storage/stirling-pdf 0750 1000 1000 - -"
+        "d /mnt/storage/stirling-pdf/configs 0750 1000 1000 - -"
+      ];
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [ "/mnt/storage/stirling-pdf/configs" ];
+      };
     };
 
     media-stack = {
