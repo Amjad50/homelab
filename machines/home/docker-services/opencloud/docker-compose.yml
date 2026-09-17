@@ -85,6 +85,10 @@ services:
       # so uploads finalize without a scan that can fail. Re-add "virusscan" only
       # after the event-bus saturation is addressed.
       POSTPROCESSING_STEPS: ""
+      # Search runs in a separate container, so storage-users must advertise a
+      # data endpoint that is reachable across the OpenCloud network.
+      STORAGE_USERS_HTTP_ADDR: "0.0.0.0:9158"
+      STORAGE_USERS_DATA_SERVER_URL: "http://opencloud:9158/data"
       STORAGE_USERS_DATA_GATEWAY_URL: "http://opencloud:9200/data"
       ANTIVIRUS_MAX_SCAN_SIZE: 100MB
       ANTIVIRUS_INFECTED_FILE_HANDLING: abort
@@ -158,9 +162,12 @@ services:
     user: 1000:1000
     networks:
       - opencloud
+      # The gateway currently registers its address from this network. Search
+      # needs the same attachment to reach the advertised gRPC endpoint.
+      - traefik
     depends_on:
       opencloud:
-        condition: service_started
+        condition: service_healthy
       tika:
         condition: service_healthy
     entrypoint:
@@ -185,6 +192,12 @@ services:
       # cap fulltext extraction per file; default 20MB was too generous for this box
       SEARCH_CONTENT_EXTRACTION_SIZE_LIMIT: "10485760"
       GOGC: "50"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 9220"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     volumes:
       - /mnt/storage/opencloud/config:/etc/opencloud
       - /mnt/storage/opencloud/data:/var/lib/opencloud
@@ -202,7 +215,7 @@ services:
       - traefik
     depends_on:
       opencloud:
-        condition: service_started
+        condition: service_healthy
       onlyoffice:
         condition: service_healthy
     entrypoint:
