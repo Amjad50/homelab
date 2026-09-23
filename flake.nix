@@ -8,10 +8,13 @@
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "nixpkgs";
+    microvm.url = "github:microvm-nix/microvm.nix";
+    microvm.inputs.nixpkgs.follows = "nixpkgs";
+    hermes-agent.url = "github:NousResearch/hermes-agent";
   };
 
   outputs =
-    { self, nixpkgs, nixpkgs-unstable, sops-nix, disko }:
+    { self, nixpkgs, nixpkgs-unstable, sops-nix, disko, microvm, hermes-agent }:
     let
       lib = nixpkgs.lib;
     in
@@ -28,7 +31,9 @@
           ];
         };
         home = nixpkgs.lib.nixosSystem {
+          specialArgs = { inherit microvm hermes-agent; };
           modules = [
+            microvm.nixosModules.host
             disko.nixosModules.disko
             ./hardware/home.nix
             ./common/configuration.nix
@@ -55,6 +60,7 @@
           ];
         };
       };
+      packages.x86_64-linux.hermes-vm = self.nixosConfigurations.home.config.microvm.vms.hermes.config.config.microvm.declaredRunner;
       packages.x86_64-linux.installer-iso =
         let
           installerAuthorizedKey = builtins.getEnv "VM_INSTALLER_AUTHORIZED_KEY";

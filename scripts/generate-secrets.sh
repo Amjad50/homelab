@@ -7,6 +7,8 @@
 # No AGE_KEY env vars needed; sops auto-selects recipients based on output file path.
 
 set -euo pipefail
+umask 077
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 
 # Colors for output
 RED='\033[0;31m'
@@ -37,10 +39,11 @@ check_dependencies() {
     if ! command -v openssl &>/dev/null; then
         missing_tools+=("openssl")
     fi
+    command -v jq &>/dev/null || missing_tools+=("jq")
 
     if [ ${#missing_tools[@]} -ne 0 ]; then
         log_error "Missing required tools: ${missing_tools[*]}"
-        log_info "Install with: nix-shell -p sops openssl"
+        log_info "Install with: nix-shell -p sops openssl jq"
         exit 1
     fi
 }
@@ -87,6 +90,16 @@ EOF
 # TARGET: middle, home, both, none
 # GENERATOR: bash command to generate value
 SECRETS=(
+    # Hermes: API administration credentials remain on home, never in the guest.
+    "HERMES_DEEPSEEK_API_KEY|req|none||"
+    "HERMES_TELEGRAM_BOT_TOKEN|req|none||"
+    "HERMES_TELEGRAM_ALLOWED_USERS|req|none||"
+    "HERMES_PUBLIC_HOSTNAME|req|none||"
+    "HERMES_CLOUDFLARE_ACCOUNT_ID|req|none||"
+    "HERMES_CLOUDFLARE_ZONE_ID|req|none||"
+    "HERMES_CLOUDFLARE_API_TOKEN|req|none||"
+    "HERMES_TELEGRAM_WEBHOOK_SECRET|gen|none||openssl rand -hex 32"
+    "HERMES_WEBHOOK_SECRET|gen|none||openssl rand -hex 32"
     # Connection tokens
     "RATHOLE_TOKEN|gen|both|rathole-token|openssl rand -hex 32"
     "RATHOLE_NOISE_PRIVATE|req|middle|rathole-noise-private|"
@@ -241,6 +254,32 @@ generate_machine_yaml() {
             fi
         fi
     done
+    if [[ "$machine" == home ]]; then
+        # Gateway credentials enter the VM; Cloudflare administration stays on home.
+        jq -nr '
+            env as $e | {
+                "hermes-env": ({
+                    DEEPSEEK_API_KEY: $e.HERMES_DEEPSEEK_API_KEY,
+                    TELEGRAM_BOT_TOKEN: $e.HERMES_TELEGRAM_BOT_TOKEN,
+                    TELEGRAM_ALLOWED_USERS: $e.HERMES_TELEGRAM_ALLOWED_USERS,
+                    TELEGRAM_WEBHOOK_URL: ("https://" + $e.HERMES_PUBLIC_HOSTNAME + "/telegram"),
+                    TELEGRAM_WEBHOOK_HOST: "127.0.0.1",
+                    TELEGRAM_WEBHOOK_PORT: "8443",
+                    TELEGRAM_WEBHOOK_SECRET: $e.HERMES_TELEGRAM_WEBHOOK_SECRET,
+                    WEBHOOK_ENABLED: "true",
+                    WEBHOOK_SECRET: $e.HERMES_WEBHOOK_SECRET,
+                    GATEWAY_ALLOW_ALL_USERS: "false",
+                    HERMES_DISABLE_UPDATE_CHECK: "1"
+                } | to_entries | map(.key + "=" + (.value | tojson)) | join("\n") + "\n"),
+                "hermes-provision": ({
+                    cloudflare_account_id: $e.HERMES_CLOUDFLARE_ACCOUNT_ID,
+                    cloudflare_zone_id: $e.HERMES_CLOUDFLARE_ZONE_ID,
+                    cloudflare_api_token: $e.HERMES_CLOUDFLARE_API_TOKEN,
+                    hostname: $e.HERMES_PUBLIC_HOSTNAME
+                } | tojson)
+            } | to_entries[] | .key + ": " + (.value | tojson)
+        '
+    fi
 }
 
 # Encrypt secrets for a machine
@@ -258,18 +297,19 @@ encrypt_secrets() {
     # sops matches the INPUT file path against .sops.yaml creation_rules.
     # Pipe through process substitution isn't supported, so use a named pipe
     # trick: generate plaintext, pipe to sops encrypt with config path override.
-    generate_machine_yaml "$source_machine" | \
+    local encrypted_tmp
+    encrypted_tmp=$(mktemp "${output_file}.XXXXXX")
+    if ! generate_machine_yaml "$source_machine" | \
         sops --encrypt --input-type yaml \
              --config "$(pwd)/.sops.yaml" \
              --filename-override "$output_file" \
-             /dev/stdin >"$output_file"
-
-    if [ $? -eq 0 ]; then
-        log_info "✓ Created $output_file"
-    else
+             /dev/stdin >"$encrypted_tmp"; then
+        rm -f -- "$encrypted_tmp"
         log_error "✗ Failed to create $output_file"
         return 1
     fi
+    mv -- "$encrypted_tmp" "$output_file"
+    log_info "✓ Created $output_file"
 }
 
 # Verify encrypted files can be decrypted
@@ -293,6 +333,7 @@ verify_secrets() {
 
 # Main function
 main() {
+    cd "$SCRIPT_DIR/.."
     echo "=== Secrets Generator ==="
     echo
 
@@ -304,8 +345,7 @@ main() {
     log_info "Status of secrets:"
     for secret in "${SECRETS[@]}"; do
         IFS='|' read -r var_name type target yaml_key generator <<<"$secret"
-        local val="${!var_name}"
-        echo "  - $var_name: ${val:0:16}..."
+        echo "  - $var_name: configured"
     done
     echo
 
@@ -360,4 +400,4 @@ main() {
 }
 
 # Run main function
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then main "$@"; fi

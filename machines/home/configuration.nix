@@ -1,6 +1,7 @@
 { ... }:
 {
   imports = [
+    ./hermes-vm.nix
     ./services/index.nix
     ./networking.nix
     ./swap.nix
