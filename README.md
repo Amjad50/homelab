@@ -13,6 +13,27 @@ compose-manage list
 compose-manage start traefik
 ```
 
+## SSH Access
+
+The repository's [`.ssh/config`](.ssh/config) defines `middle`, `home`, and
+`hermes`. Include it near the start of your personal `~/.ssh/config` (before any
+matching `Host` entries):
+
+```sshconfig
+Include /absolute/path/to/homelab/.ssh/config
+```
+
+Then connect from any directory:
+
+```bash
+ssh middle
+ssh home
+ssh hermes
+```
+
+`hermes` connects through `home`; the VM is not directly reachable from the LAN.
+From the repository without the include, use `ssh -F .ssh/config hermes`.
+
 ## Architecture
 
 ```
