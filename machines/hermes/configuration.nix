@@ -2,6 +2,8 @@
 {
   imports = [
     hermes-agent.nixosModules.default
+    ./runtime.nix
+    ./hermes.nix
     ./networking.nix
     ./cloudflared.nix
   ];
