@@ -10,7 +10,7 @@ services:
     networks:
       - traefik
     ports:
-      # Embedded STUN (3480, coturn owns 3478 and headscale owns 3479)
+      # Embedded STUN (3480; coturn owns 3478)
       - "3480:3480/udp"
     volumes:
       - /storage/netbird/data:/var/lib/netbird

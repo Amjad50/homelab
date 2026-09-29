@@ -113,14 +113,6 @@ SECRETS=(
     # coturn TURN relay (shared static auth secret for TURN REST API)
     "COTURN_STATIC_AUTH_SECRET|gen|middle|coturn-static-auth-secret|openssl rand -hex 32"
 
-    # headscale OIDC client secret (from kanidm) + headplane cookie secret (32 chars)
-    "HEADSCALE_KANIDM_CLIENT_SECRET|req|middle|headscale-kanidm-client-secret|"
-    "HEADPLANE_COOKIE_SECRET|gen|middle|headplane-cookie-secret|openssl rand -base64 32 | tr -d '\n/+=' | cut -c1-32"
-    "HEADPLANE_HEADSCALE_API_KEY|req|middle|headplane-headscale-api-key|"
-
-    # middle's own host-level tailscale node: reusable headscale preauthkey
-    "HEADSCALE_MIDDLE_AUTHKEY|req|middle|headscale-middle-authkey|"
-
     # NetBird self-hosted mesh (combined netbird-server: sqlite store + relay/shared auth)
     # Datastore key must keep base64 padding (Go base64.StdEncoding); relay authSecret strips it.
     "NETBIRD_DATASTORE_ENC_KEY|gen|middle|netbird-datastore-enc-key|openssl rand -base64 32"

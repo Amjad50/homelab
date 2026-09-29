@@ -1,5 +1,4 @@
-# Mesh nodes for middle: headscale (tailscale) + netbird clients, plus a single
-# CoreDNS forwarder bound to both mesh interfaces.
+# NetBird client and CoreDNS forwarder for the mesh.
 { config, pkgs, nixpkgs-unstable, ... }:
 let
   nbIface = "nb-default";
@@ -15,7 +14,7 @@ let
   # Forwarder to AdGuard (answers *.home.amsh.dev), falling back to 1.1.1.1.
   corefile = pkgs.writeText "Corefile" ''
     . {
-        bind tailscale0 ${nbIface}
+        bind ${nbIface}
         forward . 127.0.0.1:5300 1.1.1.1 {
             policy sequential
         }
@@ -25,19 +24,6 @@ let
   '';
 in
 {
-  ## Headscale (tailscale) ----------------------------------------------------
-  sops.secrets.headscale-middle-authkey = {
-    owner = "root";
-    group = "root";
-    mode = "0400";
-  };
-
-  services.tailscale = {
-    enable = true;
-    authKeyFile = config.sops.secrets.headscale-middle-authkey.path;
-    extraUpFlags = [ "--login-server=https://vpn.home.amsh.dev --accept-dns=false" ];
-  };
-
   ## NetBird ------------------------------------------------------------------
   sops.secrets.netbird-middle-setup-key = {
     owner = "root";
@@ -84,11 +70,12 @@ in
     '';
   };
 
-  ## CoreDNS (shared by both meshes) ------------------------------------------
+  ## CoreDNS ------------------------------------------------------------------
   systemd.services.coredns = {
-    description = "CoreDNS mesh forwarder (tailscale + netbird)";
-    after = [ "tailscaled.service" "netbird-default.service" ];
-    wants = [ "tailscaled.service" "netbird-default.service" ];
+    description = "CoreDNS NetBird mesh forwarder";
+    # Bind after NetBird has assigned its mesh address.
+    after = [ "netbird-enroll.service" ];
+    wants = [ "netbird-enroll.service" ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       LimitNPROC = 512;
