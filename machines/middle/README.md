@@ -3,23 +3,23 @@
 ## Services
 
 - **Traefik**: Reverse proxy with HTTPS termination
-- **WG-Easy**: WireGuard VPN management interface
+- **NetBird**: Mesh VPN management and routing
 
 ## Domains
 
 - `traefik.home.amsh.dev` - Traefik dashboard (VPN-only)
-- `wg.home.amsh.dev` - WireGuard management UI (public)
+- `netbird.home.amsh.dev` - NetBird dashboard
 
 ## Ports
 
 - `80/443` - HTTP/HTTPS (Traefik)
-- `51820/udp` - WireGuard VPN
+- `51821/udp` - NetBird client
+- `3480/udp` - NetBird STUN
 
 ## Access
 
 - **Traefik dashboard**: VPN required
-- **WireGuard UI**: Public access
-- **VPN subnet**: `10.8.0.0/24`
+- **Mesh access**: NetBird
 
 ## Quick Commands
 

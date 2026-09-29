@@ -37,7 +37,7 @@ Services: traefik, fireflyiii, memos, minio, immich, linkwarden, solidtime, infi
 - Service registry-driven backups and restore metadata
 
 ### Middle Machine (`machines/middle/`)
-Services: traefik, wg-easy, kanidm, oauth2-proxy, adguard
+Services: traefik, netbird, kanidm, oauth2-proxy, adguard
 - Public traefik (ports 80/443)
 - Rathole server configuration
 - OAuth2 proxy integration

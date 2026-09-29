@@ -37,7 +37,7 @@ in
     autoStart = true;
     openFirewall = true;
     interface = nbIface;
-    # 51820/udp is taken by the netbird-server container on this host.
+    # Preserve the existing client listen port.
     port = 51821;
     # Don't set ManagementURL here: `config` writes it as a string but the daemon needs a url.URL (string = crash); passed via `netbird up --management-url` in netbird-enroll instead.
     config.DisableDNS = true;

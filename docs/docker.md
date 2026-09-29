@@ -14,7 +14,7 @@ The system manages Docker Compose services in `/opt/docker-services/`. Each dire
 
 ### Middle Machine
 - **traefik** - Reverse proxy with HTTPS (ports 80/443)
-- **wg-easy** - WireGuard VPN management
+- **netbird** - Mesh VPN management
 - **kanidm** - Identity management server
 - **oauth2-proxy** - Authentication proxy
 

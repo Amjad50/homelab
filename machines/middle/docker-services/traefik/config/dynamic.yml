@@ -35,7 +35,6 @@ http:
           - "10.0.0.0/8" # Private networks
           - "192.168.0.0/16" # Private networks
           - "127.0.0.1/32" # Localhost
-          - "10.8.0.0/24" # WireGuard VPN subnet (wg-easy)
           - "100.97.0.0/16" # NetBird
           - "fd42:ba4b:da3d:8f27::/64" # NetBird
           - "149.118.147.243/32" # middle's own public ip

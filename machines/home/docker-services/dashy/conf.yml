@@ -321,12 +321,6 @@ sections:
         statusCheck: true
         statusCheckAcceptCodes: "401"
         id: 0_1858_traefikmiddle
-      - title: WG easy
-        description: Wireguard service
-        icon: hl-wireguard
-        url: https://wg.home.amsh.dev
-        statusCheck: false
-        id: 1_1858_wgeasy
       - title: Traefik internal
         description: Reverse Proxy
         icon: hl-traefik

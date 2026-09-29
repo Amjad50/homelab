@@ -5,19 +5,12 @@
   # OCI Ampere box: address via DHCP/RA (no hardcoded public IPs).
   networking.useDHCP = lib.mkDefault true;
 
-  # IPv6 NAT support for WireGuard
-  boot.kernelModules = [ "ip6table_nat" ];
-
-  # Firewall - allow web traffic, VPN, and rathole
+  # Firewall - allow web traffic and rathole
   networking.firewall.allowedTCPPorts = [
     80
     443
     2333
   ];
-  networking.firewall.allowedUDPPorts = [
-    51820
-  ];
-
   # Sadly no way to do this in NixOS firewall
   # Allow ports 8080,5001,19999 only from Docker networks (dynamically detect all Docker networks)
   networking.firewall.extraCommands = ''
