@@ -90,8 +90,9 @@ EOF
 # TARGET: middle, home, both, none
 # GENERATOR: bash command to generate value
 SECRETS=(
-    # Hermes: API administration credentials remain on home, never in the guest.
+    # Hermes gateway keys enter the VM; Cloudflare administration stays on home.
     "HERMES_DEEPSEEK_API_KEY|req|none||"
+    "HERMES_GROQ_API_KEY|req|none||"
     "HERMES_TELEGRAM_BOT_TOKEN|req|none||"
     "HERMES_TELEGRAM_ALLOWED_USERS|req|none||"
     "HERMES_PUBLIC_HOSTNAME|req|none||"
@@ -260,6 +261,7 @@ generate_machine_yaml() {
             env as $e | {
                 "hermes-env": ({
                     DEEPSEEK_API_KEY: $e.HERMES_DEEPSEEK_API_KEY,
+                    GROQ_API_KEY: $e.HERMES_GROQ_API_KEY,
                     TELEGRAM_BOT_TOKEN: $e.HERMES_TELEGRAM_BOT_TOKEN,
                     TELEGRAM_ALLOWED_USERS: $e.HERMES_TELEGRAM_ALLOWED_USERS,
                     TELEGRAM_WEBHOOK_URL: ("https://" + $e.HERMES_PUBLIC_HOSTNAME + "/telegram"),

@@ -24,15 +24,24 @@
       platform_toolsets = {
         cli = [ "all" ];
         telegram = [ "all" ];
-        # Initial signed notifications may search for context but cannot run
-        # terminal commands, modify files/memory, or interact with browser pages.
         webhook = [ "search" "no_mcp" ];
+      };
+      stt = {
+        enabled = true;
+        provider = "groq";
+        language = "";
+        echo_transcripts = false;
       };
       terminal = {
         backend = "docker";
         docker_image = hermesRuntime.terminalImage;
         docker_mount_cwd_to_workspace = false;
-        docker_volumes = [];
+        # Private VM runtime data, shared across topics and container lifetimes.
+        # Model-facing access is not an external-action approval boundary.
+        docker_volumes = [
+          "/var/lib/hermes-organizer/data:/organizer"
+          "${./organizer}:/opt/hermes-organizer:ro"
+        ];
         docker_forward_env = [];
         docker_env = {};
         env_passthrough = [];
@@ -70,6 +79,14 @@
       };
     };
     hermesHomeFiles."SOUL.md" = ./documents/SOUL.md;
+    # Native cron scripts run on the gateway host, not in the Docker terminal.
+    hermesHomeFiles."scripts/schedule.py" = ./organizer/schedule.py;
+    hermesHomeFiles."scripts/prayer-refresh.py" = ./organizer/prayer-refresh.py;
+    hermesHomeFiles."scripts/bind.py" = ./organizer/bind.py;
+    hermesHomeFiles."skills/secretary/SKILL.md" = ./skills/secretary/SKILL.md;
+    hermesHomeFiles."skills/desk-setup/SKILL.md" = ./skills/desk-setup/SKILL.md;
+    hermesHomeFiles."skills/meeting-discussion/SKILL.md" = ./skills/meeting-discussion/SKILL.md;
+    hermesHomeFiles."skills/project-review/SKILL.md" = ./skills/project-review/SKILL.md;
     documents."AGENTS.md" = ./documents/AGENTS.md;
   };
 }

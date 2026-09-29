@@ -14,6 +14,7 @@ machines/tests/keys/*
 # Nix build results
 result
 result-*
+__pycache__/
 
 # Stray disk images at repo root
 *.qcow2
