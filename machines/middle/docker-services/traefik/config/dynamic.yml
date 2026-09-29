@@ -165,6 +165,7 @@ http:
               - "shelfmark.home.amsh.dev"
               - "pdf.home.amsh.dev"
               - "bento.home.amsh.dev"
+              - "opendesign.home.amsh.dev"
       middlewares:
         - oauth2-auth@docker
       priority: 1

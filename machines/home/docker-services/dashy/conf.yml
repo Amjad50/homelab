@@ -227,6 +227,13 @@ sections:
         # Sabled — see calibre comment above.
         statusCheck: false
         id: 2_1810_cyberchef
+      - title: OpenDesign
+        description: AI design workspace
+        icon: https://raw.githubusercontent.com/nexu-io/open-design/5b19dfa4351b3eed33826ee72746a7c653c23a54/apps/web/public/logo-mark.svg
+        url: https://opendesign.home.amsh.dev
+        statusCheck: true
+        statusCheckUrl: http://opendesign:7456/api/health
+        id: 3_1810_opendesign
   - name: Storage & Automation
     displayData:
       sortBy: alphabetical

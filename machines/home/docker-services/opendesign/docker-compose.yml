@@ -1,0 +1,46 @@
+networks:
+  traefik:
+    external: true
+
+volumes:
+  codex_data:
+
+services:
+  opendesign:
+    build: .
+    container_name: opendesign
+    restart: unless-stopped
+    networks:
+      - traefik
+    environment:
+      NODE_ENV: production
+      OD_BIND_HOST: 0.0.0.0
+      OD_DATA_DIR: /app/.od
+      OD_PORT: "7456"
+      OD_WEB_PORT: "7456"
+      OD_ALLOWED_ORIGINS: https://opendesign.home.amsh.dev
+      # The public Traefik route applies Kanidm/OAuth2 SSO. Do not publish a
+      # host port: that would bypass the SSO gate for the entire API.
+      OD_DISABLE_API_AUTH: "1"
+      # This container cannot create the user namespace needed by Codex bwrap.
+      # The container is the isolation boundary for Codex commands.
+      OD_CODEX_SANDBOX: danger-full-access
+      HOME: /home/open-design
+      CODEX_HOME: /home/open-design/.codex
+    volumes:
+      - /mnt/storage/opendesign/data:/app/.od
+      - codex_data:/home/open-design/.codex
+    tmpfs:
+      - /tmp
+    mem_limit: 2g
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:7456/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.opendesign.rule=Host(`opendesign.home.amsh.dev`)"
+      - "traefik.http.routers.opendesign.middlewares=default-chain@file"
+      - "traefik.http.services.opendesign.loadbalancer.server.port=7456"

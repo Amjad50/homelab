@@ -112,6 +112,20 @@
     bentopdf = {
     };
 
+    opendesign = {
+      tmpfiles = [
+        "v /mnt/storage/opendesign 0750 1001 1001 - -"
+        "d /mnt/storage/opendesign/data 0750 1001 1001 - -"
+      ];
+      backup = {
+        group = config.homelab.backups.default;
+        paths = [ "/mnt/storage/opendesign/data" ];
+        sqlite = [
+          { path = "/mnt/storage/opendesign/data/app.sqlite"; }
+        ];
+      };
+    };
+
     filebrowser = {
       tmpfiles = [
         "v /mnt/storage/filebrowser 0755 1000 1000 - -"
