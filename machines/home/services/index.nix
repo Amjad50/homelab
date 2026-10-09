@@ -184,6 +184,10 @@
         "v /mnt/storage/media/configs 0755 dock docker - -"
         "v /mnt/storage/media/downloads 0755 1000 1000 - -"
         "d /mnt/storage/media/configs/shelfmark 0755 1000 1000 - -"
+        # Seerr uses UID/GID 1000. Keep the legacy path and repair ownership
+        # of existing Jellyseerr files, which the old root container created.
+        "d /mnt/storage/media/configs/jellyseerr 0755 1000 1000 - -"
+        "Z /mnt/storage/media/configs/jellyseerr - 1000 1000 - -"
       ];
       backup = {
         group = config.homelab.backups.default;
