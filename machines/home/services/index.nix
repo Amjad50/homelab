@@ -362,7 +362,9 @@
       tmpfiles = [
         "v /mnt/storage/norish 0755 dock docker - -"
         "d /mnt/storage/norish/postgres 0755 dock docker - -"
-        "d /mnt/storage/norish/redis 0755 dock docker - -"
+        # redis:8-alpine runs as UID 999 / GID 1000. Keep tmpfiles from
+        # resetting ownership and blocking Redis snapshot writes on deploy.
+        "d /mnt/storage/norish/redis 0755 999 1000 - -"
         "d /mnt/storage/norish/uploads 0755 1000 1000 - -"
       ];
       secrets = {
