@@ -151,6 +151,7 @@ SECRETS=(
     "OPENCLOUD_ONLYOFFICE_TOKEN|gen|home|opencloud-onlyoffice-token|openssl rand -hex 32"
     "NORISH_DB_PASSWORD|gen|home|norish-db-password|openssl rand -base64 32 | tr -d '/+=' | cut -c1-32"
     "NORISH_MASTER_KEY|gen|home|norish-master-key|openssl rand -base64 32"
+    "NORISH_OBSCURA_CDP_TOKEN|gen|home|norish-obscura-cdp-token|openssl rand -hex 32"
     "NORISH_KANIDM_CLIENT_SECRET|req|home|norish-kanidm-client-secret|"
     "HULY_SECRET|gen|home|huly-secret|openssl rand -hex 32"
     "HULY_DB_PASSWORD|gen|home|huly-db-password|openssl rand -base64 32 | tr -d '/+=' | cut -c1-32"

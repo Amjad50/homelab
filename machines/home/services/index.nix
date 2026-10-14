@@ -371,6 +371,7 @@
         norish-db-password            = { owner = "dock"; group = "docker"; mode = "0400"; };
         norish-master-key             = { owner = "dock"; group = "docker"; mode = "0400"; };
         norish-kanidm-client-secret   = { owner = "dock"; group = "docker"; mode = "0400"; };
+        norish-obscura-cdp-token      = { owner = "dock"; group = "docker"; mode = "0400"; };
       };
       # Env file: secrets only. DATABASE_URL/REDIS_URL embed the db password
       # so they live here too. All other public config lives in compose.
@@ -383,6 +384,14 @@
           DATABASE_PASSWORD=${config.sops.placeholder.norish-db-password}
           OIDC_CLIENT_SECRET=${config.sops.placeholder.norish-kanidm-client-secret}
           AI_API_KEY=${config.sops.placeholder.openai-api-key}
+        '';
+      };
+      # Share only the browser token with Obscura, not the app's other secrets.
+      templates."norish-obscura.env" = {
+        owner = "dock"; group = "docker"; mode = "0400";
+        path = "/var/lib/dock/norish-obscura.env";
+        content = ''
+          OBSCURA_CDP_TOKEN=${config.sops.placeholder.norish-obscura-cdp-token}
         '';
       };
       backup = {

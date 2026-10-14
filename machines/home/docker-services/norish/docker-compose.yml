@@ -3,6 +3,8 @@ networks:
     external: true
   norish:
     internal: true
+  # Browser needs outbound access to recipe sites; keep DB/Redis internal.
+  norish-browser: {}
 
 services:
   norish-db:
@@ -40,29 +42,16 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
-  norish-chrome:
-    image: zenika/alpine-chrome:latest
-    container_name: norish-chrome
+  norish-obscura:
+    image: norishapp/obscura:0.2.4-norish.1
+    container_name: norish-obscura
     restart: unless-stopped
+    env_file:
+      - path: /var/lib/dock/norish-obscura.env
+        required: true
     networks:
       - norish
-    shm_size: "256m"
-    command:
-      - "--no-sandbox"
-      - "--disable-gpu"
-      - "--disable-dev-shm-usage"
-      - "--disable-features=dbus"
-      - "--remote-debugging-address=0.0.0.0"
-      - "--remote-debugging-port=3000"
-      - "--headless"
-    healthcheck:
-      # Image is FROM scratch-ish — only nc is available. We listen on
-      # 0.0.0.0:3000 (not 127.0.0.1), so probe the same address.
-      test: ["CMD-SHELL", "nc -z 0.0.0.0 3000 || exit 1"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-      start_period: 15s
+      - norish-browser
   norish:
     image: norishapp/norish:latest
     container_name: norish
@@ -70,6 +59,8 @@ services:
     user: "1000:1000"
     env_file:
       - path: /var/lib/dock/norish.env
+        required: true
+      - path: /var/lib/dock/norish-obscura.env
         required: true
     environment:
       NODE_ENV: "production"
@@ -80,7 +71,8 @@ services:
       UPLOADS_DIR: "/app/uploads"
 
       # Infra dependencies
-      CHROME_WS_ENDPOINT: "ws://norish-chrome:3000"
+      OBSCURA_ENDPOINT: "ws://norish-obscura:9222"
+      # OBSCURA_CDP_TOKEN: shared with browser through norish-obscura.env
       # DATABASE_PASSWORD from env file
       DATABASE_HOST: "norish-db"
       DATABASE_PORT: "5432"
@@ -121,7 +113,7 @@ services:
         condition: service_healthy
       norish-redis:
         condition: service_healthy
-      norish-chrome:
+      norish-obscura:
         condition: service_started
     healthcheck:
       test:
