@@ -183,6 +183,13 @@ in
 
     repoUrl = "s3:s3.eu-central-003.backblazeb2.com/amsh-homelab-backup/backups/${machine}-daily";
 
+    # Retry individual restic operations, including scheduled backup/prune/check.
+    # Keep retries inside the existing flock rather than retrying whole jobs.
+    resticWithRetry = pkgs.writeShellScriptBin "restic" ''
+      source /etc/homelab/lib.sh
+      retry ${pkgs.restic}/bin/restic "$@"
+    '';
+
     mkResticBackup = groupName: group:
       let
         meta        = groupMeta.${groupName};
@@ -209,15 +216,13 @@ in
           export BACKUP_ROOT=${lib.escapeShellArg artifactDir}
           export SERVICE_ARTIFACT_DIR=${lib.escapeShellArg "${artifactDir}/${hook.service}"}
           mkdir -p "$SERVICE_ARTIFACT_DIR"
-          ${pkgs.bash}/bin/bash -c '
-          set -e
-          ${hook.script}
-          '
+          retry ${pkgs.bash}/bin/bash -e -o pipefail -c ${lib.escapeShellArg hook.script}
         '';
       in {
         repository      = repoUrl;
         passwordFile    = config.sops.secrets.restic-repository-password.path;
         environmentFile = config.sops.templates."restic-s3.env".path;
+        package         = resticWithRetry;
 
         paths = paths;
         exclude = meta.exclude;
@@ -238,6 +243,7 @@ in
         backupPrepareCommand =
           lib.optionalString (hasDumps || hasCustom) ''
             export PATH="${hookPath}"
+            source /etc/homelab/lib.sh
           ''
           + lib.optionalString hasPg ''
             export DUMP_DIR=${lib.escapeShellArg dumpDir}
@@ -290,7 +296,7 @@ in
 
     # Shared env + PATH setup for homelab-backup invocations (both systemd and CLI).
     hlBackupEnv = ''
-      export PATH="${lib.makeBinPath (with pkgs; [ coreutils restic util-linux jq gnused docker systemd bash ])}:/run/current-system/sw/bin:$PATH"
+      export PATH="${lib.makeBinPath ([ resticWithRetry ] ++ (with pkgs; [ coreutils util-linux jq gnused docker systemd bash ]))}:/run/current-system/sw/bin:$PATH"
       export HOMELAB_MACHINE=${lib.escapeShellArg machine}
       export HOMELAB_LOCK=${lib.escapeShellArg lockFile}
       export HOMELAB_REPO=${lib.escapeShellArg repoUrl}

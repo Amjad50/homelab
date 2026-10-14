@@ -65,6 +65,13 @@ The registry also injects the shared restic repository credentials:
 
 ## Operational Notes
 
+- Critical backup and restore operations get three total attempts, with 2s and
+  4s backoff between attempts. This covers SQLite copies, PostgreSQL dumps and
+  restores, container startup, group stop/start, custom hooks, and Restic
+  backup/restore/prune/check commands. Readiness checks retain their polling.
+- Each database retry starts with fresh output; PostgreSQL restore retries
+  recreate the database before importing. Custom hooks must tolerate reruns
+  after a partial failure. Restic retries stay inside the existing backup lock.
 - `restic-locked-<group>` owns scheduling for the group.
 - `homelab-backup` is the runtime CLI name.
 - `homelab.backupJobs.enable = false` disables generated restic backup jobs, locked backup services, and backup timers while keeping restore metadata.

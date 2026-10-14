@@ -22,6 +22,23 @@ set +a
 
 # --- Postgres restore ---
 
+# Retry recreation and import together: each attempt starts with a fresh DB.
+restore_postgres_database() {
+  local stack=$1 compose_svc=$2 database=$3 user=$4 dump_file=$5
+
+  compose-manage exec -T "$stack" "$compose_svc" psql -U "$user" postgres -q -v ON_ERROR_STOP=1 -c "
+    SELECT pg_terminate_backend(pid)
+    FROM pg_stat_activity
+    WHERE datname = '${database}' AND pid <> pg_backend_pid();
+  " >/dev/null || return $?
+
+  compose-manage exec -T "$stack" "$compose_svc" psql -U "$user" postgres -q -v ON_ERROR_STOP=1 \
+    -c "DROP DATABASE IF EXISTS \"${database}\";" \
+    -c "CREATE DATABASE \"${database}\" OWNER \"${user}\";" || return $?
+
+  compose-manage exec -T "$stack" "$compose_svc" psql -U "$user" -d "$database" -q -v ON_ERROR_STOP=1 < "$dump_file"
+}
+
 restore_postgres() {
   local group=$1
   local pg_entries
@@ -51,7 +68,7 @@ restore_postgres() {
     fi
 
     log "[${group}] Starting ${compose_svc} in stack ${stack}"
-    if ! (cd "${COMPOSE_ROOT}/${stack}" && docker compose up -d "$compose_svc"); then
+    if ! retry compose-manage start-container "$stack" "$compose_svc"; then
       log_err "[${group}] Failed to start ${compose_svc}"
       failed=$((failed + 1))
       continue
@@ -72,25 +89,10 @@ restore_postgres() {
 
     log "[${group}] Restoring ${database} in ${stack}/${compose_svc}"
 
-    # Terminate existing connections before dropping
-    compose-manage exec -T "$stack" "$compose_svc" psql -U "$user" postgres -q -c "
-      SELECT pg_terminate_backend(pid)
-      FROM pg_stat_activity
-      WHERE datname = '${database}' AND pid <> pg_backend_pid();
-    " >/dev/null 2>&1 || true
-
-    if ! compose-manage exec -T "$stack" "$compose_svc" psql -U "$user" postgres -q \
-      -c "DROP DATABASE IF EXISTS \"${database}\";" \
-      -c "CREATE DATABASE \"${database}\" OWNER \"${user}\";"; then
-      log_err "[${group}] Failed to recreate database ${database}"
-      failed=$((failed + 1))
-      continue
-    fi
-
     local pg_rc=0
-    compose-manage exec -T "$stack" "$compose_svc" psql -U "$user" -d "$database" -q < "$dump_file" || pg_rc=$?
+    retry restore_postgres_database "$stack" "$compose_svc" "$database" "$user" "$dump_file" || pg_rc=$?
     if (( pg_rc != 0 )); then
-      log_err "[${group}] psql import failed for ${database} (exit ${pg_rc})"
+      log_err "[${group}] Postgres restore failed for ${database} (exit ${pg_rc})"
       failed=$((failed + 1))
       continue
     fi
@@ -134,7 +136,7 @@ restore_custom() {
     tmp=$(mktemp)
     printf '%s\n' "$script" > "$tmp"
     local hook_rc=0
-    bash "$tmp" 2>&1 | sed "s/^/  [${group}:${service}] /" || hook_rc=$?
+    retry bash -e -o pipefail "$tmp" 2>&1 | sed "s/^/  [${group}:${service}] /" || hook_rc=$?
     rm -f -- "$tmp"
     if (( hook_rc != 0 )); then
       log_err "[${group}] custom restore failed for ${service} (exit ${hook_rc})"
@@ -159,7 +161,7 @@ restore_group() {
   sentinel=$(group_sentinel "$group")
 
   log "[${group}] Stopping group services"
-  compose-manage stop-group "$group"
+  retry compose-manage stop-group "$group" || return $?
 
   log "[${group}] Acquiring lock and running restic restore"
   local restic_rc=0
@@ -182,7 +184,7 @@ restore_group() {
     tmp=$(mktemp)
     printf '%s\n' "$script" > "$tmp"
     local post_rc=0
-    bash "$tmp" 2>&1 | sed "s/^/  [${group}] /" || post_rc=$?
+    retry bash -e -o pipefail "$tmp" 2>&1 | sed "s/^/  [${group}] /" || post_rc=$?
     rm -f -- "$tmp"
     if (( post_rc != 0 )); then
       log_err "[${group}] postRestoreScript failed (exit ${post_rc})"
@@ -190,12 +192,12 @@ restore_group() {
     fi
   fi
 
-  mkdir -p "$(dirname "$sentinel")"
-  touch "$sentinel"
+  retry mkdir -p "$(dirname "$sentinel")" || return $?
+  retry touch "$sentinel" || return $?
   log_ok "[${group}] Restore complete — sentinel written to ${sentinel}"
 
   log "[${group}] Starting group services"
-  compose-manage start-group "$group"
+  retry compose-manage start-group "$group"
 }
 
 backup_group() {

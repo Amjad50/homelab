@@ -15,6 +15,11 @@ set -euo pipefail
 
 source /etc/homelab/lib.sh
 
+# A failed VACUUM INTO can leave a partial destination; clear it each attempt.
+vacuum_sqlite() {
+  rm -f "$2" && sqlite3 "$1" "VACUUM INTO '$2'"
+}
+
 for v in DUMP_DIR GROUP_NAME; do
   require_env "$v"
 done
@@ -45,11 +50,8 @@ for entry in "${entries[@]}"; do
     continue
   fi
 
-  # VACUUM INTO requires the destination not to exist.
-  rm -f "$dest"
-
   vac_rc=0
-  sqlite3 "$path" "VACUUM INTO '${dest}'" || vac_rc=$?
+  retry vacuum_sqlite "$path" "$dest" || vac_rc=$?
   if (( vac_rc != 0 )); then
     log_err "[${GROUP_NAME}] VACUUM INTO failed for ${name} (exit ${vac_rc})"
     rm -f "$dest"

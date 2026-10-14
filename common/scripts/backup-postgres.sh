@@ -9,6 +9,12 @@ set -euo pipefail
 
 source /etc/homelab/lib.sh
 
+# Reopen the output on every attempt so a partial dump is never appended to.
+dump_postgres() {
+  local stack=$1 compose_svc=$2 user=$3 database=$4 dump_file=$5
+  compose-manage exec -T "$stack" "$compose_svc" pg_dump -U "$user" "$database" > "$dump_file"
+}
+
 for v in DUMP_DIR GROUP_NAME; do
   require_env "$v"
 done
@@ -33,7 +39,7 @@ for entry in "${entries[@]}"; do
   total=$((total + 1))
   log "[${GROUP_NAME}] Dumping ${database} from ${stack}/${compose_svc}..."
 
-  compose-manage start-container "$stack" "$compose_svc" >/dev/null
+  retry compose-manage start-container "$stack" "$compose_svc" >/dev/null
 
   ready=0
   for _ in $(seq 1 30); do
@@ -50,7 +56,7 @@ for entry in "${entries[@]}"; do
   fi
 
   dump_rc=0
-  compose-manage exec -T "$stack" "$compose_svc" pg_dump -U "$user" "$database" > "$dump_file" || dump_rc=$?
+  retry dump_postgres "$stack" "$compose_svc" "$user" "$database" "$dump_file" || dump_rc=$?
   if (( dump_rc != 0 )); then
     log_err "[${GROUP_NAME}] pg_dump failed for ${database} (exit ${dump_rc})"
     rm -f "$dump_file"

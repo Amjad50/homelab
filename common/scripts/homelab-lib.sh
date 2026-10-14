@@ -26,6 +26,27 @@ log_ok()  { echo -e "${GREEN}✓${NC} $*"; }
 log_err() { echo -e "${RED}✗${NC} $*" >&2; }
 log_warn(){ echo -e "${YELLOW}!${NC} $*"; }
 
+# retry COMMAND [ARG ...] — three total attempts, waiting 2s then 4s.
+# Returns the last command's exit status if all attempts fail.
+retry() {
+  local attempt rc delay=2
+  for attempt in 1 2 3; do
+    if "$@"; then
+      return 0
+    else
+      rc=$?
+    fi
+
+    if (( attempt == 3 )); then
+      return "$rc"
+    fi
+
+    log_warn "Command $1 failed (attempt ${attempt}/3, exit ${rc}); retrying in ${delay}s..." >&2
+    sleep "$delay"
+    delay=$((delay * 2))
+  done
+}
+
 # --- Registry ---
 
 require_meta() {
